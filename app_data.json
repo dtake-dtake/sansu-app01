@@ -31,7 +31,13 @@
       {"name": "たし算とひき算の筆算(1)", "apps": [{"id": "2n-hissan-th1", "title": "たし算とひき算の筆算(1)", "path": "2nen/2nen_hissan_th1.html"}]},
       {"name": "100をこえる数", "apps": [{"id": "2n-100-koeru", "title": "100をこえる数", "path": "2nen/2nen_100_koeru.html"}]},
       {"name": "かさ", "apps": [{"id": "2n-kasa", "title": "かさ", "path": "2nen/2nen_kasa.html"}]},
-      {"name": "かけ算", "apps": [{"id": "kuku-10mondai", "title": "九九（10問）", "path": "2nen/kuku_10mondai.html"}, {"id": "kuku-1dan-barabara", "title": "一の段の九九（ばらばら）", "path": "2nen/kuku_1dan_barabara.html"}, {"id": "2n-kakezan1-drill", "title": "かけ算(1) ドリル", "path": "2nen/2nen_kakezan1_drill.html"}, {"id": "2n-kakezan2-drill", "title": "かけ算(2) ドリル", "path": "2nen/2nen_kakezan2_drill.html"}]},
+      {        "name": "かけ算",
+        "apps": [
+          {"id": "kuku-10mondai", "title": "九九（10問）", "path": "2nen/kuku_10mondai.html"},
+          {"id": "kuku-1dan-barabara", "title": "一の段の九九（ばらばら）", "path": "2nen/kuku_1dan_barabara.html"},
+          {"id": "2n-kakezan1-drill", "title": "かけ算(1) ドリル", "path": "2nen/2nen_kakezan1_drill.html"},
+          {"id": "2n-kakezan2-drill", "title": "かけ算(2) ドリル", "path": "2nen/2nen_kakezan2_drill.html"}
+        ]},
       {"name": "三角形と四角形", "apps": [{"id": "2n-sankakkei-shikakkei", "title": "三角形と四角形", "path": "2nen/2nen_sankakkei_shikakkei.html"}]},
       {"name": "1000をこえる数", "apps": [{"id": "2n-1000-koeru", "title": "1000をこえる数", "path": "2nen/2nen_1000_koeru.html"}]},
       {"name": "はこい形", "apps": [{"id": "2n-hako-katachi", "title": "はこい形", "path": "2nen/2nen_hako_katachi.html"}]},
