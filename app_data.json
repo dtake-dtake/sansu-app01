@@ -1,16 +1,25 @@
 [
   {
-    "grade": "1年",
+    "grade": "小学1年",
     "units": [
+      {
+        "name": "たしざん",
+        "apps": [
+          {"id": "make-10-word-problem", "title": "10になるくみあわせ（ことば）", "path": "1nen/make_10_word_problem.html"},
+          {"id": "tashizan-random-field-2-to-10", "title": "たしざんの ちょうせん！", "path": "1nen/tashizan_random_field_3_to_9.html"},
+          {"id": "tashizan-le-10", "title": "こたえが10より大きくないたしざん", "path": "1nen/tashizan_le_10.html"},
+          {"id": "tashizan-make-10", "title": "10になるくみあわせ", "path": "1nen/tashizan_make_10.html"}
+        ]
+      },
       {"name": "ふえたり へったり", "apps": [{"id": "1n-fueru-heru", "title": "ふえたり へったり", "path": "1nen/1nen_fueru_heru.html"}]},
-      {"name": "たしざん", "apps": [{"id": "1n-tashizan1-drill", "title": "たしざん (1) ドリル", "path": "1nen/1nen_tashizan1_drill.html"}, {"id": "1n-tashizan2-drill", "title": "たしざん (2) ドリル", "path": "1nen/1nen_tashizan2_drill.html"}]},
+      {"name": "たしざん（基本的な学習）", "apps": [{"id": "1n-tashizan1-drill", "title": "たしざん (1) ドリル", "path": "1nen/1nen_tashizan1_drill.html"}, {"id": "1n-tashizan2-drill", "title": "たしざん (2) ドリル", "path": "1nen/1nen_tashizan2_drill.html"}]},
       {"name": "ひきざん", "apps": [{"id": "1n-hikizan1-drill", "title": "ひきざん (1) ドリル", "path": "1nen/1nen_hikizan1_drill.html"}, {"id": "1n-hikizan2-drill", "title": "ひきざん (2) ドリル", "path": "1nen/1nen_hikizan2_drill.html"}]},
       {"name": "かずしらべ", "apps": [{"id": "1n-kazu-shirabe", "title": "かずしらべ", "path": "1nen/1nen_kazushirabe.html"}]},
       {"name": "10 より おおきいかず", "apps": [{"id": "1n-10yori-ookii", "title": "10よりおおきいかず", "path": "1nen/1nen_10yori_ookii.html"}]},
       {"name": "なんじなんじはん", "apps": [{"id": "1n-nanji-han", "title": "なんじなんじはん", "path": "1nen/1nen_nanji_han.html"}]},
       {"name": "おおきさくらべ", "apps": [{"id": "1n-ookisakurabe1", "title": "おおきさくらべ (1)", "path": "1nen/1nen_ookisakurabe1.html"}, {"id": "1n-ookisakurabe2", "title": "おおきさくらべ (2)", "path": "1nen/1nen_ookisakurabe2.html"}]},
       {"name": "3つの かずの けいさん", "apps": [{"id": "1n-3kazu-keisan", "title": "3つの かずの けいさん", "path": "1nen/1nen_3kazu_keisan.html"}]},
-      {"name": "かたちづくり", "apps": [{"id": "1n-katachi-zukuri", "title": "かたちづくり", "path": "1nen/1nen_katachi_zukuri.html"}]},
+      {"name": "かたちづくり", "apps": [{"id": "1n-katachi-zukuri", "title": "かたちづくり", "path": "1nen/1nen_katachizukuri.html"}]},
       {"name": "0のたしざんと ひきざん", "apps": [{"id": "1n-zero-keisan", "title": "0のたしざんと ひきざん", "path": "1nen/1nen_zero_keisan.html"}]},
       {"name": "ものとひとのかず", "apps": [{"id": "1n-mono-hito", "title": "ものとひとのかず", "path": "1nen/1nen_mono_hito.html"}]},
       {"name": "大きい かず", "apps": [{"id": "1n-ookii-kazu", "title": "大きい かず", "path": "1nen/1nen_ookii_kazu.html"}]},
@@ -22,7 +31,7 @@
     ]
   },
   {
-    "grade": "2年",
+    "grade": "小学2年",
     "units": [
       {"name": "ひょうと グラフ", "apps": [{"id": "2n-hyo-graph", "title": "ひょうと グラフ", "path": "2nen/2nen_hyo_graph.html"}]},
       {"name": "たし算とひき算", "apps": [{"id": "2n-tashizan-hikizan", "title": "たし算とひき算", "path": "2nen/2nen_tashizan_hikizan.html"}]},
@@ -56,17 +65,15 @@
           {"id": "kuku-9dan-barabara", "title": "九の段の九九（ばらばら）", "path": "2nen/kuku_9dan_barabara.html"}
         ]
       },
-      {"name": "三角形と四角形", "apps": [{"id": "2n-sankakkei-shikakkei", "title": "三角形と四角形", "path": "2nen/2nen_sankakkei_shikakkei.html"}]},
-      {"name": "1000をこえる数", "apps": [{"id": "2n-1000-koeru", "title": "1000をこえる数", "path": "2nen/2nen_1000_koeru.html"}]},
-      {"name": "はこい形", "apps": [{"id": "2n-hako-katachi", "title": "はこい形", "path": "2nen/2nen_hako_katachi.html"}]},
-      {"name": "分数", "apps": [{"id": "2n-bunsu", "title": "分数", "path": "2nen/2nen_bunsu.html"}]},
-      {"name": "かけ算のきまり", "apps": [{"id": "2n-kakezan-kimari", "title": "かけ算のきまり", "path": "2nen/2nen_kakezan_kimari.html"}]},
-      {"name": "100cmをこえる長さ", "apps": [{"id": "2n-100cm-koeru", "title": "100cmをこえる長さ", "path": "2nen/2nen_100cm_koeru.html"}]},
-      {"name": "その他（共通）", "apps": [{"id": "2n-mikata-kangaekata1", "title": "見方・考え方をふかめよう (1)", "path": "common/2nen_mikata_kangaekata1.html"}, {"id": "2n-mikata-kangaekata2", "title": "見方・考え方をふかめよう (2)", "path": "common/2nen_mikata_kangaekata2.html"}, {"id": "2n-mikata-kangaekata3", "title": "見方・考え方をふかめよう (3)", "path": "common/2nen_mikata_kangaekata3.html"}, {"id": "2n-shiki-keisan", "title": "しきと計算", "path": "common/2nen_shiki_keisan.html"}, {"id": "2n-donna-keisan", "title": "どんな計算になるのかな", "path": "common/2nen_donna_keisan.html"}, {"id": "2n-nanbanme", "title": "何番目", "path": "common/2nen_nanbanme.html"}, {"id": "2n-yomitoru-sansu", "title": "よみとる算数", "path": "common/2nen_yomitoru_sansu.html"}, {"id": "2n-programming", "title": "わくわく プログラミング", "path": "common/programming_2nen.html"}, {"id": "2n-mosugu3nen", "title": "もうすぐ3年生", "path": "common/mosugu_3nen.html"}, {"id": "2n-jiyu-kenkyu", "title": "算数のじゆうけんきゅう", "path": "common/sansu_jiyu_kenkyu_2nen.html"}]}
+      {"name": "図をつかって考えよう", "apps": [{"id": "2n-zu-kangaeru", "title": "図をつかって考えよう", "path": "2nen/2nen_zu_kangaeru.html"}]},
+      {"name": "分数", "apps": [{"id": "2n-bunsuu", "title": "分数", "path": "2nen/2nen_bunsuu.html"}]},
+      {"name": "たし算とひき算の筆算(2)", "apps": [{"id": "2n-hissan-th2", "title": "たし算とひき算の筆算(2)", "path": "2nen/2nen_hissan_th2.html"}]},
+      {"name": "三角形と四角形", "apps": [{"id": "2n-sankaku-shikaku", "title": "三角形と四角形", "path": "2nen/2nen_sankaku_shikaku.html"}]},
+      {"name": "その他（共通）", "apps": [{"id": "2n-hyaku-man", "title": "100と1000", "path": "common/2nen_hyaku_man.html"}, {"id": "2n-tsukatte-hyogen", "title": "つかって表そう", "path": "common/2nen_tsukatte_hyogen.html"}, {"id": "2n-mosugu3nen", "title": "もうすぐ3年生", "path": "common/mosugu_3nen.html"}]}
     ]
   },
   {
-    "grade": "3年",
+    "grade": "小学3年",
     "units": [
       {"name": "九九の表とかけ算", "apps": [{"id": "3n-kuku-hyo-kakezan", "title": "九九の表とかけ算", "path": "3nen/3nen_kuku_hyo_kakezan.html"}]},
       {"name": "わり算", "apps": [{"id": "3n-warizan", "title": "わり算", "path": "3nen/3nen_warizan.html"}]},
@@ -92,7 +99,7 @@
     ]
   },
   {
-    "grade": "4年",
+    "grade": "小学4年",
     "units": [
       {"name": "一億をこえる数", "apps": [{"id": "4n-ichioku-koeru", "title": "一億をこえる数", "path": "4nen/4nen_ichioku_koeru.html"}]},
       {"name": "折れ線グラフ", "apps": [{"id": "4n-oresen-graph", "title": "折れ線グラフ", "path": "4nen/4nen_oresen_graph.html"}]},
@@ -107,14 +114,14 @@
       {"name": "分数", "apps": [{"id": "4n-bunsu", "title": "分数", "path": "4nen/4nen_bunsu.html"}]},
       {"name": "変わり方", "apps": [{"id": "4n-kawarikata", "title": "変わり方", "path": "4nen/4nen_kawarikata.html"}]},
       {"name": "直方体と立方体", "apps": [{"id": "4n-chokuhotai-rippotai", "title": "直方体と立方体", "path": "4nen/4nen_chokuhotai_rippotai.html"}]},
-      {"name": "2けたでわるわり算の筆算", "apps": [{"id": "4n-warizan-hissan2", "title": "2けたでわるわり算の筆算", "path": "4nen/4nen_warizan_hissan2.html"}]},
+      {"name": "2けたをかけるかけ算の筆算", "apps": [{"id": "4n-warizan-hissan2", "title": "2けたでわるわり算の筆算", "path": "4nen/4nen_warizan_hissan2.html"}]},
       {"name": "式と計算の順じょ", "apps": [{"id": "4n-shiki-keisan-junjo", "title": "式と計算の順じょ", "path": "4nen/4nen_shiki_keisan_junjo.html"}]},
       {"name": "割合", "apps": [{"id": "4n-wariai", "title": "割合", "path": "4nen/4nen_wariai.html"}]},
       {"name": "その他（共通）", "apps": [{"id": "4n-mitsumori", "title": "見積もりを使って", "path": "common/4nen_mitsumori.html"}, {"id": "4n-jiyu-kenkyu", "title": "算数の自由研究", "path": "common/sansu_jiyu_kenkyu_4nen.html"}, {"id": "4n-mikata-kangaekata1", "title": "見方・考え方を深めよう (1)", "path": "common/4nen_mikata_kangaekata1.html"}, {"id": "4n-mikata-kangaekata2", "title": "見方・考え方を深めよう (2)", "path": "common/4nen_mikata_kangaekata2.html"}, {"id": "4n-donna-keisan", "title": "どんな計算になるのかな", "path": "common/4nen_donna_keisan.html"}, {"id": "4n-dare-desho", "title": "だれでしょう", "path": "common/4nen_dare_desho.html"}, {"id": "4n-programming", "title": "わくわくプログラミング", "path": "common/programming_4nen.html"}, {"id": "4n-sdgs", "title": "わくわく SDGs", "path": "common/sdgs_4nen.html"}, {"id": "4n-mosugu5nen", "title": "もうすぐ5年生", "path": "common/mosugu_5nen.html"}]}
     ]
   },
   {
-    "grade": "5年",
+    "grade": "小学5年",
     "units": [
       {"name": "整数と小数", "apps": [{"id": "5n-seisu-shosu", "title": "整数と小数", "path": "5nen/5nen_seisu_shosu.html"}]},
       {"name": "体積", "apps": [{"id": "5n-taiseki", "title": "体積", "path": "5nen/5nen_taiseki.html"}]},
@@ -134,11 +141,11 @@
       {"name": "角柱と円柱", "apps": [{"id": "5n-kakuchu-enchuu", "title": "角柱と円柱", "path": "5nen/5nen_kakuchu_enchuu.html"}]},
       {"name": "速さ", "apps": [{"id": "5n-hayasa", "title": "速さ", "path": "5nen/5nen_hayasa.html"}]},
       {"name": "変わり方", "apps": [{"id": "5n-kawarikata", "title": "変わり方", "path": "5nen/5nen_kawarikata.html"}]},
-      {"name": "その他（共通）", "apps": [{"id": "5n-mikata-kangaekata1", "title": "見方・考え方を深めよう (1)", "path": "common/5nen_mikata_kangaekata1.html"}, {"id": "5n-donna-keisan", "title": "どんな計算になるのかな", "path": "common/5nen_donna_keisan.html"}, {"id": "5n-jiyu-kenkyu", "title": "算数の自由研究", "path": "common/sansu_jiyu_kenkyu_5nen.html"}, {"id": "5n-mikata-kangaekata2", "title": "見方・考え方を深めよう (2)", "path": "common/5nen_mikata_kangaekata2.html"}, {"id": "5n-hitomoji", "title": "人文字", "path": "common/5nen_hitomoji.html"}, {"id": "5n-mitsumori", "title": "見積もりを使って", "path": "common/5nen_mitsumori.html"}, {"id": "5n-mikata-kangaekata3", "title": "見方・考え方を深めよう (3)", "path": "common/5nen_mikata_kangaekata3.html"}, {"id": "5n-programming", "title": "わくわくプログラミング", "path": "common/programming_5nen.html"}, {"id": "5n-sdgs", "title": "わくわく SDGs", "path": "common/sdgs_5nen.html"}, {"id": "5n-mosugu6nen", "title": "もうすぐ6年生", "path": "common/mosugu_6nen.html"}]}
+      {"name": "その他（共通）", "apps": [{"id": "5n-mikata-kangaekata1", "title": "見方・考え方を深めよう (1)", "path": "common/5nen_mikata_kangaekata1.html"}, {"id": "5n-donna-keisan", "title": "どんな計算になるのかな", "path": "common/5nen_donna_keisan.html"}, {"id": "5n-jiyu-kenkyu", "title": "算数の自由研究", "path": "common/sansu_jiyu_kenkyu_5nen.html"}, {"id": "5n-mikata-kangaekata2", "title": "見方・考え方を深めよう (2)", "path": "common/5nen_mikata_kangaekata2.html"}, {"id": "5n-hitomoji", "title": "人文字", "path": "common/5nen_hitomoji.html"}, {"id": "5n-mitsumori", "title": "見積もりを使って", "path": "common/5nen_mitsumori.html"}, {"id": "5n-mikata-kangaekata3", "title": "見方・考え方を深めよう (3)", "path": "common/mikata_kangaekata3.html"}, {"id": "5n-programming", "title": "わくわくプログラミング", "path": "common/programming_5nen.html"}, {"id": "5n-sdgs", "title": "わくわく SDGs", "path": "common/sdgs_5nen.html"}, {"id": "5n-mosugu6nen", "title": "もうすぐ6年生", "path": "common/mosugu_6nen.html"}]}
     ]
   },
   {
-    "grade": "6年",
+    "grade": "小学6年",
     "units": [
       {"name": "対称な図形", "apps": [{"id": "6n-taisho-zukei", "title": "対称な図形", "path": "6nen/6nen_taisho_zukei.html"}]},
       {"name": "文字と式", "apps": [{"id": "6n-moji-shiki", "title": "文字と式", "path": "6nen/6nen_moji_shiki.html"}]},
@@ -152,7 +159,7 @@
       {"name": "図形の拡大と縮小", "apps": [{"id": "6n-zukei-kakudai-shukusho", "title": "図形の拡大と縮小", "path": "6nen/6nen_zukei_kakudai_shukusho.html"}]},
       {"name": "比例と反比例", "apps": [{"id": "6n-hirei-hanpirei", "title": "比例と反比例", "path": "6nen/6nen_hirei_hanpirei.html"}]},
       {"name": "およその形と大きさ", "apps": [{"id": "6n-oyoso-katachi-ookisa", "title": "およその形と大きさ", "path": "6nen/6nen_oyoso_katachi_ookisa.html"}]},
-      {"name": "その他（共通）", "apps": [{"id": "6n-junjo-seiri", "title": "場合を順序よく整理して", "path": "common/6nen_junjo_seiri.html"}, {"id": "6n-donna-keisan", "title": "どんな計算になるのかな", "path": "common/6nen_donna_keisan.html"}, {"id": "6n-jiyu-kenkyu", "title": "算数の自由研究", "path": "common/sansu_jiyu_kenkyu_6nen.html"}, {"id": "6n-mikata-kangaekata1", "title": "見方・考え方を深めよう (1)", "path": "common/6nen_mikata_kangaekata1.html"}, {"id": "6n-mikata-kangaekata2", "title": "見方・考え方を深めよう (2)", "path": "common/6nen_mikata_kangaekata2.html"}, {"id": "6n-mitsumori", "title": "見積もりを使って", "path": "common/6nen_mitsumori.html"}, {"id": "6n-programming", "title": "わくわくプログラミング", "path": "common/programming_6nen.html"}, {"id": "6n-mikata-kangaekata3", "title": "見方・考え方を深めよう (3)", "path": "common/6nen_mikata_kangaekata3.html"}, {"id": "6n-sugoroku", "title": "すごろく", "path": "common/sugoroku.html"}, {"id": "6n-sdgs", "title": "わくわくSDGs", "path": "common/sdgs_6nen.html"}, {"id": "6n-matome", "title": "6年のまとめ", "path": "common/6nen_matome.html"}, {"id": "6n-mirai-tobira", "title": "未来へのとびら", "path": "common/mirai_tobira.html"}]}
+      {"name": "その他（共通）", "apps": [{"id": "6n-junjo-seiri", "title": "場合を順序よく整理して", "path": "common/6nen_junjo_seiri.html"}, {"id": "6n-donna-keisan", "title": "どんな計算になるのかな", "path": "common/6nen_donna_keisan.html"}, {"id": "6n-jiyu-kenkyu", "title": "算数の自由研究", "path": "common/sansu_jiyu_kenkyu_6nen.html"}, {"id": "6n-mikata-kangaekata1", "title": "見方・考え方を深めよう (1)", "path": "common/6nen_mikata_kangaekata1.html"}, {"id": "6n-mikata-kangaekata2", "title": "見方・考え方を深めよう (2)", "path": "common/6nen_mikata_kangaekata2.html"}, {"id": "6n-mitsumori", "title": "見積もりを使って", "path": "common/6nen_mitsumori.html"}, {"id": "6n-programming", "title": "わくわくプログラミング", "path": "common/programming_6nen.html"}, {"id": "6n-mikata-kangaekata3", "title": "見方・考え方を深めよう (3)", "path": "common/mikata_kangaekata3.html"}, {"id": "6n-sugoroku", "title": "すごろく", "path": "common/sugoroku.html"}, {"id": "6n-sdgs", "title": "わくわくSDGs", "path": "common/sdgs_6nen.html"}, {"id": "6n-matome", "title": "6年のまとめ", "path": "common/6nen_matome.html"}, {"id": "6n-mirai-tobira", "title": "未来へのとびら", "path": "common/mirai_tobira.html"}]}
     ]
   }
 ]
