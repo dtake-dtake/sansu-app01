@@ -3,7 +3,15 @@
     "grade": "1年",
     "units": [
       {"name": "ふえたり へったり", "apps": [{"id": "1n-fueru-heru", "title": "ふえたり へったり", "path": "1nen/1nen_fueru_heru.html"}]},
-      {"name": "たしざん", "apps": [{"id": "1n-tashizan1-drill", "title": "たしざん (1) ドリル", "path": "1nen/1nen_tashizan1_drill.html"}, {"id": "1n-tashizan2-drill", "title": "たしざん (2) ドリル", "path": "1nen/1nen_tashizan2_drill.html"}]},
+    {
+      "name": "たしざん",
+      "apps": [
+        {"id": "make-10-word-problem", "title": "10になるくみあわせ（ことば）", "path": "1nen/make_10_word_problem.html"},
+        {"id": "tashizan-random-field-2-to-10", "title": "たしざんの ちょうせん！", "path": "1nen/tashizan_random_field_3_to_9.html"},
+        {"id": "tashizan-le-10", "title": "こたえが10より大きくないたしざん", "path": "1nen/tashizan_le_10.html"},
+        {"id": "tashizan-make-10", "title": "10になるくみあわせ", "path": "1nen/tashizan_make_10.html"}
+      ]
+    },
       {"name": "ひきざん", "apps": [{"id": "1n-hikizan1-drill", "title": "ひきざん (1) ドリル", "path": "1nen/1nen_hikizan1_drill.html"}, {"id": "1n-hikizan2-drill", "title": "ひきざん (2) ドリル", "path": "1nen/1nen_hikizan2_drill.html"}]},
       {"name": "かずしらべ", "apps": [{"id": "1n-kazu-shirabe", "title": "かずしらべ", "path": "1nen/1nen_kazushirabe.html"}]},
       {"name": "10 より おおきいかず", "apps": [{"id": "1n-10yori-ookii", "title": "10よりおおきいかず", "path": "1nen/1nen_10yori_ookii.html"}]},
