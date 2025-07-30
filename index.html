@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>わくわく算数 アプリインデックス</title>
+    <style>
+        body {
+            font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
+            background: #f0f8ff; /* Light Cyan */
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #1a73e8; /* Google Blue */
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        #grade-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap; /* 折り返しを許可 */
+            gap: 10px; /* ボタン間のスペース */
+        }
+        .grade-tab {
+            background-color: #bbdefb; /* Light Blue 200 */
+            color: #1a237e; /* Indigo 900 */
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            white-space: nowrap; /* テキストが折り返さないように */
+        }
+        .grade-tab:hover {
+            background-color: #90caf9; /* Light Blue 300 */
+            transform: translateY(-2px);
+        }
+        .grade-tab.active {
+            background-color: #2196f3; /* Blue 500 */
+            color: white;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.2);
+        }
+
+        #units-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .unit-section {
+            margin-bottom: 25px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden; /* 子要素のborderRadiusを効かせる */
+        }
+        .unit-section h3 {
+            background-color: #e3f2fd; /* Light Blue 50 */
+            color: #3f51b5; /* Indigo 500 */
+            padding: 15px 25px;
+            margin: 0;
+            font-size: 1.8em;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dcdcdc;
+            transition: background-color 0.2s ease;
+        }
+        .unit-section h3:hover {
+            background-color: #c5e1ff; /* Light Blue 100 */
+        }
+        .unit-section h3 .toggle-icon {
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+        .unit-section.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+        .apps-list {
+            padding: 15px 25px;
+            background-color: #fafafa;
+            border-top: 1px solid #f0f0f0;
+            display: none; /* 初期は非表示 */
+            flex-direction: column; /* 縦並びに変更 */
+            gap: 10px; /* ボタン間のスペース */
+            animation: fadeIn 0.3s ease-out; /* フェードインアニメーション */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .app-item {
+            display: flex; /* アイコン、タイトル、ステータスを横並びにするため */
+            align-items: center;
+            justify-content: space-between; /* 両端揃え */
+            padding: 10px 15px;
+            background-color: #e8f5e9; /* Light Green 50 */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.2s ease;
+            text-decoration: none; /* aタグのスタイルをリセット */
+            color: #333; /* デフォルトの文字色 */
+        }
+        .app-item:hover {
+            background-color: #c8e6c9; /* Light Green 100 */
+        }
+
+        .app-title-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1; /* スペースを占有 */
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .app-status-section {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* スコアと星の間のスペース */
+            font-size: 1.1em;
+            white-space: nowrap; /* 折り返しを防ぐ */
+        }
+
+        .app-score {
+            color: #4CAF50; /* Green 500 */
+            font-weight: bold;
+        }
+        .app-stars {
+            color: gold; /* 金色の星 */
+            font-weight: bold;
+            font-size: 1.3em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .app-stars.no-data {
+            color: #9e9e9e; /* Grey 500 */
+            font-size: 1.1em;
+            text-shadow: none;
+        }
+
+        /* スマートフォン向け調整 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 2.2em;
+            }
+            .grade-tab {
+                padding: 10px 18px;
+                font-size: 1.2em;
+            }
+            #units-container {
+                padding: 20px;
+            }
+            .unit-section h3 {
+                font-size: 1.5em;
+                padding: 12px 20px;
+            }
+            .apps-list {
+                padding: 10px 20px;
+            }
+            .app-item {
+                flex-direction: column; /* スマートフォンでは縦並び */
+                align-items: flex-start; /* 左寄せ */
+                gap: 5px;
+            }
+            .app-title-section {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .app-status-section {
+                width: 100%;
+                justify-content: flex-end; /* 右寄せ */
+                font-size: 1em;
+            }
+            .app-stars {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>わくわく算数 アプリインデックス</h1>
+
+    <div id="grade-tabs">
+        </div>
+
+    <div id="units-container">
+        </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gradeTabsContainer = document.getElementById('grade-tabs');
+            const unitsContainer = document.getElementById('units-container');
+
+            // localStorageからアプリの統計情報を読み込む関数
+            function getAppStats(appId) {
+                // 各アプリのHTMLでAPP_NSが 'アプリID_' の形式になっていることを想定
+                const highScore = localStorage.getItem(`${appId}_highScore`);
+                const overallStatus = localStorage.getItem(`${appId}_overallStatus`);
+                return {
+                    highScore: highScore ? parseInt(highScore) : null,
+                    overallStatus: overallStatus || null
+                };
+            }
+
+            // UIの初期化と表示ロジックをまとめた関数
+            function initializeUI(appData) {
+                // 学年タブの生成
+                appData.forEach((gradeData, index) => {
+                    const tab = document.createElement('button');
+                    tab.textContent = gradeData.grade;
+                    tab.classList.add('grade-tab');
+                    if (index === 0) tab.classList.add('active'); // 初期選択
+                    tab.addEventListener('click', () => {
+                        // 全てのタブのアクティブ状態を解除
+                        document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+                        // クリックされたタブをアクティブに
+                        tab.classList.add('active');
+                        displayUnits(gradeData.units);
+                    });
+                    gradeTabsContainer.appendChild(tab);
+                });
+
+                // 初期表示として最初の学年の単元を表示
+                if (appData.length > 0) {
+                    displayUnits(appData[0].units);
+                }
+            }
+
+            // 単元とアプリを表示する関数
+            function displayUnits(units) {
+                unitsContainer.innerHTML = ''; // 既存の単元リストをクリア
+
+                units.forEach(unit => {
+                    const unitSection = document.createElement('div');
+                    unitSection.classList.add('unit-section');
+                    
+                    const unitHeader = document.createElement('h3');
+                    unitHeader.innerHTML = `${unit.name} <span class="toggle-icon">▼</span>`;
+                    unitSection.appendChild(unitHeader);
+                    
+                    const appsList = document.createElement('div');
+                    appsList.classList.add('apps-list');
+                    appsList.style.display = 'none'; // 初期は非表示
+
+                    if (unit.apps && unit.apps.length > 0) {
+                        unit.apps.forEach(app => {
+                            const appItem = document.createElement('a'); // aタグ全体をアプリ項目に
+                            appItem.href = app.path;
+                            appItem.classList.add('app-item');
+                            appItem.id = `app-${app.id}`; // ここでid属性を設定！
+
+                            const appTitleSection = document.createElement('div');
+                            appTitleSection.classList.add('app-title-section');
+                            appTitleSection.textContent = app.title; // アプリタイトル
+
+                            const appStatusSection = document.createElement('div');
+                            appStatusSection.classList.add('app-status-section');
+
+                            // ハイスコアとステータスを読み込む
+                            const stats = getAppStats(app.id);
+                            
+                            const scoreSpan = document.createElement('span');
+                            scoreSpan.classList.add('app-score');
+                            scoreSpan.textContent = `ハイスコア: ${stats.highScore !== null ? stats.highScore + '点' : '-'}`;
+                            appStatusSection.appendChild(scoreSpan);
+
+                            const starsSpan = document.createElement('span');
+                            starsSpan.classList.add('app-stars');
+                            if (stats.overallStatus) {
+                                starsSpan.innerHTML = stats.overallStatus;
+                            } else {
+                                starsSpan.textContent = '―';
+                                starsSpan.classList.add('no-data'); // データがない場合のスタイル
+                            }
+                            appStatusSection.appendChild(starsSpan);
+
+                            appItem.appendChild(appTitleSection);
+                            appItem.appendChild(appStatusSection);
+                            appsList.appendChild(appItem);
+                        });
+                    } else {
+                        // アプリがない場合の表示
+                        const noAppText = document.createElement('p');
+                        noAppText.textContent = "この単元のアプリはまだありません。";
+                        noAppText.style.fontSize = "1.2em";
+                        noAppText.style.color = "#666";
+                        noAppText.style.padding = "10px 0";
+                        appsList.appendChild(noAppText);
+                    }
+
+
+                    unitSection.appendChild(appsList);
+                    unitsContainer.appendChild(unitSection);
+
+                    // トグル機能
+                    unitHeader.addEventListener('click', () => {
+                        const icon = unitSection.querySelector('.toggle-icon');
+                        if (appsList.style.display === 'none') {
+                            // 全ての開いているアプリリストを閉じる
+                            document.querySelectorAll('.apps-list').forEach(list => list.style.display = 'none');
+                            document.querySelectorAll('.unit-section').forEach(section => section.classList.remove('expanded'));
+                            document.querySelectorAll('.toggle-icon').forEach(ico => ico.textContent = '▼');
+
+                            // クリックされたアプリリストを開く
+                            appsList.style.display = 'flex'; // flexコンテナとして表示
+                            unitSection.classList.add('expanded');
+                            icon.textContent = '▲';
+                        } else {
+                            appsList.style.display = 'none';
+                            unitSection.classList.remove('expanded');
+                            icon.textContent = '▼';
+                        }
+                    });
+                });
+            }
+
+            // アプリケーション開始時にデータをロード
+            async function loadAppData() {
+                try {
+                    const response = await fetch('app_data.json'); // JSONファイルのパス
+                    if (!response.ok) {
+                        // ネットワークエラー以外 (例: 404 Not Found) でもエラーとして処理
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    initializeUI(data); // 読み込んだデータでUIを初期化
+                } catch (error) {
+                    console.error("Failed to load app data:", error);
+                    unitsContainer.innerHTML = "<p style='text-align: center; color: red;'>アプリデータを読み込めませんでした。ファイル 'app_data.json' が存在するか、パスが正しいか確認してください。</p>";
+                }
+            }
+
+            loadAppData(); // ページロード時にデータ読み込みを開始
+        });
+    </script>
+</body>
+</html>
