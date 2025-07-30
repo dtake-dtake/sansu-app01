@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>三の段の九九（じゅんばん）</title>
+  <style>
+    body {
+      font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
+      background: #e0f2f7; /* 薄い水色の背景 */
+      margin: 20px;
+      color: #333;
+      font-size: 2.2rem;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 15px 0;
+      color: #1e88e5; /* 濃い青 */
+      text-shadow: 2px 2px 3px rgba(0,0,0,0.1);
+      white-space: nowrap; /* タイトルが折り返さないように */
+    }
+    h1 {
+      font-size: 3.5rem;
+    }
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+    }
+    #problems-wrapper {
+      max-width: 650px;
+      margin: 0 auto 30px;
+      padding: 30px;
+      border: 4px dashed #90caf9; /* 水色の点線ボーダー */
+      background: #ffffff; /* 白い背景 */
+      box-shadow: 5px 5px 10px rgba(0,0,0,.15);
+      border-radius: 20px;
+    }
+    .problem {
+      display: flex;
+      flex-wrap: wrap; /* 子要素を次の行に折り返す */
+      align-items: center;
+      margin-bottom: 25px;
+      background: #f0f8ff; /* 各問題の背景を少し変える */
+      padding: 10px 15px;
+      border-radius: 10px;
+      box-shadow: 1px 1px 3px rgba(0,0,0,.08);
+    }
+    .problem-number {
+      width: 70px;
+      text-align: right;
+      margin-right: 25px;
+      font-weight: bold;
+      font-size: 2.5rem;
+      color: #0d47a1; /* 深い青 */
+      flex-shrink: 0; /* 縮まない */
+    }
+    .problem-equation {
+      flex: 1; /* 残りのスペースを占有 */
+      display: flex;
+      align-items: center;
+      font-size: 2.5rem;
+      flex-shrink: 0; /* 縮まない */
+    }
+    .problem-equation span {
+      margin: 0 12px;
+    }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      width: 80px;
+      font-size: 2.5rem;
+      margin-left: 15px;
+      padding: 8px;
+      border: 2px solid #64b5f6; /* 少し濃い水色のボーダー */
+      border-radius: 8px;
+    }
+
+    .button-area {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    button {
+      font-size: 2.5rem;
+      margin: 0 15px;
+      padding: 15px 30px;
+      background: #42a5f5; /* 明るい青のボタン */
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 3px 3px 6px rgba(0,0,0,.2);
+      transition: background 0.3s ease, transform 0.1s ease;
+    }
+    button:hover {
+      background: #2196f3; /* ホバーで少し濃い青に */
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+    #result-area {
+      text-align: center;
+      margin-bottom: 25px;
+      background: #e3f2fd; /* 結果エリアの背景色 */
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #90caf9;
+    }
+    #result {
+      font-size: 2.8rem;
+      font-weight: bold;
+      margin: 15px 0;
+      color: #d32f2f; /* 赤系の強調色 */
+    }
+    #highScoreArea, #clearCountArea, #monthlyCountArea, #dailyCountArea {
+      font-size: 2.2rem;
+      margin: 8px 0;
+    }
+    #overallStatusArea {
+        font-size: 2.2rem;
+        margin: 8px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    #overallStatusText {
+        margin-right: 10px;
+    }
+    #highScoreValue, #clearCountValue, #monthlyCountValue, #dailyCountValue {
+      font-weight: bold;
+      margin: 0 12px;
+      color: #2e7d32; /* 緑系の色 */
+    }
+    #reset-highscore {
+      font-size: 1.8rem;
+      margin-left: 15px;
+      padding: 8px 18px;
+      background: #ef5350; /* リセットボタンの色 */
+      color: white;
+      border-radius: 10px;
+      box-shadow: 2px 2px 4px rgba(0,0,0,.15);
+    }
+    #reset-highscore:hover {
+      background: #c62828;
+    }
+    #history-area {
+      font-size: 1.8rem;
+      margin: 20px 0;
+      text-align: left;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 10px;
+      background: #bbdefb; /* 履歴エリアの背景色 */
+      border-radius: 10px;
+      border: 1px solid #90caf9;
+    }
+    #history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #history-list li {
+      margin: 6px 0;
+      color: #1a237e; /* 履歴の文字色 */
+    }
+    .result-icon {
+      margin-left: 15px;
+      font-size: 2.5rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .correct {
+      color: #388e3c; /* 緑色で正解 */
+    }
+    .wrong {
+      color: #ff8f00; /* オレンジ系の赤で不正解 */
+    }
+    .status-stars{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      margin: 0 1px;
+      font-size: 2.2rem;
+      color: gold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      line-height: 1;
+    }
+
+    @keyframes sparkle {
+      0% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.2); transform: scale(1.05); }
+      100% { filter: brightness(1); transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <h1>けいさんドリル</h1>
+  <h2>三の段の九九（じゅんばん）</h2>
+
+  <div id="start-area" style="text-align:center; margin:40px 0;">
+    <button id="start-btn">スタート！</button>
+  </div>
+
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="highScoreArea">
+      ハイスコア：<span id="highScoreValue">0</span> てん
+      <button id="reset-highscore">リセット</button>
+    </div>
+    <div id="dailyCountArea">
+      今日のクリア：<span id="dailyCountValue">0</span> かい
+    </div>
+    <div id="monthlyCountArea">
+      今月のクリア：<span id="monthlyCountValue">0</span> かい
+    </div>
+    <div id="clearCountArea">
+      合計クリア：<span id="clearCountValue">0</span> かい
+    </div>
+    <div id="overallStatusArea">
+        <span id="overallStatusText">ステータス：</span>
+        <span id="overallStars">―</span>
+    </div>
+    <div id="history-area">
+      りれき（１０件）<br>
+      <ul id="history-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // ★ここを変更！JSONで定義するIDに合わせる（末尾にアンダースコア'_'）
+    const APP_NS = "kuku-3dan-junban_"; 
+    
+    const KEY_HS             = APP_NS + "highScore"; 
+    const KEY_HISTORY        = APP_NS + "history"; 
+    const KEY_CLEAR          = APP_NS + "clearCount"; 
+    const KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-"; 
+    const KEY_DAILY_PREFIX   = APP_NS + "dailyClear-"; 
+    const KEY_OVERALL_STATUS = APP_NS + "overallStatus"; 
+
+    const NUM_QUESTIONS = 9; 
+    const TIME_LIMIT    = NUM_QUESTIONS * 3; // 10問なら 30秒
+
+    // ★星の評価基準を明確化
+    const SCORE_STARS_THRESHOLD = { 
+        star_circle: 100, // ○の基準 (全問正解なら最低100点)
+        star1: 101, // ★の基準
+        star2: 111, // ★★の基準
+        star3: 121, // ★★★の基準
+        star4: 131, // ★★★★の基準
+        star5: 141, // ★★★★★の基準
+        star6: 151  // ★★★★★★の基準
+    };
+
+    let problems     = []; 
+    let startTime    = 0; 
+    let highScore    = 0; 
+    let totalClearCount   = 0; 
+    let monthlyCount = 0; 
+    let dailyCount   = 0; 
+    let overallStatusStars = '―'; // 全体ステータス（星のHTML文字列）
+    let incorrectIndices = []; // 不正解だった問題のインデックスを保存する配列
+
+    const nowDT    = ()=>new Date().toLocaleString(); 
+    const statusOf = s => // 履歴表示用のランク判定 (星とは別)
+      s >= 150 ? "SS" : 
+      s >= 120 ? "S"  :
+      s >= 101 ? "A"  :
+      s >= 90  ? "B"  :
+      s >= 80  ? "C"  : "D";
+    const scrollCenter = el=>el.scrollIntoView({behavior:"smooth",block:"center"}); 
+
+    const ls = localStorage; 
+    function loadHighScore(){ const v=ls.getItem(KEY_HS); if(v) highScore=+v; } 
+    function saveHighScore(v){ ls.setItem(KEY_HS, String(v)); } 
+
+    function loadClearCounts(){ 
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0,10); 
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0,7); 
+
+        totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+        monthlyCount = +ls.getItem(monthKey) || 0; 
+        dailyCount = +ls.getItem(todayKey) || 0; 
+    }
+    function saveClearCounts(){ 
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0,10); 
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0,7); 
+
+        ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+        ls.setItem(monthKey, String(monthlyCount)); 
+        ls.setItem(todayKey, String(dailyCount)); 
+    }
+    
+    function loadHistory(){ try{return JSON.parse(ls.getItem(KEY_HISTORY))||[];}catch{return[]} } 
+    function saveHistory(e){ 
+      const h = loadHistory(); h.unshift(e); 
+      if(h.length>10) h.pop(); // 最新10件を保持
+      ls.setItem(KEY_HISTORY, JSON.stringify(h)); 
+      renderHistory(h); 
+    }
+
+    function loadOverallStatus(){ 
+        const v = ls.getItem(KEY_OVERALL_STATUS); 
+        if(v) overallStatusStars = v; 
+    }
+    function saveOverallStatus(starsHtml){ 
+        ls.setItem(KEY_OVERALL_STATUS, starsHtml); 
+    }
+
+    function renderHistory(hist){ 
+      const ul=document.querySelector('#history-list'); ul.innerHTML=''; 
+      hist.forEach(x=>{ 
+          const li=document.createElement('li'); 
+          li.textContent=`${x.datetime}：${x.score}てん`; 
+          ul.appendChild(li); 
+      });
+    }
+    function updateHighScore(){ document.querySelector('#highScoreValue').textContent=highScore; } 
+    function updateTotalClearCount(){ document.querySelector('#clearCountValue').textContent=totalClearCount; } 
+    function updateMonthlyClearCount(){ document.querySelector('#monthlyCountValue').textContent=monthlyCount; } 
+    function updateDailyClearCount(){ document.querySelector('#dailyCountValue').textContent=dailyCount; } 
+    function updateAllClearCountsDisplay(){ 
+        updateTotalClearCount(); 
+        updateMonthlyClearCount(); 
+        updateDailyClearCount(); 
+    }
+
+    function updateOverallStatusDisplay(){ 
+        const overallStarsSpan = document.querySelector('#overallStars'); 
+        overallStarsSpan.innerHTML = overallStatusStars; 
+    }
+
+
+    function generateProblems(){ 
+      problems = []; 
+      // ★ここを変更：3の段を順番に生成する
+      const dan = 3; // 3の段を指定
+      for(let b=1; b<=9; b++) { // かける数を1から9まで順番に
+          problems.push({a:dan, b, op:'×'}); 
+      }
+      // 順番通りなのでシャッフルは不要
+    }
+    function displayProblems(){ 
+      const wrap=document.querySelector('#problems-wrapper'); wrap.innerHTML=''; 
+      problems.forEach((p,i)=>{ 
+        const row=document.createElement('div'); row.className='problem'; 
+        const num=document.createElement('div'); num.className='problem-number'; num.textContent=(i+1)+'.'; 
+        const eq=document.createElement('div'); eq.className='problem-equation'; 
+        eq.innerHTML=`<span>${p.a}</span><span>${p.op}</span><span>${p.b}</span>=`; 
+        const inp=document.createElement('input'); inp.type='number'; inp.id=`ans-${i}`; 
+        inp.addEventListener('focus',()=>scrollCenter(inp)); 
+        inp.addEventListener('keydown',e=>{ 
+          if(e.key==='Enter'){ 
+            const currentProblemIndex = parseInt(e.target.id.replace('ans-', '')); 
+            
+            let nextIndexToFocus = -1; 
+
+            const currentIndexInIncorrect = incorrectIndices.indexOf(currentProblemIndex); 
+            if (currentIndexInIncorrect !== -1 && currentIndexInIncorrect < incorrectIndices.length - 1) { 
+                nextIndexToFocus = incorrectIndices[currentIndexInIncorrect + 1]; 
+            } else if (incorrectIndices.length === 0 && currentProblemIndex < NUM_QUESTIONS - 1) { 
+                nextIndexToFocus = currentProblemIndex + 1; 
+            }
+
+            if (nextIndexToFocus !== -1) { 
+                document.querySelector(`#ans-${nextIndexToFocus}`).focus(); 
+            } else { 
+                document.querySelector('#check-answers').focus(); 
+            }
+            e.preventDefault(); 
+          }
+        });
+        const icon=document.createElement('span'); icon.id=`icon-${i}`; icon.className='result-icon'; 
+        
+        eq.append(inp, icon); 
+        row.append(num, eq); 
+        wrap.appendChild(row); 
+      });
+    }
+
+    function disableAllInputs(){ document.querySelectorAll('input[type=number]').forEach(i=>i.disabled=true); } 
+    function enableAllInputs(){ document.querySelectorAll('input[type=number]').forEach(i=>i.disabled=false); } 
+
+    function checkAnswers(){ 
+      document.querySelector('#check-answers').disabled=true; 
+
+      let currentCorrectCount = 0; 
+      let newIncorrectIndices = []; 
+
+      problems.forEach((p,i)=>{ 
+        const user = +document.querySelector(`#ans-${i}`).value; 
+        const ans = p.a * p.b; 
+        const icon = document.querySelector(`#icon-${i}`); 
+        const inputField = document.querySelector(`#ans-${i}`); 
+        
+        icon.textContent = ''; 
+        icon.classList.remove('correct','wrong'); 
+        inputField.style.border = '2px solid #64b5f6'; 
+        inputField.classList.remove('auto-filled'); 
+
+        if(user === ans){ 
+          currentCorrectCount++; 
+          icon.textContent = '○'; 
+          icon.classList.add('correct'); 
+          inputField.disabled = true; 
+        } else { 
+          icon.textContent = `×`; 
+          icon.classList.add('wrong'); 
+          inputField.disabled = false; 
+          inputField.value = ''; 
+          inputField.style.border = '2px solid red'; 
+          newIncorrectIndices.push(i); 
+        }
+      });
+
+      incorrectIndices = newIncorrectIndices; 
+
+      const allCorrect = incorrectIndices.length === 0; 
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1); 
+      
+      let score; 
+      const baseScoreForCorrectAnswers = Math.floor((currentCorrectCount / NUM_QUESTIONS) * 100); 
+      
+      const maxTimeBonus = (NUM_QUESTIONS * 20) - 100; 
+      const bonusCalculationLimitTime = TIME_LIMIT; 
+
+      let timeBonus = 0; 
+
+      if (elapsed < bonusCalculationLimitTime) { 
+          const speedFactor = (bonusCalculationLimitTime - elapsed) / bonusCalculationLimitTime; 
+          timeBonus = Math.floor(maxTimeBonus * (currentCorrectCount / NUM_QUESTIONS) * speedFactor); 
+      } else { 
+          timeBonus = 0; 
+      }
+      
+      score = baseScoreForCorrectAnswers + timeBonus; 
+      score = Math.max(0, score); 
+      
+      // ★全問正解なら最低100点に保証
+      if (allCorrect && score < 100) {
+          score = 100;
+      }
+
+      const status = statusOf(score); 
+
+      // ★星の判定ロジックを復元
+      let overallStarsHtml = '―'; // 初期値はハイフン
+      if (allCorrect) { // 全問正解の場合のみ星を評価
+          if (score >= SCORE_STARS_THRESHOLD.star6) { 
+              overallStarsHtml = '★★★★★★'; 
+          } else if (score >= SCORE_STARS_THRESHOLD.star5) { 
+              overallStarsHtml = '★★★★★'; 
+          } else if (score >= SCORE_STARS_THRESHOLD.star4) { 
+              overallStarsHtml = '★★★★'; 
+          } else if (score >= SCORE_STARS_THRESHOLD.star3) { 
+              overallStarsHtml = '★★★'; 
+          } else if (score >= SCORE_STARS_THRESHOLD.star2) { 
+              overallStarsHtml = '★★'; 
+          } else if (score >= SCORE_STARS_THRESHOLD.star1) { 
+              overallStarsHtml = '★'; 
+          } else if (score >= SCORE_STARS_THRESHOLD.star_circle) { 
+              overallStarsHtml = '○'; 
+          }
+      }
+
+      document.querySelector('#result').innerHTML = 
+        `スコア: <strong>${score}点</strong><br>` + 
+        `正答数: ${currentCorrectCount}/${NUM_QUESTIONS}問　タイム: ${elapsed} 秒<br>`; 
+
+      overallStatusStars = overallStarsHtml; 
+      saveOverallStatus(overallStarsHtml); 
+      updateOverallStatusDisplay(); 
+
+      if (allCorrect) { 
+        if(score > highScore){ highScore = score; saveHighScore(score); updateHighScore(); } 
+        
+        totalClearCount++; 
+        monthlyCount++; 
+        dailyCount++; 
+        saveClearCounts(); 
+        updateAllClearCountsDisplay(); 
+
+        saveHistory({datetime:nowDT(),score,status}); 
+
+        disableAllInputs(); 
+        document.querySelector('#retry').focus(); 
+        
+        // 「もういちど」ボタンを画面中央にスクロール
+        const retryButton = document.querySelector('#retry');
+        if (retryButton) {
+            scrollCenter(retryButton); 
+        }
+
+      } else { 
+        document.querySelector('#check-answers').disabled = false; 
+        
+        if (incorrectIndices.length > 0) { 
+            document.querySelector(`#ans-${incorrectIndices[0]}`).focus(); 
+        }
+      }
+    }
+    
+    function retry(){ 
+      startTime=Date.now(); 
+      document.querySelector('#check-answers').disabled=false; 
+      generateProblems(); 
+      displayProblems(); 
+      enableAllInputs(); 
+      document.querySelector('#result').textContent=''; 
+      incorrectIndices = []; 
+      document.querySelector('#ans-0').focus(); 
+    }
+    
+    function resetAll(){ 
+        if(confirm('ハイスコアをリセットしますか？')){ 
+            highScore=0; 
+            ls.removeItem(KEY_HS); 
+            updateHighScore(); 
+            
+            overallStatusStars = '―'; 
+            saveOverallStatus(overallStatusStars); 
+            updateOverallStatusDisplay(); 
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded',()=>{ 
+      loadHighScore(); 
+      loadClearCounts(); 
+      loadOverallStatus(); 
+      updateHighScore(); 
+      updateAllClearCountsDisplay(); 
+      updateOverallStatusDisplay(); 
+      renderHistory(loadHistory()); 
+      document.querySelector('#check-answers').onclick=checkAnswers; 
+      document.querySelector('#retry').onclick=retry; 
+      document.querySelector('#reset-highscore').onclick=resetAll; 
+      
+      const startBtn=document.querySelector('#start-btn'); 
+      const startArea = document.querySelector('#start-area'); 
+      const problemsSection = document.querySelector('#problems-section'); 
+
+      startBtn.onclick=()=>{ 
+        startArea.style.display = 'none'; 
+        problemsSection.style.display = 'block'; 
+        retry(); 
+      };
+      document.addEventListener('keydown',e=>{ 
+          if(e.key==='Enter' && startArea.style.display !== 'none') { 
+              startBtn.click(); 
+          }
+      });
+    });
+  </script>
+</body>
+</html>
