@@ -24,15 +24,17 @@
   {
     "grade": "小学2年",
     "units": [
-      {"name": "ひょうと グラフ", "apps": [{"id": "2n-hyo-graph", "title": "ひょうと グラフ", "path": "2nen/2nen_hyo_graph.html"}]},
-      {"name": "たし算とひき算", "apps": [{"id": "2n-tashizan-hikizan", "title": "たし算とひき算", "path": "2nen/2nen_tashizan_hikizan.html"}]},
-      {"name": "時こくと時間", "apps": [{"id": "2n-jikoku-jikan", "title": "時こくと時間", "path": "2nen/2nen_jikoku_jikan.html"}]},
-      {"name": "長さ", "apps": [{"id": "2n-nagasa", "title": "長さ", "path": "2nen/2nen_nagasa.html"}]},
-      {"name": "たし算とひき算の筆算(1)", "apps": [{"id": "2n-hissan-th1", "title": "たし算とひき算の筆算(1)", "path": "2nen/2nen_hissan_th1.html"}]},
-      {"name": "100をこえる数", "apps": [{"id": "2n-100-koeru", "title": "100をこえる数", "path": "2nen/2nen_100_koeru.html"}]},
-      {"name": "かさ", "apps": [{"id": "2n-kasa", "title": "かさ", "path": "2nen/2nen_kasa.html"}]},
+      {"name": "1 ひょうと グラフ", "apps": [{"id": "2n-hyo-graph", "title": "1 ひょうと グラフ", "path": "2nen/2nen_hyo_graph.html"}]},
+      {"name": "2 たし算とひき算", "apps": [{"id": "2n-tashizan-hikizan", "title": "2 たし算とひき算", "path": "2nen/2nen_tashizan_hikizan.html"}]},
+      {"name": "3 時こくと時間", "apps": [{"id": "2n-jikoku-jikan", "title": "3 時こくと時間", "path": "2nen/2nen_jikoku_jikan.html"}]},
+      {"name": "4 長さ", "apps": [{"id": "2n-nagasa", "title": "4 長さ", "path": "2nen/2nen_nagasa.html"}]},
+      {"name": "5 たし算とひき算の筆算(1)", "apps": [{"id": "2n-hissan-th1", "title": "5 たし算とひき算の筆算(1)", "path": "2nen/2nen_hissan_th1.html"}]},
+      {"name": "6 100をこえる数", "apps": [{"id": "2n-100-koeru", "title": "6 100をこえる数", "path": "2nen/2nen_100_koeru.html"}]},
+      {"name": "7 かさ", "apps": [{"id": "2n-kasa", "title": "7 かさ", "path": "2nen/2nen_kasa.html"}]},
+      {"name": "8 たし算とひき算の筆算(2)", "apps": [{"id": "2n-hissan-th2", "title": "8 たし算とひき算の筆算(2)", "path": "2nen/2nen_hissan_th2.html"}]},
+      {"name": "9 しきと　計算", "apps": [{"id": "2n-sikito-keisan", "title": "9 しきと計算", "path": "2nen/2nen_sankaku_shikaku.html"}]},            
       {
-        "name": "かけ算",
+        "name": "10-11　かけ算",
         "apps": [
           {"id": "kuku-1dan-junban", "title": "一の段の九九（じゅんばん）", "path": "2nen/01kuku_1dan_junban.html"},
           {"id": "kuku-2dan-junban", "title": "二の段の九九（じゅんばん）", "path": "2nen/02kuku_2dan_junban.html"},
@@ -52,13 +54,13 @@
           {"id": "kuku-7dan-barabara", "title": "七の段の九九（ばらばら）", "path": "2nen/17kuku_7dan_barabara.html"},
           {"id": "kuku-8dan-barabara", "title": "八の段の九九（ばらばら）", "path": "2nen/18kuku_8dan_barabara.html"},
           {"id": "kuku-9dan-barabara", "title": "九の段の九九（ばらばら）", "path": "2nen/19kuku_9dan_barabara.html"},
-          {"id": "kuku-10mondai", "title": "九九（10問）", "path": "2nen/kuku_10mondai.html"},
-          {"id": "kuku-81mondai", "title": "九九（81問）", "path": "2nen/kuku_81mondai.html"}
+          {"id": "kuku-10mondai", "title": "九九（10問）", "path": "2nen/20kuku_10mondai.html"},
+          {"id": "kuku-81mondai", "title": "九九（81問）", "path": "2nen/21kuku_81mondai.html"}
         ]
       },
       {"name": "図をつかって考えよう", "apps": [{"id": "2n-zu-kangaeru", "title": "図をつかって考えよう", "path": "2nen/2nen_zu_kangaeru.html"}]},
       {"name": "分数", "apps": [{"id": "2n-bunsuu", "title": "分数", "path": "2nen/2nen_bunsuu.html"}]},
-      {"name": "たし算とひき算の筆算(2)", "apps": [{"id": "2n-hissan-th2", "title": "たし算とひき算の筆算(2)", "path": "2nen/2nen_hissan_th2.html"}]},
+
       {"name": "三角形と四角形", "apps": [{"id": "2n-sankaku-shikaku", "title": "三角形と四角形", "path": "2nen/2nen_sankaku_shikaku.html"}]},
       {"name": "その他（共通）", "apps": [{"id": "2n-hyaku-man", "title": "100と1000", "path": "common/2nen_hyaku_man.html"}, {"id": "2n-tsukatte-hyogen", "title": "つかって表そう", "path": "common/2nen_tsukatte_hyogen.html"}, {"id": "2n-mosugu3nen", "title": "もうすぐ3年生", "path": "common/mosugu_3nen.html"}]}
     ]
