@@ -60,7 +60,7 @@
           {"id": "kuku-9dan-barabara", "title": "九の段の九九（ばらばら）", "path": "2nen/10-11_kakezan/19kuku_9dan_barabara.html"},
           {"id": "kuku-1dan-junban", "title": "一の段の九九（じゅんばん）", "path": "2nen/10-11_kakezan/01kuku_1dan_junban.html"},
           {"id": "kuku-1dan-barabara", "title": "一の段の九九（ばらばら）", "path": "2nen/10-11_kakezan/11kuku_1dan_barabara.html"},
-          {"id": "kuku-16789dan-random", "title": "一、六、七、八、九段の九九", "path": "2nen/10-11_kakezan/23kuku_16789dan_random"},
+          {"id": "23kuku_16789dan_random", "title": "一、六、七、八、九段の九九", "path": "2nen/10-11_kakezan/23kuku_16789dan_random"},
           {"id": "kuku-10mondai", "title": "九九", "path": "2nen/10-11_kakezan/20kuku_10mondai.html"},
           {"id": "kuku-81mondai", "title": "九九（81問）", "path": "2nen/10-11_kakezan/21kuku_81mondai.html"}
         ]
