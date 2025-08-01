@@ -1,6 +1,6 @@
 [
   {
-    "grade": "小学1年",
+    "grade": "1年",
     "units": [
 
       {"name": "ふえたり へったり", "apps": [{"id": "1n-fueru-heru", "title": "ふえたり へったり", "path": "1nen/1nen_fueru_heru.html"}]},
@@ -22,7 +22,7 @@
     ]
   },
   {
-    "grade": "小学2年",
+    "grade": "2年",
     "units": [
       {"name": "1　ひょうと グラフ", "apps": [{"id": "2n-hyo-graph", "title": "1　ひょうと グラフ", "path": "2nen/2nen_hyo_graph.html"}]},
       {"name": "2　たし算とひき算", "apps": [{"id": "2n-tashizan-hikizan", "title": "2　たし算とひき算", "path": "2nen/2nen_tashizan_hikizan.html"}]},
@@ -73,7 +73,7 @@
     ]
   },
   {
-    "grade": "小学3年",
+    "grade": "3年",
     "units": [
       {"name": "九九の表とかけ算", "apps": [{"id": "3n-kuku-hyo-kakezan", "title": "九九の表とかけ算", "path": "3nen/3nen_kuku_hyo_kakezan.html"}]},
       {"name": "わり算", "apps": [{"id": "3n-warizan", "title": "わり算", "path": "3nen/3nen_warizan.html"}]},
@@ -99,7 +99,7 @@
     ]
   },
   {
-    "grade": "小学4年",
+    "grade": "4年",
     "units": [
       {"name": "一億をこえる数", "apps": [{"id": "4n-ichioku-koeru", "title": "一億をこえる数", "path": "4nen/4nen_ichioku_koeru.html"}]},
       {"name": "折れ線グラフ", "apps": [{"id": "4n-oresen-graph", "title": "折れ線グラフ", "path": "4nen/4nen_oresen_graph.html"}]},
@@ -121,7 +121,7 @@
     ]
   },
   {
-    "grade": "小学5年",
+    "grade": "5年",
     "units": [
       {"name": "整数と小数", "apps": [{"id": "5n-seisu-shosu", "title": "整数と小数", "path": "5nen/5nen_seisu_shosu.html"}]},
       {"name": "体積", "apps": [{"id": "5n-taiseki", "title": "体積", "path": "5nen/5nen_taiseki.html"}]},
@@ -145,7 +145,7 @@
     ]
   },
   {
-    "grade": "小学6年",
+    "grade": "6年",
     "units": [
       {"name": "対称な図形", "apps": [{"id": "6n-taisho-zukei", "title": "対称な図形", "path": "6nen/6nen_taisho_zukei.html"}]},
       {"name": "文字と式", "apps": [{"id": "6n-moji-shiki", "title": "文字と式", "path": "6nen/6nen_moji_shiki.html"}]},
