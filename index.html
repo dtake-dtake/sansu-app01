@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>わくわく算数 アプリ</title>
+    <title>わくわく算数 ドリル</title>
     <style>
         body {
             font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
@@ -191,7 +191,7 @@
     </style>
 </head>
 <body>
-    <h1>わくわく算数 アプリ</h1>
+    <h1>わくわく算数 ドリル</h1>
 
     <div id="grade-tabs">
         </div>
@@ -200,13 +200,16 @@
         </div>
 
     <script>
+        // localStorageのキー名
+        const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
+        const LAST_OPENED_UNIT_KEY = 'lastOpenedUnit';
+
         document.addEventListener('DOMContentLoaded', () => {
             const gradeTabsContainer = document.getElementById('grade-tabs');
             const unitsContainer = document.getElementById('units-container');
 
             // localStorageからアプリの統計情報を読み込む関数
             function getAppStats(appId) {
-                // 各アプリのHTMLでAPP_NSが 'アプリID_' の形式になっていることを想定
                 const highScore = localStorage.getItem(`${appId}_highScore`);
                 const overallStatus = localStorage.getItem(`${appId}_overallStatus`);
                 return {
@@ -217,30 +220,44 @@
 
             // UIの初期化と表示ロジックをまとめた関数
             function initializeUI(appData) {
+                let initialGradeToSelect = 0; // デフォルトは小学1年
+                let lastSelectedGradeName = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
+                let lastOpenedUnitName = localStorage.getItem(LAST_OPENED_UNIT_KEY);
+
+                // 最後に選択されていた学年を復元
+                if (lastSelectedGradeName) {
+                    const foundIndex = appData.findIndex(g => g.grade === lastSelectedGradeName);
+                    if (foundIndex !== -1) {
+                        initialGradeToSelect = foundIndex;
+                    }
+                }
+
                 // 学年タブの生成
                 appData.forEach((gradeData, index) => {
                     const tab = document.createElement('button');
                     tab.textContent = gradeData.grade;
                     tab.classList.add('grade-tab');
-                    if (index === 0) tab.classList.add('active'); // 初期選択
+                    
+                    if (index === initialGradeToSelect) {
+                        tab.classList.add('active'); // アクティブな学年タブ
+                        displayUnits(gradeData.units, lastOpenedUnitName); // その学年の単元を表示
+                    }
+                    
                     tab.addEventListener('click', () => {
                         // 全てのタブのアクティブ状態を解除
                         document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
                         // クリックされたタブをアクティブに
                         tab.classList.add('active');
-                        displayUnits(gradeData.units);
+                        localStorage.setItem(LAST_SELECTED_GRADE_KEY, gradeData.grade); // 選択された学年を保存
+                        localStorage.removeItem(LAST_OPENED_UNIT_KEY); // 学年切り替え時は開いている単元をリセット
+                        displayUnits(gradeData.units); // その学年の単元を表示
                     });
                     gradeTabsContainer.appendChild(tab);
                 });
-
-                // 初期表示として最初の学年の単元を表示
-                if (appData.length > 0) {
-                    displayUnits(appData[0].units);
-                }
             }
 
             // 単元とアプリを表示する関数
-            function displayUnits(units) {
+            function displayUnits(units, unitToOpenInitially = null) {
                 unitsContainer.innerHTML = ''; // 既存の単元リストをクリア
 
                 units.forEach(unit => {
@@ -260,7 +277,7 @@
                             const appItem = document.createElement('a'); // aタグ全体をアプリ項目に
                             appItem.href = app.path;
                             appItem.classList.add('app-item');
-                            appItem.id = `app-${app.id}`; // ここでid属性を設定！
+                            appItem.id = `app-${app.id}`; // id属性を設定！
 
                             const appTitleSection = document.createElement('div');
                             appTitleSection.classList.add('app-title-section');
@@ -318,12 +335,23 @@
                             appsList.style.display = 'flex'; // flexコンテナとして表示
                             unitSection.classList.add('expanded');
                             icon.textContent = '▲';
+                            localStorage.setItem(LAST_OPENED_UNIT_KEY, unit.name); // 開いた単元を保存
                         } else {
                             appsList.style.display = 'none';
                             unitSection.classList.remove('expanded');
                             icon.textContent = '▼';
+                            localStorage.removeItem(LAST_OPENED_UNIT_KEY); // 閉じた単元は削除
                         }
                     });
+
+                    // 最後に開いていた単元を復元
+                    if (unitToOpenInitially && unit.name === unitToOpenInitially) {
+                        appsList.style.display = 'flex';
+                        unitSection.classList.add('expanded');
+                        unitHeader.querySelector('.toggle-icon').textContent = '▲';
+                        // 画面の中央にスクロール
+                        unitSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
                 });
             }
 
@@ -332,7 +360,6 @@
                 try {
                     const response = await fetch('app_data.json'); // JSONファイルのパス
                     if (!response.ok) {
-                        // ネットワークエラー以外 (例: 404 Not Found) でもエラーとして処理
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const data = await response.json();
