@@ -99,9 +99,9 @@
       "units": [
       {"name": "１　　九九の表とかけ算",
       "apps": [
-        {"id": "kakezan-10s-challenge", "title": "10のかけ算", "path": "3nen/01_10nokakezan.html"},
-        {"id": "kakezan-10s-challenge", "title": "0のかけ算", "path": "3nen/02_0nokakezan.html"},
-        {"id": "kakezan-10s-challenge", "title": "□のかけ算", "path": "3nen/03_shikaku_kakezan.html"}
+        {"id": "kakezan-10s-challenge", "title": "10のかけ算", "path": "3nen/1_kuku_hyo_kakezan/01_10nokakezan.html"},
+        {"id": "kakezan-10s-challenge", "title": "0のかけ算", "path": "3nen/1_kuku_hyo_kakezan02_0nokakezan.html"},
+        {"id": "kakezan-10s-challenge", "title": "□のかけ算", "path": "3nen/1_kuku_hyo_kakezan03_shikaku_kakezan.html"}
       ]
     },
       {"name":"２　　わり算",
