@@ -113,7 +113,13 @@
         ]
       },
       {"name": "●　　見方・考え方を深めよう", "apps": [{"id": "3n-mikata-kangaekata", "title": "見方・考え方を深めよう", "path": "common/3nen_mikata_kangaekata.html"}]},
-      {"name": "３　　たし算とひき算の筆算", "apps": [{"id": "3n-hissan-th", "title": "たし算とひき算の筆算", "path": "3nen/3nen_hissan_th.html"}]},
+      {"name": "３　　たし算とひき算の筆算",
+      "apps": [
+        {"id": "kuriagari-10i", "title": "十の位のくり上がり", "path": "3nen/3_tasizan_hikizan_hissan/01_kuriagari_10i.html"},
+        {"id": "hissan-tashizan-10i-100i", "title": "十や百の位のくり上がり", "path": "3nen/3_tasizan_hikizan_hissan/02_kuriagari-10i-100i.html"},
+        {"id": "hissan-tashizan-10i-100i", "title": "１０になるくり上がり", "path": "3nen/3_tasizan_hikizan_hissan/03_10ninaru-kuriagari.html"}
+        ]
+      },
       {"name": "４　　時こくと時間", "apps": [{"id": "3n-jikoku-jikan", "title": "時こくと時間", "path": "3nen/3nen_jikoku_jikan.html"}]},
       {"name": "５　　一万をこえる数", "apps": [{"id": "3n-ichiman-koeru", "title": "一万をこえる数", "path": "3nen/3nen_ichiman_koeru.html"}]},
       {"name": "６　　表とグラフ", "apps": [{"id": "3n-hyo-graph", "title": "表とグラフ", "path": "3nen/3nen_hyo_graph.html"}]},
