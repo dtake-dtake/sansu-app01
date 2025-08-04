@@ -105,11 +105,11 @@
       ]
     },
       {"name":"２　　わり算",
-       "apps": [
-         {"id": "warizan-kuku", "title": "九九の逆算のわり算", "path": "3nen/2_warizan/01_warizan_kuku.html"},
-         {"id": "warizan-kukuninai", "title": "答えが10や0になるわり算", "path": "3nen/2_warizan/02_warizan_kukunai.html"},
-         {"id": "warizan-10over", "title": "答えが10をこえるわり算", "path": "3nen/2_warizan/03_warizan_10koeru.html"},
-         {"id": "warizan-matom", "title": "わり算のまとめ", "path": "3nen/2_warizan/04_warizan_matome.html"}
+      "apps": [
+        {"id": "warizan-kuku", "title": "九九の逆算のわり算", "path": "3nen/2_warizan/01_warizan_kuku.html"},
+        {"id": "warizan-kukuninai", "title": "答えが10や0になるわり算", "path": "3nen/2_warizan/02_warizan_kukunai.html"},
+        {"id": "warizan-10over", "title": "答えが10をこえるわり算", "path": "3nen/2_warizan/03_warizan_10koeru.html"},
+        {"id": "warizan-matom", "title": "わり算のまとめ", "path": "3nen/2_warizan/04_warizan_matome.html"}
         ]
       },
       {"name": "●　　見方・考え方を深めよう", "apps": [{"id": "3n-mikata-kangaekata", "title": "見方・考え方を深めよう", "path": "common/3nen_mikata_kangaekata.html"}]},
