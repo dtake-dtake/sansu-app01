@@ -97,8 +97,21 @@
     {
       "grade": "3年",
       "units": [
-      {"name": "１　　九九の表とかけ算", "apps": [{"id": "3n-kuku-hyo-kakezan", "title": "九九の表とかけ算", "path": "3nen/3nen_kuku_hyo_kakezan.html"}]},
-      {"name": "２　　わり算", "apps": [{"id": "3n-warizan", "title": "わり算", "path": "3nen/3nen_warizan.html"}]},
+      {"name": "１　　九九の表とかけ算",
+      "apps": [
+        {"id": "kakezan-10s-challenge", "title": "10のかけ算", "path": "3nen/01_10nokakezan.html"},
+        {"id": "kakezan-10s-challenge", "title": "0のかけ算", "path": "3nen/02_0nokakezan.html"},
+        {"id": "kakezan-10s-challenge", "title": "□のかけ算", "path": "3nen/03_shikaku_kakezan.html"}
+      ]
+    },
+      {"name":"２　　わり算",
+       "apps": [
+         {"id": "warizan-kuku", "title": "九九の逆算のわり算", "path": "3nen/2_warizan/01_warizan_kuku.html"},
+         {"id": "warizan-kukuninai", "title": "答えが10や0になるわり算", "path": "3nen/2_warizan/02_warizan_kukunai.html"},
+         {"id": "warizan-10over", "title": "答えが10をこえるわり算", "path": "3nen/2_warizan/03_warizan_10koeru.html"},
+         {"id": "warizan-matom", "title": "わり算のまとめ", "path": "3nen/2_warizan/04_warizan_matome.html"}
+        ]
+      },
       {"name": "●　　見方・考え方を深めよう", "apps": [{"id": "3n-mikata-kangaekata", "title": "見方・考え方を深めよう", "path": "common/3nen_mikata_kangaekata.html"}]},
       {"name": "３　　たし算とひき算の筆算", "apps": [{"id": "3n-hissan-th", "title": "たし算とひき算の筆算", "path": "3nen/3nen_hissan_th.html"}]},
       {"name": "４　　時こくと時間", "apps": [{"id": "3n-jikoku-jikan", "title": "時こくと時間", "path": "3nen/3nen_jikoku_jikan.html"}]},
