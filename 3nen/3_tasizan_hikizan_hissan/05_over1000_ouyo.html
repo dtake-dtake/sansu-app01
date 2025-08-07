@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>１０００をこえるひっ算２</title>
+  <style>
+    :root { --cell-size: 70px; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif; background: #e8eaf6; margin: 20px; color: #333; font-size: 1.8rem; line-height: 1.6; }
+    h1, h2 { text-align: center; margin: 15px 0; color: #303f9f; text-shadow: 2px 2px 3px rgba(0,0,0,0.1); white-space: nowrap; }
+    h1 { font-size: 3.5rem; }
+    h2 { font-size: 2.5rem; margin-bottom: 30px; }
+    #problems-wrapper { max-width: 600px; margin: 0 auto 30px; padding: 20px; border: 4px dashed #9fa8da; background: #ffffff; box-shadow: 5px 5px 10px rgba(0,0,0,.15); border-radius: 20px; }
+    .hissan-table { border-collapse: collapse; margin: 40px auto; font-family: "Kyokasho", "教科書体", serif; direction: rtl; }
+    .hissan-table td { width: var(--cell-size); height: var(--cell-size); text-align: center; vertical-align: middle; font-size: 3rem; padding: 0; border: none; direction: ltr; }
+    .problem-number-cell { font-size: 2.5rem; color: #1a237e; font-weight: bold; font-family: sans-serif; width: auto; padding-right: 15px; }
+    .carry-row td { height: calc(var(--cell-size) * 0.7); }
+    .answer-row td:not(.problem-number-cell) { border-top: 3px solid #333; }
+    .sign-col { width: calc(var(--cell-size) * 0.6); }
+    input { width: 100%; height: 100%; border: 1px solid #ccc; border-radius: 8px; background: transparent; text-align: center; box-sizing: border-box; font-family: inherit; }
+    .answer-input { border: 2px solid #c5cae9; font-size: 3rem; }
+    .carry-input { font-size: 2rem; color: #d32f2f; border: 1px solid #ddd; }
+    .correct-field { background-color: #e8fde3 !important; border-color: #a5d6a7 !important; }
+    .incorrect-field { background-color: #ffdddd !important; }
+    input:disabled { color: #333; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .button-area, #result-area { text-align: center; }
+    .button-area { margin-bottom: 30px; }
+    button { font-size: 2.5rem; margin: 0 15px; padding: 15px 30px; background: #3f51b5; color: white; border: none; border-radius: 15px; cursor: pointer; }
+    button:disabled { background: #ccc; cursor: default; }
+    #result-area { margin-bottom: 25px; background: #e8eaf6; padding: 20px; border-radius: 15px; border: 2px solid #c5cae9; }
+    #result { font-size: 2.8rem; font-weight: bold; margin: 15px 0; min-height: 3rem; }
+    #highScoreArea, #clearCountArea, #monthlyCountArea, #dailyCountArea, #overallStatusArea { font-size: 2.2rem; margin: 8px 0; }
+    #highScoreValue, #clearCountValue, #monthlyCountValue, #dailyCountValue, #overallStars { font-weight: bold; margin: 0 12px; color: #2e7d32; }
+    #reset-highscore { font-size: 1.8rem; margin-left: 15px; padding: 8px 18px; background: #ef5350; }
+    #history-area { font-size: 1.8rem; margin-top: 20px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto; }
+    #history-list { list-style: none; padding: 0; margin: 0; }
+  </style>
+</head>
+<body>
+  <h1>３　たし算とひき算の筆算</h1>
+  <h2>１０００をこえるひっ算２</h2>
+
+  <div id="start-area" style="text-align:center; margin:40px 0;"><button id="start-btn">スタート！</button></div>
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="overallStatusArea">ステータス：<span id="overallStars">―</span></div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+  </div>
+
+  <script>
+    const APP_NS = "hissan-tashizan-ouyou-final-v3_";
+    const NUM_QUESTIONS = 5;
+    const TIME_LIMIT = NUM_QUESTIONS * 30;
+    const startArea = document.getElementById('start-area'), problemsSection = document.getElementById('problems-section'), resultArea = document.getElementById('result-area'),
+          checkBtn = document.getElementById('check-answers'), resetHighScoreBtn = document.getElementById('reset-highscore');
+    let retryBtn;
+    const KEY_HS = APP_NS + "highScore", KEY_HISTORY = APP_NS + "history", KEY_CLEAR = APP_NS + "clearCount",
+          KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-", KEY_DAILY_PREFIX = APP_NS + "dailyClear-", KEY_OVERALL_STATUS = APP_NS + "overallStatus";
+    const SCORE_STARS_THRESHOLD = { star_circle: 100, star1: 101, star2: 121, star3: 141 };
+    let problems = [], incorrectFieldIds = [], startTime = 0, highScore = 0;
+    let totalClearCount = 0, monthlyCount = 0, dailyCount = 0, overallStatusStars = '―';
+    let currentProblemInView = -1;
+    const scrollCenter = el => el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const toDigits = (num, len) => num.toString().padStart(len, '0').split('').map(Number);
+    const nowDT = () => new Date().toLocaleString();
+    const ls = localStorage;
+
+    function loadData() {
+        highScore = +ls.getItem(KEY_HS) || 0;
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10), monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
+        monthlyCount = +ls.getItem(monthKey) || 0;
+        dailyCount = +ls.getItem(todayKey) || 0;
+        overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+    }
+    function saveData(score, starsHtml) {
+        if (score > highScore) { highScore = score; ls.setItem(KEY_HS, highScore); }
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10), monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        ls.setItem(KEY_CLEAR, ++totalClearCount); ls.setItem(monthKey, ++monthlyCount); ls.setItem(todayKey, ++dailyCount);
+        overallStatusStars = starsHtml; ls.setItem(KEY_OVERALL_STATUS, starsHtml);
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        history.unshift({ datetime: nowDT(), score });
+        if (history.length > 10) history.pop();
+        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+    }
+    function resetHighScore() {
+        if (confirm('ハイスコアをリセットしますか？')) {
+            highScore = 0; ls.removeItem(KEY_HS);
+            overallStatusStars = '―'; ls.removeItem(KEY_OVERALL_STATUS);
+            updateDisplay();
+        }
+    }
+    function updateDisplay() {
+        document.getElementById('highScoreValue').textContent = highScore;
+        document.getElementById('dailyCountValue').textContent = dailyCount;
+        document.getElementById('monthlyCountValue').textContent = monthlyCount;
+        document.getElementById('clearCountValue').textContent = totalClearCount;
+        document.getElementById('overallStars').innerHTML = overallStatusStars;
+        document.getElementById('history-list').innerHTML = (JSON.parse(ls.getItem(KEY_HISTORY) || '[]')).map(item => `<li>${item.datetime}：${item.score}てん</li>`).join('');
+    }
+
+    function findProblem(condition, usedPairs) {
+        let attempts = 0;
+        while(attempts < 2000) {
+            const problem = condition(usedPairs);
+            if(problem) return problem;
+            attempts++;
+        }
+        console.warn("A specific problem type could not be generated, using fallback.");
+        return {a: 586, b: 472}; // Fallback
+    }
+
+    function generateProblems() {
+        problems = [];
+        const usedPairs = new Set();
+        const conditions = [
+            (pairs) => { // 1. 一の位繰り上がらず、十・百で繰り上がる
+                const a = Math.floor(Math.random()*900)+100, b = Math.floor(Math.random()*900)+100;
+                if (a + b < 1000) return null;
+                const [ah, at, ao] = toDigits(a, 3), [bh, bt, bo] = toDigits(b, 3);
+                const carry_t = (ao + bo >= 10) ? 1 : 0;
+                const carry_h = (at + bt + carry_t >= 10) ? 1 : 0;
+                const carry_th = (ah + bh + carry_h >= 10) ? 1 : 0;
+                if (carry_t === 0 && carry_h === 1 && carry_th === 1) {
+                    const pairKey = `${a}-${b}`; if(!pairs.has(pairKey)) { pairs.add(pairKey); return {a, b}; }
+                } return null;
+            },
+            (pairs) => { // 2. 3桁+2桁で連続繰り上がり
+                const a = Math.floor(Math.random()*900)+100, b = Math.floor(Math.random()*90)+10;
+                if (a + b < 1000) return null;
+                const [ah, at, ao] = toDigits(a, 3), [bh, bt, bo] = toDigits(b, 3);
+                const carry_t = (ao + bo >= 10) ? 1 : 0;
+                const carry_h = (at + bt + carry_t >= 10) ? 1 : 0;
+                if (carry_t === 1 && carry_h === 1 && (ah+bh+carry_h >= 10)) {
+                    const pairKey = `${a}-${b}`; if(!pairs.has(pairKey)) { pairs.add(pairKey); return {a, b}; }
+                } return null;
+            },
+             (pairs) => { // 3. 3桁+1桁で連鎖繰り上がり (e.g., 994+6)
+                const a = Math.floor(Math.random()*10)+990, b = Math.floor(Math.random()*9)+1;
+                if (a + b < 1000) return null;
+                const pairKey = `${a}-${b}`; if(!pairs.has(pairKey)) { pairs.add(pairKey); return {a, b}; }
+                return null;
+            },
+            (pairs) => { // 4. 0が含まれ、繰り上がる
+                 const a = Math.floor(Math.random()*900)+100, b = Math.floor(Math.random()*900)+100;
+                 if (a + b < 1000) return null;
+                 if(a.toString().includes('0') || b.toString().includes('0')) {
+                    const [ah, at, ao] = toDigits(a, 3), [bh, bt, bo] = toDigits(b, 3);
+                    const carry_t = (ao + bo >= 10) ? 1 : 0;
+                    const carry_h = (at + bt + carry_t >= 10) ? 1 : 0;
+                    if (carry_h === 1 && (ah + bh + carry_h >= 10)) {
+                        const pairKey = `${a}-${b}`; if(!pairs.has(pairKey)) { pairs.add(pairKey); return {a, b}; }
+                    }
+                 } return null;
+            },
+            (pairs) => { // 5. 全ての位の合計が10になる
+                const a = Math.floor(Math.random()*900)+100;
+                const [ah, at, ao] = toDigits(a, 3);
+                const bo = 10 - ao, carry_t = 1;
+                const bt = 9 - at, carry_h = 1;
+                const bh = 9 - ah;
+                if ([bo,bt,bh].some(n => n < 0 || n > 9)) return null;
+                const b = parseInt(`${bh}${bt}${bo}`);
+                if (a + b < 1000) return null;
+                const pairKey = `${a}-${b}`; if(!pairs.has(pairKey)) { pairs.add(pairKey); return {a, b}; }
+                return null;
+            }
+        ];
+        for(const condition of conditions) {
+            const pair = findProblem(condition, usedPairs);
+            const {a, b} = pair; const sum = a + b;
+            const [ath, ah, at, ao] = toDigits(a, 4); const [bth, bh, bt, bo] = toDigits(b, 4);
+            const carry_t = (ao + bo >= 10) ? 1 : 0; const carry_h = (at + bt + carry_t >= 10) ? 1 : 0;
+            const carry_th = (ah + bh + carry_h >= 10) ? 1 : 0;
+            const [ansth, ansh, anst, anso] = toDigits(sum, 4);
+            problems.push({
+                numA: { th: ath, h: ah, t: at, o: ao }, numB: { th: bth, h: bh, t: bt, o: bo },
+                carry: { th: carry_th, h: carry_h, t: carry_t }, answer: { th: ansth, h: ansh, t: anst, o: anso }
+            });
+        }
+    }
+
+    function displayProblems() {
+        const wrapper = document.getElementById('problems-wrapper');
+        wrapper.innerHTML = '';
+        problems.forEach((p, i) => {
+            const table = document.createElement('table');
+            table.className = 'hissan-table';
+            table.id = `problem-table-${i}`;
+            const numA_th_display = p.numA.th > 0 ? p.numA.th : '';
+            const numB_th_display = p.numB.th > 0 ? p.numB.th : '';
+            const numB_h_display = (p.numB.th > 0 || p.numB.h > 0) ? p.numB.h : '';
+            const numB_t_display = (p.numB.th > 0 || p.numB.h > 0 || p.numB.t > 0) ? p.numB.t : '';
+            table.innerHTML = `
+                <tr class="carry-row">
+                    <td></td>
+                    <td><input type="number" class="carry-input" id="carry-t-${i}" maxlength="1" ${p.carry.t === 0 ? 'style="visibility:hidden"' : ''}></td>
+                    <td><input type="number" class="carry-input" id="carry-h-${i}" maxlength="1" ${p.carry.h === 0 ? 'style="visibility:hidden"' : ''}></td>
+                    <td><input type="number" class="carry-input" id="carry-th-${i}" maxlength="1" ${p.carry.th === 0 ? 'style="visibility:hidden"' : ''}></td>
+                    <td class="sign-col"></td><td class="problem-number-cell"></td>
+                </tr>
+                <tr>
+                    <td>${p.numA.o}</td><td>${p.numA.t}</td><td>${p.numA.h}</td><td>${numA_th_display}</td>
+                    <td class="sign-col"></td><td class="problem-number-cell">${i + 1}.</td>
+                </tr>
+                <tr>
+                    <td>${p.numB.o}</td><td>${numB_t_display}</td><td>${numB_h_display}</td><td>${numB_th_display}</td>
+                    <td class="sign-col">+</td><td class="problem-number-cell"></td>
+                </tr>
+                <tr class="answer-row">
+                    <td><input type="number" class="answer-input" id="ans-o-${i}" maxlength="1"></td>
+                    <td><input type="number" class="answer-input" id="ans-t-${i}" maxlength="1"></td>
+                    <td><input type="number" class="answer-input" id="ans-h-${i}" maxlength="1"></td>
+                    <td><input type="number" class="answer-input" id="ans-th-${i}" maxlength="1"></td>
+                    <td class="sign-col"></td><td class="problem-number-cell"></td>
+                </tr>`;
+            wrapper.appendChild(table);
+            const allInputs = ['ans-o', 'ans-t', 'ans-h', 'ans-th', 'carry-t', 'carry-h', 'carry-th'].map(id => `${id}-${i}`);
+            allInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('focus', () => { if(currentProblemInView !== i) { scrollCenter(table); currentProblemInView = i; } el.select(); });
+                    el.addEventListener('keydown', (e) => handleNav(e, i, id));
+                }
+            });
+        });
+    }
+    
+    function handleNav(e, i, id) {
+        let nextId = null;
+        const enterNavOrder = [ `carry-t-${i}`, `ans-o-${i}`, `carry-h-${i}`, `ans-t-${i}`, `carry-th-${i}`, `ans-h-${i}`, `ans-th-${i}` ];
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const order = (incorrectFieldIds.length > 0) ? incorrectFieldIds : enterNavOrder;
+            const currentIndex = order.indexOf(id);
+            if (currentIndex > -1) {
+                let nextIndex = currentIndex + 1;
+                while(nextIndex < order.length) {
+                    const nextElId = order[nextIndex];
+                    const nextEl = document.getElementById(nextElId);
+                    if (nextEl && nextEl.style.visibility !== 'hidden') {
+                       nextId = nextElId;
+                       break;
+                    }
+                    nextIndex++;
+                }
+            }
+            if (!nextId && incorrectFieldIds.length === 0 && i < NUM_QUESTIONS - 1) {
+                const nextP = problems[i + 1];
+                const firstStep = [ `carry-t-${i + 1}`, `ans-o-${i + 1}` ];
+                for(const step of firstStep) {
+                    if (document.getElementById(step)?.style.visibility !== 'hidden') {
+                        nextId = step; break;
+                    }
+                }
+            }
+        } 
+        else {
+            const navMap = {
+                [`ans-o-${i}`]: { ArrowUp: `carry-t-${i}`, ArrowRight: `ans-t-${i}`},
+                [`ans-t-${i}`]: { ArrowUp: `carry-h-${i}`, ArrowRight: `ans-h-${i}`, ArrowLeft: `ans-o-${i}`},
+                [`ans-h-${i}`]: { ArrowUp: `carry-th-${i}`, ArrowRight: `ans-th-${i}`, ArrowLeft: `ans-t-${i}`},
+                [`ans-th-${i}`]:{ ArrowLeft: `ans-h-${i}`},
+                [`carry-t-${i}`]: { ArrowDown: `ans-o-${i}`, ArrowRight: `carry-h-${i}`},
+                [`carry-h-${i}`]: { ArrowDown: `ans-t-${i}`, ArrowRight: `carry-th-${i}`, ArrowLeft: `carry-t-${i}`},
+                [`carry-th-${i}`]:{ ArrowDown: `ans-h-${i}`, ArrowLeft: `carry-h-${i}`}
+            };
+            if (navMap[id] && navMap[id][e.key]) { e.preventDefault(); nextId = navMap[id][e.key]; }
+        }
+        if (nextId && document.getElementById(nextId)) {
+            document.getElementById(nextId).focus();
+        } else if (e.key === 'Enter') {
+            checkBtn.focus();
+        }
+    }
+    
+    // ★変更点: 4桁の答えのチェックを修正
+    function checkAnswers() {
+        incorrectFieldIds = []; let allCorrect = true;
+        currentProblemInView = -1;
+        const checkOrder = [ `carry-t`, `ans-o`, `carry-h`, `ans-t`, `carry-th`, `ans-h`, `ans-th` ];
+        problems.forEach((p, i) => {
+            const fields = checkOrder.map(f => {
+                const type = f.startsWith('ans') ? 'answer' : 'carry';
+                const place = f.endsWith('th') ? 'th' : f.slice(-1);
+                return { id: `${f}-${i}`, correct: p[type][place] };
+            });
+            fields.forEach(field => {
+                const el = document.getElementById(field.id);
+                if (!el || el.style.visibility === 'hidden') return;
+                const userValue = el.value.trim() === '' ? 0 : +el.value;
+                el.classList.remove('incorrect-field', 'correct-field');
+                if (userValue !== field.correct) {
+                    allCorrect = false; incorrectFieldIds.push(field.id); el.classList.add('incorrect-field'); el.disabled = false;
+                } else {
+                    el.disabled = true; el.classList.add('correct-field');
+                }
+            });
+        });
+        const resultDiv = document.getElementById('result');
+        if (allCorrect) {
+            checkBtn.disabled = true; retryBtn.disabled = false; retryBtn.focus();
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            const baseScore = 100, timeBonus = Math.max(0, Math.floor((TIME_LIMIT - elapsed) * 50 / TIME_LIMIT));
+            const score = baseScore + timeBonus;
+            let starsHtml = '―';
+            if (score >= SCORE_STARS_THRESHOLD.star3) starsHtml = '★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star2) starsHtml = '★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star1) starsHtml = '★';
+            else if (score >= SCORE_STARS_THRESHOLD.star_circle) starsHtml = '○';
+            resultDiv.innerHTML = `スコア: <strong>${score}点</strong><br>タイム: ${elapsed} 秒`;
+            saveData(score, starsHtml); updateDisplay();
+        } else {
+            resultDiv.innerHTML = '❌ まちがいがあります。<br>赤いところを直そう！';
+            resultDiv.style.color = 'red';
+            const orderMap = { 'carry-t': 0, 'ans-o': 1, 'carry-h': 2, 'ans-t': 3, 'carry-th':4, 'ans-h': 5, 'ans-th': 6 };
+            incorrectFieldIds.sort((a, b) => {
+                const indexA = parseInt(a.split('-').pop()); const indexB = parseInt(b.split('-').pop());
+                if(indexA !== indexB) return indexA - indexB;
+                const typeA = a.split('-').slice(0, 2).join('-').replace(/-\d+$/, ''); 
+                const typeB = b.split('-').slice(0, 2).join('-').replace(/-\d+$/, '');
+                return orderMap[typeA] - orderMap[typeB];
+            });
+            if (incorrectFieldIds.length > 0) document.getElementById(incorrectFieldIds[0]).focus();
+        }
+    }
+    function retry() {
+        incorrectFieldIds = [];
+        currentProblemInView = -1;
+        document.getElementById('result').textContent = '';
+        checkBtn.disabled = false; retryBtn.disabled = true;
+        startTime = Date.now();
+        generateProblems(); displayProblems();
+        const firstProblem = problems[0];
+        const firstInputId = firstProblem.carry.t === 1 ? `carry-t-0` : `ans-o-0`;
+        const firstInput = document.getElementById(firstInputId);
+        setTimeout(() => { if (firstInput) firstInput.focus(); }, 0);
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+        const startBtn = document.getElementById('start-btn');
+        startBtn.onclick = () => {
+            startArea.style.display = 'none'; problemsSection.style.display = 'block'; resultArea.style.display = 'block';
+            retry();
+        };
+        checkBtn.onclick = checkAnswers;
+        retryBtn = document.getElementById('retry');
+        retryBtn.onclick = retry;
+        resetHighScoreBtn.onclick = resetHighScore;
+        loadData(); updateDisplay();
+        startBtn.focus();
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { e.preventDefault(); startBtn.click(); }
+        });
+    });
+  </script>
+</body>
+</html>
