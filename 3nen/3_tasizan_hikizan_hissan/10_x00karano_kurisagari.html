@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>ひき算の筆算ドリル（くりさがり1回）</title>
+  <title>ひき算の筆算（00からのくりさがり）</title>
   <style>
     :root { --cell-size: 70px; }
     html { scroll-behavior: smooth; }
@@ -10,16 +10,13 @@
     h1, h2 { text-align: center; margin: 15px 0; color: #00897b; text-shadow: 2px 2px 3px rgba(0,0,0,0.1); white-space: nowrap; }
     h1 { font-size: 3.5rem; }
     h2 { font-size: 2.5rem; margin-bottom: 30px; }
-    #problems-wrapper { max-width: 550px; margin: 0 auto 30px; padding: 20px; border: 4px dashed #80cbc4; background: #ffffff; box-shadow: 5px 5px 10px rgba(0,0,0,15); border-radius: 20px; }
-
-    /* 筆算表。右→左の並びで見せるため rtl にしている */
+    #problems-wrapper { max-width: 620px; margin: 0 auto 30px; padding: 20px; border: 4px dashed #80cbc4; background: #ffffff; box-shadow: 5px 5px 10px rgba(0,0,0,15); border-radius: 20px; }
     .hissan-table { border-collapse: collapse; margin: 40px auto; font-family: "Kyokasho", "教科書体", serif; direction: rtl; }
     .hissan-table td { width: var(--cell-size); height: var(--cell-size); text-align: center; vertical-align: middle; font-size: 3rem; padding: 0; border: none; direction: ltr; position: relative; }
     .problem-number-cell { font-size: 2.5rem; color: #004d40; font-weight: bold; font-family: sans-serif; width: auto; padding-right: 15px; }
     .borrow-row td { height: calc(var(--cell-size) * 0.7); }
     .answer-row td:not(.problem-number-cell) { border-top: 3px solid #333; }
     .sign-col { width: calc(var(--cell-size) * 0.6); }
-
     input { width: 100%; height: 100%; border: 1px solid #ccc; border-radius: 8px; background: transparent; text-align: center; box-sizing: border-box; font-family: inherit; }
     .answer-input { border: 2px solid #b2dfdb; font-size: 3rem; }
     .borrow-input { font-size: 2rem; color: #d32f2f; border: 1px solid #ddd; }
@@ -28,18 +25,15 @@
     input:disabled { color: #333; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-
     .strikethrough { position: relative; color: #aaa; }
     .strikethrough::after {
       content: '＼'; position: absolute; color: #d32f2f; font-weight: bold;
       top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem;
     }
-
     .button-area, #result-area { text-align: center; }
     .button-area { margin-bottom: 30px; }
     button { font-size: 2.5rem; margin: 0 15px; padding: 15px 30px; background: #009688; color: white; border: none; border-radius: 15px; cursor: pointer; }
     button:disabled { background: #ccc; cursor: default; }
-
     #result-area { margin-bottom: 25px; background: #e0f2f1; padding: 20px; border-radius: 15px; border: 2px solid #b2dfdb; }
     #result { font-size: 2.8rem; font-weight: bold; margin: 15px 0; min-height: 3rem; }
     #highScoreArea, #clearCountArea, #monthlyCountArea, #dailyCountArea, #overallStatusArea { font-size: 2.2rem; margin: 8px 0; }
@@ -47,22 +41,14 @@
     #reset-highscore { font-size: 1.8rem; margin-left: 15px; padding: 8px 18px; background: #ef5350; }
     #history-area { font-size: 1.8rem; margin-top: 20px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto; }
     #history-list { list-style: none; padding: 0; margin: 0; }
-
-    /* number input のスピンボタンを非表示 */
     input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-    }
-    input[type="number"] {
-    -moz-appearance: textfield; /* Firefox */
-    }
-
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
   </style>
 </head>
 <body>
   <h1>３　たし算とひき算の筆算</h1>
-  <h2>ひき算の筆算（くりさがり1回）</h2>
+  <h2>ひき算の筆算（00からのくりさがり）</h2>
 
   <div id="start-area" style="text-align:center; margin:40px 0;"><button id="start-btn">スタート！</button></div>
 
@@ -85,9 +71,9 @@
   </div>
 
   <script>
-    const APP_NS = "hissan-hikizan-kurisagari1-final-v7_";
+    const APP_NS = "hissan-hikizan-kurisagari-zerozero-v4_";
     const NUM_QUESTIONS = 5;
-    const TIME_LIMIT = NUM_QUESTIONS * 30;
+    const TIME_LIMIT = NUM_QUESTIONS * 50;
 
     const startArea = document.getElementById('start-area'),
           problemsSection = document.getElementById('problems-section'),
@@ -123,6 +109,7 @@
       dailyCount = +ls.getItem(todayKey) || 0;
       overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
     }
+    
     function saveData(score, starsHtml) {
       if (score > highScore) { highScore = score; ls.setItem(KEY_HS, highScore); }
       const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
@@ -137,6 +124,7 @@
       if (history.length > 10) history.pop();
       ls.setItem(KEY_HISTORY, JSON.stringify(history));
     }
+
     function resetHighScore() {
       if (confirm('ハイスコアをリセットしますか？')) {
         highScore = 0; ls.removeItem(KEY_HS);
@@ -144,6 +132,7 @@
         updateDisplay();
       }
     }
+
     function updateDisplay() {
       document.getElementById('highScoreValue').textContent = highScore;
       document.getElementById('dailyCountValue').textContent = dailyCount;
@@ -154,99 +143,66 @@
       document.getElementById('history-list').innerHTML = history.map(item => `<li>${item.datetime}：${item.score}てん</li>`).join('');
     }
 
-    function findProblem(condition, usedPairs) {
-      let attempts = 0;
-      while (attempts < 1000) {
-        const problem = condition(usedPairs);
-        if (problem) return problem;
-        attempts++;
-      }
-      console.warn("A specific problem type could not be generated, using fallback.");
-      return { a: 324, b: 182 };
-    }
-
     function generateProblems() {
       problems = [];
       const usedPairs = new Set();
-
-      // 5問：くり下がりが1回になる条件をバランスよく
-      const conditions = [
-        // 1) くり下がり：百の位のみ
-        (pairs) => {
-          const a = Math.floor(Math.random() * 900) + 100;
-          const b = Math.floor(Math.random() * 900) + 100;
-          if (a <= b) return null;
-          const [ah, at, ao] = toDigits(a, 3), [bh, bt, bo] = toDigits(b, 3);
-          const borrow_t = (ao < bo) ? 1 : 0, borrow_h = ((at - borrow_t) < bt) ? 1 : 0;
-          if (borrow_t === 0 && borrow_h === 1) { const key = `${a}-${b}`; if (!pairs.has(key)) { pairs.add(key); return { a, b }; } }
-          return null;
-        },
-        // 2) くり下がり：十の位のみ
-        (pairs) => {
-          const a = Math.floor(Math.random() * 900) + 100;
-          const b = Math.floor(Math.random() * 900) + 100;
-          if (a <= b) return null;
-          const [ah, at, ao] = toDigits(a, 3), [bh, bt, bo] = toDigits(b, 3);
-          const borrow_t = (ao < bo) ? 1 : 0, borrow_h = ((at - borrow_t) < bt) ? 1 : 0;
-          if (borrow_t === 1 && borrow_h === 0) { const key = `${a}-${b}`; if (!pairs.has(key)) { pairs.add(key); return { a, b }; } }
-          return null;
-        },
-        // 3) B に 0 を含む・くり下がりは1回
-        (pairs) => {
-          const a = Math.floor(Math.random() * 900) + 100;
-          const b = Math.floor(Math.random() * 900) + 100;
-          if (a <= b || !b.toString().includes('0')) return null;
-          const [ah, at, ao] = toDigits(a, 3), [bh, bt, bo] = toDigits(b, 3);
-          const borrow_t = (ao < bo) ? 1 : 0, borrow_h = ((at - borrow_t) < bt) ? 1 : 0;
-          if (borrow_t + borrow_h === 1) { const key = `${a}-${b}`; if (!pairs.has(key)) { pairs.add(key); return { a, b }; } }
-          return null;
-        },
-        // 4) A 三桁・B 二桁（1回だけくり下がり）
-        (pairs) => {
-          const a = Math.floor(Math.random() * 900) + 100;
-          const b = Math.floor(Math.random() * 90) + 10;
-          if (a <= b) return null;
-          const [ah, at, ao] = toDigits(a, 3), [bh, bt, bo] = toDigits(b, 3);
-          const borrow_t = (ao < bo) ? 1 : 0, borrow_h = ((at - borrow_t) < bt) ? 1 : 0;
-          if (borrow_t + borrow_h === 1) { const key = `${a}-${b}`; if (!pairs.has(key)) { pairs.add(key); return { a, b }; } }
-          return null;
-        }
+      let rawProblems = [];
+      
+      const problemStructure = [
+        { a: 1000, b_digits: 3 },
+        { a_digits: 3, b_digits: 3 },
+        { a_digits: 3, b_digits: 2 },
+        { a_digits: 3, b_digits: 1 },
+        { a: 1000, b_digits: 2 }
       ];
 
-      // 1・2問目はタイプ1を確定、それ以降は順に種類を混ぜる
-      problems.push(findProblem(conditions[0], usedPairs));
-      problems.push(findProblem(conditions[0], usedPairs));
-      for (let i = 2; i < conditions.length; i++) {
-        problems.push(findProblem(conditions[i], usedPairs));
-      }
+      problemStructure.forEach(structure => {
+        let a, b;
+        let isValid = false;
+        while (!isValid) {
+          if (structure.a) {
+            a = structure.a;
+          } else {
+            a = (Math.floor(Math.random() * 8) + 2) * 100;
+          }
 
-      if (problems.some(p => p === null)) { console.error("Failed to generate all problems, retrying..."); generateProblems(); return; }
-
-      // ---- ここが今回の主な変更点：答えの上位桁を空欄（null）にする ----
-      problems = problems.map(({ a, b }) => {
-        const [ah, at, ao] = toDigits(a, 3);
-        const [bh, bt, bo] = toDigits(b, 3);
-        const borrow_t = (ao < bo) ? 1 : 0;
-        const borrow_h = ((at - borrow_t) < bt) ? 1 : 0;
-
+          let b_max;
+          if (structure.b_digits === 3) b_max = Math.min(a - 1, 999);
+          else if (structure.b_digits === 2) b_max = 99;
+          else b_max = 9;
+          b = Math.floor(Math.random() * b_max) + 1;
+          
+          if (a > b && !usedPairs.has(`${a}-${b}`)) {
+            isValid = true;
+            usedPairs.add(`${a}-${b}`);
+            rawProblems.push({ a, b });
+          }
+        }
+      });
+      
+      problems = rawProblems.map(({ a, b }) => {
+        const [ath, ah, at, ao] = toDigits(a, 4);
+        
         const result = a - b;
-        const [ansh, anst, anso] = toDigits(result, 3);
-        let H = ansh, T = anst, O = anso;
-        if (result < 100) H = null;   // 百の位は不要→空欄で正解
-        if (result < 10)  T = null;   // 十の位も不要→空欄で正解
+        const [resth, resh, rest, reso] = toDigits(result, 4);
+
+        let borrowed_h, borrowed_t, borrowed_th;
+        if (ath === 1) { 
+          borrowed_th = 0;
+          borrowed_h = 9;
+          borrowed_t = 9;
+        } else {
+          borrowed_th = null;
+          borrowed_h = ah - 1;
+          borrowed_t = 9;
+        }
 
         return {
-          numA: { h: ah, t: at, o: ao },
-          numB: { h: bh, t: bt, o: bo },
-          borrow: { h: borrow_h, t: borrow_t },
-          // 借りてきた後に見える数字（表示用の打ち消しに使う）
-            borrowed: {
-                h: ah - borrow_h,
-            // 十の位は「百から借りた分だけ +10」、かつ１の位への借り分だけ −1
-            t: at + (borrow_h ? 10 : 0) - borrow_t,
-            o: ao
-},
-          answer: { h: H, t: T, o: O }
+          numA: { th: ath, h: ah, t: at, o: ao },
+          rawB: b,
+          rawResult: result,
+          borrowed: { th: borrowed_th, h: borrowed_h, t: borrowed_t },
+          answer: { th: resth, h: resh, t: rest, o: reso }
         };
       });
     }
@@ -259,47 +215,59 @@
         table.className = 'hissan-table';
         table.id = `problem-table-${i}`;
 
-        const numB_h_display = p.numB.h > 0 ? p.numB.h : '';
-        const numB_t_display = (p.numB.h > 0 || p.numB.t > 0) ? p.numB.t : '';
+        const is4digitA = p.numA.th > 0;
+        
+        const b_str = p.rawB.toString();
+        const b_o_display = b_str.slice(-1) || '';
+        const b_t_display = b_str.length >= 2 ? b_str.slice(-2, -1) : '';
+        const b_h_display = b_str.length >= 3 ? b_str.slice(-3, -2) : '';
+        const b_th_display = '';
+        
+        const th_borrow_input = is4digitA ? `<input type="number" class="borrow-input" id="borrow-th-${i}" maxlength="1">` : '';
+        const th_numA = is4digitA ? `<span id="numA-th-${i}">${p.numA.th}</span>` : '';
+        const th_ans_input = is4digitA ? `<input type="number" class="answer-input" id="ans-th-${i}" maxlength="1">` : '';
 
         table.innerHTML = `
           <tr class="borrow-row">
-            <td><input type="number" class="borrow-input" id="borrow-o-${i}" maxlength="2"></td>
+            <td><input type="number" class="borrow-input" id="borrow-o-${i}" maxlength="1"></td>
             <td><input type="number" class="borrow-input" id="borrow-t-${i}" maxlength="1"></td>
             <td><input type="number" class="borrow-input" id="borrow-h-${i}" maxlength="1"></td>
+            <td>${th_borrow_input}</td>
             <td class="sign-col"></td><td class="problem-number-cell"></td>
           </tr>
           <tr>
             <td><span id="numA-o-${i}">${p.numA.o}</span></td>
             <td><span id="numA-t-${i}">${p.numA.t}</span></td>
             <td><span id="numA-h-${i}">${p.numA.h}</span></td>
+            <td>${th_numA}</td>
             <td class="sign-col"></td><td class="problem-number-cell">${i + 1}.</td>
           </tr>
           <tr>
-            <td>${p.numB.o}</td><td>${numB_t_display}</td><td>${numB_h_display}</td>
+            <td>${b_o_display}</td>
+            <td>${b_t_display}</td>
+            <td>${b_h_display}</td>
+            <td>${b_th_display}</td>
             <td class="sign-col">-</td><td class="problem-number-cell"></td>
           </tr>
           <tr class="answer-row">
             <td><input type="number" class="answer-input" id="ans-o-${i}" maxlength="1"></td>
             <td><input type="number" class="answer-input" id="ans-t-${i}" maxlength="1"></td>
             <td><input type="number" class="answer-input" id="ans-h-${i}" maxlength="1"></td>
+            <td>${th_ans_input}</td>
             <td class="sign-col"></td><td class="problem-number-cell"></td>
           </tr>`;
 
         wrapper.appendChild(table);
 
-        // 入力フォーカス・装飾
-        const allInputs = ['ans-o', 'ans-t', 'ans-h', 'borrow-o', 'borrow-t', 'borrow-h'].map(id => `${id}-${i}`);
+        const allInputs = ['ans-o', 'ans-t', 'ans-h', 'ans-th', 'borrow-o', 'borrow-t', 'borrow-h', 'borrow-th'].map(id => `${id}-${i}`);
         allInputs.forEach(id => {
           const el = document.getElementById(id);
           if (!el) return;
-
           el.addEventListener('focus', () => {
             if (currentProblemInView !== i) { scrollCenter(table); currentProblemInView = i; }
             el.select();
           });
           el.addEventListener('keydown', (e) => handleNav(e, i, id));
-
           if (id.startsWith('borrow')) {
             el.addEventListener('input', (e) => {
               const place = id.split('-')[1];
@@ -310,66 +278,42 @@
         });
       });
     }
-
-        // 矢印キーの左右移動（右→左の桁順に合わせて調整済み）
-/**
- * キーボードナビゲーションを処理します。
- * 矢印キー（↑↓←→）で入力欄間を移動し、Enterキーで次の問題へ進みます。
- * @param {KeyboardEvent} e - キーダウンイベントオブジェクト
- * @param {number} i - 現在の問題番号 (0-indexed)
- * @param {string} id - 現在フォーカスされている要素のID
- */
-function handleNav(e, i, id) {
-  let nextId = null;
-  const enterNavOrder = [`ans-o-${i}`, `ans-t-${i}`, `ans-h-${i}`];
-
-  // ↑↓キーのデフォルト動作（数値の増減）を防止
-  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-    e.preventDefault();
-  }
-
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    // 間違えた箇所があれば、そのフィールド間を移動
-    const order = (incorrectFieldIds.length > 0) ? incorrectFieldIds : enterNavOrder;
-    const idx = order.indexOf(id);
-    if (idx > -1 && idx < order.length - 1) {
-      nextId = order[idx + 1];
-    }
-    // 全て正解済みで、最後の問題でなければ次の問題の最初の入力欄へ
-    if (!nextId && incorrectFieldIds.length === 0 && i < NUM_QUESTIONS - 1) {
-      nextId = `ans-o-${i + 1}`;
-    }
-  } else {
-    // 矢印キーによる移動ルールを定義したマップ
-    // 見た目の方向に直感的に移動できるように設定しています
-    const navMap = {
-      // 答えの行
-      [`ans-o-${i}`]:    { ArrowUp: `borrow-o-${i}`, ArrowLeft: `ans-t-${i}` }, // ⭐️ 変更点: 左への移動を追加
-      [`ans-t-${i}`]:    { ArrowUp: `borrow-t-${i}`, ArrowLeft: `ans-h-${i}`, ArrowRight: `ans-o-${i}` },
-      [`ans-h-${i}`]:    { ArrowUp: `borrow-h-${i}`, ArrowRight: `ans-t-${i}` },
-      // 繰り下がりの行
-      [`borrow-o-${i}`]: { ArrowDown: `ans-o-${i}`,   ArrowLeft: `borrow-t-${i}` }, // ⭐️ 変更点: 左への移動を追加 (元からありましたが、対称性を明確化)
-      [`borrow-t-${i}`]: { ArrowDown: `ans-t-${i}`,   ArrowLeft: `borrow-h-${i}`, ArrowRight: `borrow-o-${i}` },
-      [`borrow-h-${i}`]: { ArrowDown: `ans-h-${i}`,   ArrowRight:`borrow-t-${i}` }
-    };
     
-    // マップに定義された移動先があるかチェック
-    if (navMap[id] && navMap[id][e.key]) {
-      // ← → キーのデフォルト動作（カーソル移動）もここで防ぐ
-      e.preventDefault();
-      nextId = navMap[id][e.key];
-    }
-  }
+    function handleNav(e, i, id) {
+        let nextId = null;
+        const is4digit = problems[i].numA.th > 0;
+        const enterNavOrder = [`ans-o-${i}`, `ans-t-${i}`, `ans-h-${i}`];
+        if (is4digit) enterNavOrder.push(`ans-th-${i}`);
 
-  // 移動先の要素が存在すればフォーカスを移す
-  if (nextId && document.getElementById(nextId)) {
-    document.getElementById(nextId).focus();
-  } else if (e.key === 'Enter') {
-    // Enterキーで移動先がない場合は「まるつけ」ボタンにフォーカス
-    checkBtn.focus();
-  }
-}
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); }
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const order = (incorrectFieldIds.length > 0) ? incorrectFieldIds : enterNavOrder;
+            const idx = order.indexOf(id);
+            if (idx > -1 && idx < order.length - 1) { nextId = order[idx + 1]; }
+            if (!nextId && incorrectFieldIds.length === 0 && i < NUM_QUESTIONS - 1) { nextId = `ans-o-${i + 1}`; }
+        } else {
+            const navMap = {
+                [`ans-o-${i}`]:  { ArrowUp: `borrow-o-${i}`, ArrowLeft: `ans-t-${i}` },
+                [`ans-t-${i}`]:  { ArrowUp: `borrow-t-${i}`, ArrowLeft: `ans-h-${i}`, ArrowRight: `ans-o-${i}` },
+                [`ans-h-${i}`]:  { ArrowUp: `borrow-h-${i}`, ArrowLeft: is4digit ? `ans-th-${i}` : null, ArrowRight: `ans-t-${i}` },
+                [`ans-th-${i}`]:{ ArrowUp: `borrow-th-${i}`, ArrowRight: `ans-h-${i}` },
+                [`borrow-o-${i}`]:  { ArrowDown: `ans-o-${i}`, ArrowLeft: `borrow-t-${i}` },
+                [`borrow-t-${i}`]:  { ArrowDown: `ans-t-${i}`, ArrowLeft: `borrow-h-${i}`, ArrowRight: `borrow-o-${i}` },
+                [`borrow-h-${i}`]:  { ArrowDown: `ans-h-${i}`, ArrowLeft: is4digit ? `borrow-th-${i}` : null, ArrowRight: `borrow-t-${i}` },
+                [`borrow-th-${i}`]: { ArrowDown: `ans-th-${i}`, ArrowRight: `borrow-h-${i}` }
+            };
+            if (navMap[id] && navMap[id][e.key]) { e.preventDefault(); nextId = navMap[id][e.key]; }
+        }
+
+        if (nextId && document.getElementById(nextId)) {
+            document.getElementById(nextId).focus();
+        } else if (e.key === 'Enter') {
+            checkBtn.focus();
+        }
+    }
+
 
     function checkAnswers() {
       incorrectFieldIds = [];
@@ -377,21 +321,33 @@ function handleNav(e, i, id) {
       currentProblemInView = -1;
 
       problems.forEach((p, i) => {
+        const is4digitA = p.numA.th > 0;
+        const result = p.rawResult;
+        
+        // [変更点] 答えの先頭の0は空欄(null)を正解とする
+        const ans_o_correct = p.answer.o;
+        const ans_t_correct = result < 10 ? null : p.answer.t;
+        const ans_h_correct = result < 100 ? null : p.answer.h;
+        const ans_th_correct = result < 1000 ? null : p.answer.th;
+
         const fields = [
-          { id: `borrow-h-${i}`, correct: p.borrow.h === 1 ? p.borrowed.h : null },
-          { id: `borrow-t-${i}`, correct: p.borrow.t === 1 ? p.borrowed.t : null },
+          { id: `borrow-th-${i}`, correct: p.borrowed.th },
+          { id: `borrow-h-${i}`, correct: p.borrowed.h },
+          { id: `borrow-t-${i}`, correct: p.borrowed.t },
           { id: `borrow-o-${i}`, correct: null },
-          { id: `ans-h-${i}`, correct: p.answer.h },
-          { id: `ans-t-${i}`, correct: p.answer.t },
-          { id: `ans-o-${i}`, correct: p.answer.o }
+          { id: `ans-th-${i}`, correct: ans_th_correct },
+          { id: `ans-h-${i}`, correct: ans_h_correct },
+          { id: `ans-t-${i}`, correct: ans_t_correct },
+          { id: `ans-o-${i}`, correct: ans_o_correct }
         ];
 
         fields.forEach(field => {
           const el = document.getElementById(field.id);
+          if (!el) return;
+
           const userValue = el.value.trim() === '' ? null : +el.value;
           el.classList.remove('incorrect-field', 'correct-field');
 
-          // 空欄OKの判定（correct が null のとき）
           if (field.correct === null && userValue === null) {
             el.disabled = true;
           } else if (userValue !== field.correct) {
@@ -414,21 +370,18 @@ function handleNav(e, i, id) {
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
         const baseScore = 100, timeBonus = Math.max(0, Math.floor((TIME_LIMIT - elapsed) * 50 / TIME_LIMIT));
         const score = baseScore + timeBonus;
-
         let starsHtml = '―';
         if (score >= SCORE_STARS_THRESHOLD.star3) starsHtml = '★★★';
         else if (score >= SCORE_STARS_THRESHOLD.star2) starsHtml = '★★';
         else if (score >= SCORE_STARS_THRESHOLD.star1) starsHtml = '★';
         else if (score >= SCORE_STARS_THRESHOLD.star_circle) starsHtml = '○';
-
         resultDiv.innerHTML = `スコア: <strong>${score}点</strong><br>タイム: ${elapsed} 秒`;
         saveData(score, starsHtml);
         updateDisplay();
       } else {
         resultDiv.innerHTML = '❌ まちがいがあります。<br>赤いところを直そう！';
         resultDiv.style.color = 'red';
-
-        const orderMap = { 'borrow-o': 0, 'ans-o': 1, 'borrow-t': 2, 'ans-t': 3, 'borrow-h': 4, 'ans-h': 5 };
+        const orderMap = { 'borrow-o': 0, 'ans-o': 1, 'borrow-t': 2, 'ans-t': 3, 'borrow-h': 4, 'ans-h': 5, 'borrow-th': 6, 'ans-th': 7 };
         incorrectFieldIds.sort((a, b) => {
           const indexA = parseInt(a.split('-').pop());
           const indexB = parseInt(b.split('-').pop());
@@ -465,13 +418,13 @@ function handleNav(e, i, id) {
       retryBtn = document.getElementById('retry');
       retryBtn.onclick = retry;
       resetHighScoreBtn.onclick = resetHighScore;
-
-      loadData(); updateDisplay();
+      loadData();
+      updateDisplay();
       startBtn.focus();
-
       document.addEventListener('keydown', e => {
         if (e.key === 'Enter' && startArea.style.display !== 'none') {
-          e.preventDefault(); startBtn.click();
+          e.preventDefault();
+          startBtn.click();
         }
       });
     });
