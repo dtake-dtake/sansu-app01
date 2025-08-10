@@ -188,6 +188,23 @@
                 font-size: 1.2em;
             }
         }
+
+        /* --- ドリル数バッジ --- */
+        .unit-section h3 .count-badge{
+            display:inline-block;
+            min-width: 2.2em;
+            padding: 2px 8px;
+            margin-left: 10px;
+            font-size: .7em;
+            line-height: 1.6;
+            text-align:center;
+            color: #0d47a1;          /* Indigo濃色 */
+            background:#e3f2fd;      /* Light Blue 50 */
+            border:1px solid #bbdefb;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
     </style>
 </head>
 <body>
@@ -200,178 +217,192 @@
         </div>
 
     <script>
-        // localStorageのキー名
-        const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
-        const LAST_OPENED_UNIT_KEY = 'lastOpenedUnit';
+    // localStorageのキー名
+    const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
+    // 単元の開閉は学年ごとに配列で保持: openUnits:<grade>
+    const OPEN_UNITS_KEY_PREFIX = 'openUnits:';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const gradeTabsContainer = document.getElementById('grade-tabs');
-            const unitsContainer = document.getElementById('units-container');
+    document.addEventListener('DOMContentLoaded', () => {
+        const gradeTabsContainer = document.getElementById('grade-tabs');
+        const unitsContainer = document.getElementById('units-container');
 
-            // localStorageからアプリの統計情報を読み込む関数
-            function getAppStats(appId) {
-                const highScore = localStorage.getItem(`${appId}_highScore`);
-                const overallStatus = localStorage.getItem(`${appId}_overallStatus`);
-                return {
-                    highScore: highScore ? parseInt(highScore) : null,
-                    overallStatus: overallStatus || null
-                };
+        // localStorageからアプリの統計情報を読み込む関数（既存互換）
+        function getAppStats(appId) {
+        const highScore = localStorage.getItem(`${appId}_highScore`);
+        const overallStatus = localStorage.getItem(`${appId}_overallStatus`);
+        return {
+            highScore: highScore ? parseInt(highScore) : null,
+            overallStatus: overallStatus || null
+        };
+        }
+
+        // 学年ごとの「開いている単元名」配列を取得/保存
+        function getOpenUnitsForGrade(gradeName){
+        try{
+            return JSON.parse(localStorage.getItem(OPEN_UNITS_KEY_PREFIX + gradeName)) || [];
+        }catch(e){
+            return [];
+        }
+        }
+        function setOpenUnitsForGrade(gradeName, openUnits){
+        localStorage.setItem(OPEN_UNITS_KEY_PREFIX + gradeName, JSON.stringify(openUnits));
+        }
+
+        // UI初期化
+        function initializeUI(appData) {
+        let initialGradeIndex = 0; // デフォルトは先頭
+        const lastSelectedGradeName = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
+
+        if (lastSelectedGradeName) {
+            const foundIndex = appData.findIndex(g => g.grade === lastSelectedGradeName);
+            if (foundIndex !== -1) initialGradeIndex = foundIndex;
+        }
+
+        // 学年タブ生成
+        appData.forEach((gradeData, index) => {
+            const tab = document.createElement('button');
+            tab.textContent = gradeData.grade;
+            tab.classList.add('grade-tab');
+
+            if (index === initialGradeIndex) {
+            tab.classList.add('active');
+            displayUnits(gradeData.grade, gradeData.units); // ← 学年名も渡す
             }
 
-            // UIの初期化と表示ロジックをまとめた関数
-            function initializeUI(appData) {
-                let initialGradeToSelect = 0; // デフォルトは小学1年
-                let lastSelectedGradeName = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
-                let lastOpenedUnitName = localStorage.getItem(LAST_OPENED_UNIT_KEY);
+            tab.addEventListener('click', () => {
+            document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            localStorage.setItem(LAST_SELECTED_GRADE_KEY, gradeData.grade);
+            displayUnits(gradeData.grade, gradeData.units);
+            });
 
-                // 最後に選択されていた学年を復元
-                if (lastSelectedGradeName) {
-                    const foundIndex = appData.findIndex(g => g.grade === lastSelectedGradeName);
-                    if (foundIndex !== -1) {
-                        initialGradeToSelect = foundIndex;
-                    }
-                }
-
-                // 学年タブの生成
-                appData.forEach((gradeData, index) => {
-                    const tab = document.createElement('button');
-                    tab.textContent = gradeData.grade;
-                    tab.classList.add('grade-tab');
-                    
-                    if (index === initialGradeToSelect) {
-                        tab.classList.add('active'); // アクティブな学年タブ
-                        displayUnits(gradeData.units, lastOpenedUnitName); // その学年の単元を表示
-                    }
-                    
-                    tab.addEventListener('click', () => {
-                        // 全てのタブのアクティブ状態を解除
-                        document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
-                        // クリックされたタブをアクティブに
-                        tab.classList.add('active');
-                        localStorage.setItem(LAST_SELECTED_GRADE_KEY, gradeData.grade); // 選択された学年を保存
-                        localStorage.removeItem(LAST_OPENED_UNIT_KEY); // 学年切り替え時は開いている単元をリセット
-                        displayUnits(gradeData.units); // その学年の単元を表示
-                    });
-                    gradeTabsContainer.appendChild(tab);
-                });
-            }
-
-            // 単元とアプリを表示する関数
-            function displayUnits(units, unitToOpenInitially = null) {
-                unitsContainer.innerHTML = ''; // 既存の単元リストをクリア
-
-                units.forEach(unit => {
-                    const unitSection = document.createElement('div');
-                    unitSection.classList.add('unit-section');
-                    
-                    const unitHeader = document.createElement('h3');
-                    unitHeader.innerHTML = `${unit.name} <span class="toggle-icon">▼</span>`;
-                    unitSection.appendChild(unitHeader);
-                    
-                    const appsList = document.createElement('div');
-                    appsList.classList.add('apps-list');
-                    appsList.style.display = 'none'; // 初期は非表示
-
-                    if (unit.apps && unit.apps.length > 0) {
-                        unit.apps.forEach(app => {
-                            const appItem = document.createElement('a'); // aタグ全体をアプリ項目に
-                            appItem.href = app.path;
-                            appItem.classList.add('app-item');
-                            appItem.id = `app-${app.id}`; // id属性を設定！
-
-                            const appTitleSection = document.createElement('div');
-                            appTitleSection.classList.add('app-title-section');
-                            appTitleSection.textContent = app.title; // アプリタイトル
-
-                            const appStatusSection = document.createElement('div');
-                            appStatusSection.classList.add('app-status-section');
-
-                            // ハイスコアとステータスを読み込む
-                            const stats = getAppStats(app.id);
-                            
-                            const scoreSpan = document.createElement('span');
-                            scoreSpan.classList.add('app-score');
-                            scoreSpan.textContent = `ハイスコア: ${stats.highScore !== null ? stats.highScore + '点' : '-'}`;
-                            appStatusSection.appendChild(scoreSpan);
-
-                            const starsSpan = document.createElement('span');
-                            starsSpan.classList.add('app-stars');
-                            if (stats.overallStatus) {
-                                starsSpan.innerHTML = stats.overallStatus;
-                            } else {
-                                starsSpan.textContent = '―';
-                                starsSpan.classList.add('no-data'); // データがない場合のスタイル
-                            }
-                            appStatusSection.appendChild(starsSpan);
-
-                            appItem.appendChild(appTitleSection);
-                            appItem.appendChild(appStatusSection);
-                            appsList.appendChild(appItem);
-                        });
-                    } else {
-                        // アプリがない場合の表示
-                        const noAppText = document.createElement('p');
-                        noAppText.textContent = "この単元のアプリはまだありません。";
-                        noAppText.style.fontSize = "1.2em";
-                        noAppText.style.color = "#666";
-                        noAppText.style.padding = "10px 0";
-                        appsList.appendChild(noAppText);
-                    }
-
-
-                    unitSection.appendChild(appsList);
-                    unitsContainer.appendChild(unitSection);
-
-                    // トグル機能
-                    unitHeader.addEventListener('click', () => {
-                        const icon = unitSection.querySelector('.toggle-icon');
-                        if (appsList.style.display === 'none') {
-                            // 全ての開いているアプリリストを閉じる
-                            document.querySelectorAll('.apps-list').forEach(list => list.style.display = 'none');
-                            document.querySelectorAll('.unit-section').forEach(section => section.classList.remove('expanded'));
-                            document.querySelectorAll('.toggle-icon').forEach(ico => ico.textContent = '▼');
-
-                            // クリックされたアプリリストを開く
-                            appsList.style.display = 'flex'; // flexコンテナとして表示
-                            unitSection.classList.add('expanded');
-                            icon.textContent = '▲';
-                            localStorage.setItem(LAST_OPENED_UNIT_KEY, unit.name); // 開いた単元を保存
-                        } else {
-                            appsList.style.display = 'none';
-                            unitSection.classList.remove('expanded');
-                            icon.textContent = '▼';
-                            localStorage.removeItem(LAST_OPENED_UNIT_KEY); // 閉じた単元は削除
-                        }
-                    });
-
-                    // 最後に開いていた単元を復元
-                    if (unitToOpenInitially && unit.name === unitToOpenInitially) {
-                        appsList.style.display = 'flex';
-                        unitSection.classList.add('expanded');
-                        unitHeader.querySelector('.toggle-icon').textContent = '▲';
-                        // 画面の中央にスクロール
-                        unitSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                });
-            }
-
-            // アプリケーション開始時にデータをロード
-            async function loadAppData() {
-                try {
-                    const response = await fetch('app_data.json'); // JSONファイルのパス
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const data = await response.json();
-                    initializeUI(data); // 読み込んだデータでUIを初期化
-                } catch (error) {
-                    console.error("Failed to load app data:", error);
-                    unitsContainer.innerHTML = "<p style='text-align: center; color: red;'>アプリデータを読み込めませんでした。ファイル 'app_data.json' が存在するか、パスが正しいか確認してください。</p>";
-                }
-            }
-
-            loadAppData(); // ページロード時にデータ読み込みを開始
+            gradeTabsContainer.appendChild(tab);
         });
+        }
+
+        // 単元＆アプリ一覧の描画
+        function displayUnits(gradeName, units) {
+        unitsContainer.innerHTML = '';
+
+        // どの単元が開いているか（学年ごと）を取得
+        let openUnits = getOpenUnitsForGrade(gradeName);
+
+        units.forEach(unit => {
+            const unitSection = document.createElement('div');
+            unitSection.classList.add('unit-section');
+
+            const appsCount = Array.isArray(unit.apps) ? unit.apps.length : 0;
+
+            const unitHeader = document.createElement('h3');
+            // 単元名 + ドリル数バッジ + トグルアイコン
+            unitHeader.innerHTML = `
+            <span class="unit-title">${unit.name}</span>
+            <span class="count-badge" title="この単元のドリル数">${appsCount}</span>
+            <span class="toggle-icon">▼</span>
+            `;
+            unitSection.appendChild(unitHeader);
+
+            const appsList = document.createElement('div');
+            appsList.classList.add('apps-list');
+
+            // アプリがある場合のみ列挙
+            if (appsCount > 0) {
+            unit.apps.forEach(app => {
+                const appItem = document.createElement('a');
+                appItem.href = app.path;
+                appItem.classList.add('app-item');
+                appItem.id = `app-${app.id}`;
+
+                const appTitleSection = document.createElement('div');
+                appTitleSection.classList.add('app-title-section');
+                appTitleSection.textContent = app.title;
+
+                const appStatusSection = document.createElement('div');
+                appStatusSection.classList.add('app-status-section');
+
+                const stats = getAppStats(app.id);
+
+                const scoreSpan = document.createElement('span');
+                scoreSpan.classList.add('app-score');
+                scoreSpan.textContent = `ハイスコア: ${stats.highScore !== null ? stats.highScore + '点' : '-'}`;
+                appStatusSection.appendChild(scoreSpan);
+
+                const starsSpan = document.createElement('span');
+                starsSpan.classList.add('app-stars');
+                if (stats.overallStatus) {
+                starsSpan.innerHTML = stats.overallStatus;
+                } else {
+                starsSpan.textContent = '―';
+                starsSpan.classList.add('no-data');
+                }
+                appStatusSection.appendChild(starsSpan);
+
+                appItem.appendChild(appTitleSection);
+                appItem.appendChild(appStatusSection);
+                appsList.appendChild(appItem);
+            });
+            } else {
+            // アプリがない場合の表示
+            const noAppText = document.createElement('p');
+            noAppText.textContent = "この単元のアプリはまだありません。";
+            noAppText.style.fontSize = "1.2em";
+            noAppText.style.color = "#666";
+            noAppText.style.padding = "10px 0";
+            appsList.appendChild(noAppText);
+            }
+
+            unitSection.appendChild(appsList);
+            unitsContainer.appendChild(unitSection);
+
+            // 初期表示：保存された開閉状態を反映（複数可）
+            if (openUnits.includes(unit.name)) {
+            appsList.style.display = 'flex';
+            unitSection.classList.add('expanded');
+            unitHeader.querySelector('.toggle-icon').textContent = '▲';
+            } else {
+            appsList.style.display = 'none';
+            }
+
+            // クリックで「その単元だけ」トグル（他は閉じない）
+            unitHeader.addEventListener('click', () => {
+            const icon = unitSection.querySelector('.toggle-icon');
+            const isClosed = (appsList.style.display === 'none');
+
+            if (isClosed) {
+                appsList.style.display = 'flex';
+                unitSection.classList.add('expanded');
+                icon.textContent = '▲';
+                if (!openUnits.includes(unit.name)) {
+                openUnits.push(unit.name);
+                setOpenUnitsForGrade(gradeName, openUnits);
+                }
+            } else {
+                appsList.style.display = 'none';
+                unitSection.classList.remove('expanded');
+                icon.textContent = '▼';
+                openUnits = openUnits.filter(n => n !== unit.name);
+                setOpenUnitsForGrade(gradeName, openUnits);
+            }
+            });
+        });
+        }
+
+        // JSONロード
+        async function loadAppData() {
+        try {
+            const response = await fetch('app_data.json');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            initializeUI(data);
+        } catch (error) {
+            console.error("Failed to load app data:", error);
+            unitsContainer.innerHTML = "<p style='text-align: center; color: red;'>アプリデータを読み込めませんでした。'app_data.json' の存在とパスを確認してください。</p>";
+        }
+        }
+
+        loadAppData();
+    });
     </script>
+
 </body>
 </html>

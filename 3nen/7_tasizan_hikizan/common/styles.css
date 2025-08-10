@@ -1,0 +1,158 @@
+/* ===== 共通スタイル（カード＋パステル） ===== */
+:root{
+  --bg: #eaf7ff;
+  --panel: #ffffff;
+  --border: #cbd5e1;
+  --text: #1f2937;
+  --accent: #2563eb;
+  --accent-weak: #93c5fd;
+  --btn: #2563eb;
+  --btnText: #ffffff;
+
+  --ok: #e8fde3;
+  --ok-border: #a5d6a7;
+  --ng: #ffe0e0;
+}
+
+html{font-size:62.5%}
+body{
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 20px;
+  line-height: 1.6;
+  font-size: 2rem;
+}
+
+/* 見出し */
+h1,h2{ text-align:center; margin: 10px 0; }
+h1{ font-size: 3.6rem; letter-spacing: .1em; font-weight: 800; }
+h2{ font-size: 2.2rem; margin-bottom: 22px; opacity:.9; }
+
+/* スタート */
+#start-area{ text-align:center; margin: 26px 0; }
+#start-area button{
+  font: inherit;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 16px;
+  background: var(--btn);
+  color: var(--btnText);
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+}
+#start-area button:hover{ transform: translateY(-1px); }
+
+/* 問題パネル：開始前は非表示 */
+#problems-wrapper{
+  display: none;              /* ← start後にJSで表示 */
+  max-width: 720px;
+  margin: 0 auto 20px;
+  padding: 20px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+  border-radius: 14px;
+}
+
+.problem{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+.problem-number{
+  width: 64px;
+  text-align: right;
+  font-weight: 700;
+}
+.problem-equation{
+  flex: 1;
+  display:flex;
+  align-items:center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 入力 */
+input{
+  font: inherit;
+  width: 90px;
+  height: 56px;
+  padding: 0 6px;
+  text-align: center;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+}
+input:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-weak);
+}
+input.correct{ background: var(--ok); border-color: var(--ok-border); }
+input.incorrect{ background: var(--ng); }
+
+/* ボタン群 */
+.button-area{
+  text-align:center;
+  margin: 18px 0;
+}
+.button-area button{
+  font: inherit;
+  margin: 0 8px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--btn);
+  color: var(--btnText);
+  cursor: pointer;
+}
+.button-area button:disabled{ background: #cbd5e1; cursor: default; }
+
+/* 結果パネル（カード） */
+#result-area{
+  max-width: 720px;
+  margin: 0 auto;
+  text-align:center;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.06);
+}
+#result{ margin: 8px 0 10px; font-size: 2.2rem; }
+
+/* ハイスコア行の右側に置く小さな赤いリセット */
+.inline-reset{
+  margin-left: 12px;
+  padding: 6px 14px;
+  font-size: 1.6rem;
+  border: none;
+  border-radius: 10px;
+  background: #ef5350;
+  color: #fff;
+  cursor: pointer;
+}
+.inline-reset:hover{ background:#d32f2f; }
+
+/* ===== 筆算テーブル（必要なアプリのみ使われる） ===== */
+:root{ --cell: 68px; }
+.hissan-table{
+  border-collapse: collapse;
+  margin: 24px auto;
+  direction: rtl;
+}
+.hissan-table td{
+  width: var(--cell);
+  height: var(--cell);
+  text-align: center;
+  font-size: 3.0rem;
+  padding: 0;
+  border: none;
+  position: relative;
+  direction: ltr;
+}
+.hissan-table .answer-row td:not(.label){ border-top: 3px solid #333; }
+.hissan-table input{ width:100%; height:100%; font-size:3.0rem; border-radius: 12px; }

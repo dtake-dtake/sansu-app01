@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>４　時こくと時間｜時間のもとめかた（０時またぎ）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#e0f7ff; --ink:#333; --accent:#1565c0; --dash:#90caf9; --ring:#333;
+    --arrow-w:220px; --arrow-h:34px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:20px; background:var(--bg); color:var(--ink);
+    font-family:'HiraMaruProN-W4','ヒラギノ丸ゴ ProN W4','メイリオ',Meiryo,sans-serif;
+    line-height:1.6; font-size:1.85rem;
+  }
+  h1,h2{ text-align:center; margin:15px 0; color:var(--accent); text-shadow:2px 2px 3px rgba(0,0,0,.1) }
+  h1{font-size:3.2rem}
+  h2{font-size:2.4rem; margin-bottom:26px}
+
+  /* 問題フィールド（ダッシュ枠＋影） */
+  .problem-wrap{
+    max-width:980px; margin:0 auto 26px; padding:22px;
+    background:#fff; border:4px dashed var(--dash);
+    border-radius:20px; box-shadow:5px 5px 10px rgba(0,0,0,.15);
+  }
+  .lead{margin:0 0 10px; text-align:center}
+
+  /* 時計＋矢印 */
+  .row{ display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap; margin-bottom:12px; }
+  .clockWrap{ position:relative; width:240px; height:240px; }
+  .clock{
+    width:240px; height:240px; border-radius:50%; background:#fff;
+    border:4px solid var(--ring);
+  }
+  .floatLabel{
+    position:absolute; top:50%; transform:translateY(-50%); white-space:nowrap;
+    font-size:2.0rem; color:#222; line-height:1;
+    padding:.2em .5em; background:transparent;
+  }
+  .floatLabel.start{ right:calc(100% + 12px); text-align:right; }
+  .floatLabel.end  { left: calc(100% + 12px); }
+  .clock canvas{ width:92%; height:92%; display:block; margin:4%; }
+
+  .arrow-img{ width:var(--arrow-w); height:var(--arrow-h); object-fit:contain; display:block }
+
+  /* 答え欄 */
+  .answer{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:6px }
+  .answer input[type=number]{
+    width:120px; padding:.35em .45em; text-align:center; font-size:2.2rem;
+    border:2px solid #bbdefb; border-radius:10px;
+  }
+  .answer span{ display:inline-flex; align-items:center; line-height:1; }
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0 }
+  input[type=number]{ -moz-appearance:textfield }
+  .controls{ margin-top:10px; text-align:center }
+  button{ font-size:2.1rem; padding:.6em 1.4em; border:none; border-radius:14px; background:#1976d2; color:#fff; cursor:pointer }
+  button:disabled{ opacity:.6; cursor:not-allowed }
+  .msg{ text-align:center; min-height:2.2rem; margin-top:6px }
+
+  /* 成績・統計 */
+  .result-wrap{
+    max-width:980px; margin:0 auto; background:#f3faff;
+    padding:20px; border-radius:15px; border:2px solid #cfe3ff; box-shadow:2px 2px 6px rgba(0,0,0,.08) inset;
+  }
+  .stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px 18px; margin-top:4px }
+  .stat-row{ display:flex; justify-content:space-between; gap:12px; font-size:2rem }
+  .stat-row strong{ color:#2e7d32 }
+  .history{ margin-top:16px; text-align:left; max-width:720px; margin-left:auto; margin-right:auto; font-size:1.8rem }
+  .history ul{ list-style:none; padding:0; margin:6px 0 0 }
+  .history li{ padding:4px 0; border-bottom:1px dashed #cfe8ff }
+  .history li:last-child{ border-bottom:none }
+
+  @media (max-width:900px){
+    .clockWrap{ width:200px; height:200px }
+    .clock{ width:200px; height:200px }
+    .floatLabel{ font-size:1.7rem }
+    :root{ --arrow-w: 180px; --arrow-h: 30px }
+    .stats{ grid-template-columns:1fr }
+  }
+</style>
+</head>
+<body>
+
+  <h1>４　時こくと時間</h1>
+  <h2>時間のもとめかた</h2>
+
+  <!-- 問題フィールド -->
+  <section class="problem-wrap">
+    <p class="lead">時間を求めましょう。<small style="color:#666">（終了は翌日の0〜6時）</small></p>
+
+    <div class="row">
+      <!-- 開始 -->
+      <div class="clockWrap">
+        <div class="floatLabel start" id="labelStart">開始：--</div>
+        <div class="clock"><canvas id="clkStart" width="220" height="220" aria-label="開始時計"></canvas></div>
+      </div>
+
+      <!-- 矢印（画像差替OK） -->
+      <img src="arrow.svg" alt="→" class="arrow-img" />
+
+      <!-- 終了 -->
+      <div class="clockWrap">
+        <div class="floatLabel end" id="labelEnd">終了：--</div>
+        <div class="clock"><canvas id="clkEnd" width="220" height="220" aria-label="終了時計"></canvas></div>
+      </div>
+    </div>
+
+    <div class="answer">
+      <input id="ansH" type="number" min="0" placeholder="時間"> <span>時間</span>
+      <input id="ansM" type="number" min="0" max="59" placeholder="分"> <span>分</span>
+    </div>
+
+    <div class="controls">
+      <button id="btnCheck" disabled>決定</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </section>
+
+  <!-- 成績・統計 -->
+  <section class="result-wrap">
+    <div class="stats">
+      <div class="stat-row"><span>ハイスコア：</span><strong id="highScore">-</strong><span>点</span></div>
+      <div class="stat-row"><span>今日のクリア：</span><strong id="dailyClear">0</strong><span>回</span></div>
+      <div class="stat-row"><span>今月のクリア：</span><strong id="monthlyClear">0</strong><span>回</span></div>
+      <div class="stat-row"><span>合計クリア：</span><strong id="totalClear">0</strong><span>回</span></div>
+      <div class="stat-row" style="grid-column:1/-1;"><span>ステータス：</span><strong id="overallStars">―</strong></div>
+    </div>
+
+    <div class="history">
+      りれき（１０件）
+      <ul id="historyList"></ul>
+    </div>
+  </section>
+
+<script>
+(() => {
+  "use strict";
+
+  const APP_ID = "3n-jikoku-jikan";
+  const minsSet = [10,20,30,40,50];
+
+  // 要素
+  const clkStart = document.getElementById('clkStart');
+  const clkEnd   = document.getElementById('clkEnd');
+  const labelStart = document.getElementById('labelStart');
+  const labelEnd   = document.getElementById('labelEnd');
+  const ansH = document.getElementById('ansH');
+  const ansM = document.getElementById('ansM');
+  const btnCheck = document.getElementById('btnCheck');
+  const msg = document.getElementById('msg');
+
+  const hiEl = document.getElementById('highScore');
+  const dailyEl = document.getElementById('dailyClear');
+  const monthlyEl = document.getElementById('monthlyClear');
+  const totalEl = document.getElementById('totalClear');
+  const starsEl = document.getElementById('overallStars');
+  const historyList = document.getElementById('historyList');
+
+  // storage
+  const k = s => `${APP_ID}_${s}`;
+  const load = (key, def=null) => { try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch{ return def; } };
+  const save = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+  const todayStr = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const monthStr = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
+  const fmtHM = (h,m)=>`${h}:${String(m).padStart(2,'0')}`;
+
+  function starsBy(score){
+    if(score>=195) return "★★★★★";
+    if(score>=185) return "★★★★☆";
+    if(score>=170) return "★★★★";
+    if(score>=155) return "★★★";
+    if(score>=140) return "★★";
+    return "★";
+  }
+
+  let cur = null; // {sh, sm, eh}
+  let startMs = 0;
+
+  function init(){
+    [ansH, ansM].forEach(el => {
+      el.addEventListener('input', () => btnCheck.disabled = (ansH.value==="" || ansM.value===""));
+      el.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter'){ if(el===ansH) ansM.focus(); else check(); }
+        if(e.key==='ArrowUp' || e.key==='ArrowDown') e.preventDefault();
+      });
+    });
+    btnCheck.addEventListener('click', check);
+
+    refreshStats();
+    drawClock(clkStart, 6, 10); // demo
+    drawClock(clkEnd,   0, 0);
+    nextProblem();
+  }
+
+  // ０時またぎの問題生成
+  function nextProblem(){
+    const sh = rnd(6,23);                        // 6〜23時
+    const sm = minsSet[Math.floor(Math.random()*minsSet.length)]; // 10/20/30/40/50
+    const eh = rnd(0,6);                         // 翌日の0〜6時
+    cur = {sh, sm, eh};
+
+    labelStart.textContent = `開始：${fmtHM(sh,sm)}`;
+    labelEnd.textContent   = `終了：翌日 ${eh}時`;
+
+    drawClock(clkStart, sh, sm);
+    drawClock(clkEnd,   eh, 0);
+
+    ansH.value = ""; ansM.value = "";
+    btnCheck.disabled = true;
+    msg.textContent = "";
+    startMs = Date.now();
+  }
+
+  function rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+  // 判定・記録
+  function check(){
+    if(!cur) return;
+    const h = Number(ansH.value);
+    const m = Number(ansM.value);
+    if(Number.isNaN(h) || Number.isNaN(m) || m<0 || m>59 || h<0){ pop("入力を確認してください。"); return; }
+
+    // ０時またぎの差（終了は翌日扱い）
+    const startMin = cur.sh*60 + cur.sm;
+    const endMin   = (cur.eh+24)*60; // 翌日
+    const diffMin  = endMin - startMin; // 必ず正
+    const needH = Math.floor(diffMin/60);
+    const needM = diffMin % 60;
+
+    if(h===needH && m===needM){
+      const sec = (Date.now()-startMs)/1000;
+      const scoreRaw = 200 - (sec*(100/120)); // 0s→200, 120s→100
+      const score = Math.max(100, Math.round(scoreRaw));
+      pop(`せいかい！ ${needH}時間${needM}分（${Math.round(sec)}秒 / ${score}点）`, true);
+
+      const oldHi = load(k("highScore"));
+      if(oldHi==null || score>oldHi) save(k("highScore"), score);
+
+      const tPack = load(k("daily"), {date: todayStr(), count:0});
+      if(tPack.date !== todayStr()) save(k("daily"), {date: todayStr(), count:1});
+      else save(k("daily"), {date: tPack.date, count: tPack.count+1});
+
+      const mPack = load(k("monthly"), {month: monthStr(), count:0});
+      if(mPack.month !== monthStr()) save(k("monthly"), {month: monthStr(), count:1});
+      else save(k("monthly"), {month: mPack.month, count: mPack.count+1});
+
+      const total = load(k("totalClear"), 0) + 1; save(k("totalClear"), total);
+
+      const hiNow = load(k("highScore"), score);
+      save(k("overallStatus"), starsBy(hiNow));
+
+      const hist = load(k("history"), []);
+      hist.unshift({
+        date: new Date().toISOString(),
+        from: fmtHM(cur.sh,cur.sm),
+        to:   `翌日 ${cur.eh}:00`,
+        h: needH, m: needM,
+        sec: Math.round(sec),
+        score
+      });
+      if(hist.length>10) hist.pop();
+      save(k("history"), hist);
+
+      refreshStats();
+      setTimeout(nextProblem, 900);
+    }else{
+      pop("まちがいです。もう一度ためしてみよう。");
+    }
+  }
+
+  function pop(text, ok=false){
+    msg.textContent = text;
+    msg.style.color = ok ? "#1b5e20" : "#b71c1c";
+  }
+
+  function refreshStats(){
+    const hi = load(k("highScore"));
+    hiEl.textContent = hi ?? "-";
+    const d = load(k("daily"), {date: todayStr(), count:0});
+    dailyEl.textContent = (d.date===todayStr()? d.count : 0);
+    const m = load(k("monthly"), {month: monthStr(), count:0});
+    monthlyEl.textContent = (m.month===monthStr()? m.count : 0);
+    totalEl.textContent = load(k("totalClear"), 0);
+    starsEl.textContent = load(k("overallStatus")) || "―";
+
+    const hist = load(k("history"), []);
+    historyList.innerHTML = hist.map(h =>
+      `<li>【${h.date.replace("T"," ").slice(0,16)}】 ${h.from}→${h.to}：${h.h}時間${h.m}分 / ${h.sec}秒 / ${h.score}点</li>`
+    ).join("");
+  }
+
+  // 時計描画（5分ごとに数字）
+  function drawClock(canvas, h, m){
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W/2, cy = H/2, r = Math.min(W,H)/2 - 6;
+    ctx.clearRect(0,0,W,H);
+
+    // 盤
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle="#fff"; ctx.fill();
+    ctx.lineWidth=3; ctx.strokeStyle="#222"; ctx.stroke();
+
+    // 目盛＆数字
+    for(let i=0;i<60;i++){
+      const ang = Math.PI*2*(i/60) - Math.PI/2;
+      const is5 = i%5===0;
+      const x1 = cx + Math.cos(ang)*(r-8);
+      const y1 = cy + Math.sin(ang)*(r-8);
+      const x2 = cx + Math.cos(ang)*(r-(is5?16:12));
+      const y2 = cy + Math.sin(ang)*(r-(is5?16:12));
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      ctx.lineWidth = is5? 2 : 1; ctx.strokeStyle="#000"; ctx.stroke();
+
+      if(is5){
+        const num = (i/5===0)?12:(i/5);
+        const nx = cx + Math.cos(ang)*(r-30);
+        const ny = cy + Math.sin(ang)*(r-30);
+        ctx.font="16px sans-serif"; ctx.fillStyle="#111";
+        ctx.textAlign="center"; ctx.textBaseline="middle";
+        ctx.fillText(num.toString(), nx, ny);
+      }
+    }
+
+    // 針
+    const minAng = Math.PI*2*(m/60) - Math.PI/2;
+    const hrAng  = Math.PI*2*((h%12)/12 + m/720) - Math.PI/2;
+
+    // 分針
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx + Math.cos(minAng)*(r-28), cy + Math.sin(minAng)*(r-28));
+    ctx.lineWidth=4; ctx.strokeStyle="#111"; ctx.stroke();
+
+    // 時針
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx + Math.cos(hrAng)*(r-50), cy + Math.sin(hrAng)*(r-50));
+    ctx.lineWidth=6; ctx.strokeStyle="#111"; ctx.stroke();
+
+    // 中心
+    ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.fillStyle="#111"; ctx.fill();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
