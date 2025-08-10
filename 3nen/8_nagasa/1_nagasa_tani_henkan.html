@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>長さのへんかん</title>
+  <style>
+    /* デザインは緑系 */
+    body {
+      font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
+      background: #e8f5e9;
+      margin: 20px;
+      color: #333;
+      font-size: 1.8rem;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 15px 0;
+      color: #2e7d32;
+      text-shadow: 2px 2px 3px rgba(0,0,0,0.1);
+      white-space: nowrap;
+    }
+    h1 {
+      font-size: 3.2rem;
+    }
+    h2 {
+      font-size: 2.2rem;
+      margin-bottom: 30px;
+    }
+    #problems-wrapper {
+      max-width: 700px;
+      margin: 0 auto 30px;
+      padding: 30px;
+      border: 4px dashed #a5d6a7;
+      background: #ffffff;
+      box-shadow: 5px 5px 10px rgba(0,0,0,.15);
+      border-radius: 20px;
+    }
+    .problem {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 25px;
+      background: #f1f8e9;
+      padding: 10px 15px;
+      border-radius: 10px;
+    }
+    .problem-number {
+      width: 60px;
+      text-align: right;
+      margin-right: 20px;
+      font-weight: bold;
+      font-size: 2.2rem;
+      color: #1b5e20;
+    }
+    .problem-equation {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      font-size: 2.2rem;
+      flex-wrap: wrap; /* 画面が狭い時に折り返す */
+      gap: 5px; /* 要素間の隙間 */
+    }
+    .problem-equation .unit {
+      margin-left: 2px;
+    }
+    .problem-equation .equals {
+      margin: 0 5px;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      width: 120px;
+      font-size: 2.2rem;
+      padding: 8px;
+      border: 2px solid #81c784;
+      border-radius: 8px;
+      text-align: center;
+    }
+    input[type=number].km { width: 90px; }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .button-area { text-align: center; margin-bottom: 30px; }
+    button {
+      font-size: 2.2rem;
+      margin: 0 15px;
+      padding: 15px 30px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 3px 3px 6px rgba(0,0,0,.2);
+      transition: background 0.3s ease, transform 0.1s ease;
+    }
+    button:hover { background: #388e3c; transform: translateY(-2px); }
+    button:disabled { background: #ccc; cursor: default; box-shadow: none; transform: none; }
+    #result-area {
+        max-width: 600px; margin: 0 auto; text-align: center; margin-bottom: 25px;
+        background: #f1f8e9; padding: 20px; border-radius: 15px; border: 2px solid #c5e1a5;
+    }
+    #result { font-size: 2.5rem; font-weight: bold; margin: 15px 0; color: #d32f2f; }
+    #highScoreArea, #clearCountArea, #monthlyCountArea, #dailyCountArea, #overallStatusArea {
+      font-size: 1.8rem; margin: 8px 0;
+    }
+    #highScoreValue, #clearCountValue, #monthlyCountValue, #dailyCountValue {
+      font-weight: bold; margin: 0 10px; color: #33691e;
+    }
+    #reset-highscore {
+      font-size: 1.5rem; margin-left: 15px; padding: 6px 14px;
+      background: #ef5350; color: white; border-radius: 10px;
+    }
+    #reset-highscore:hover { background: #c62828; }
+    #history-area {
+      font-size: 1.6rem; margin: 20px 0; text-align: left; max-width: 400px;
+      margin-left: auto; margin-right: auto; padding: 10px; background: #dcedc8;
+      border-radius: 10px; border: 1px solid #c5e1a5;
+    }
+    #history-list { list-style: none; padding: 0; margin: 0; }
+    #history-list li { margin: 5px 0; color: #33691e; }
+    .result-icon { margin-left: 15px; font-size: 2.2rem; font-weight: bold; }
+    .correct { color: #388e3c; }
+    .wrong { color: #f57c00; }
+    #overallStatusArea { display: flex; justify-content: center; align-items: center; }
+    .status-stars{
+      display: inline-flex; font-size: 2rem; color: gold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3); line-height: 1; margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>８　長さ</h1>
+  <h2>長さのへんかん</h2>
+
+  <div id="start-area" style="text-align:center; margin:40px 0;">
+    <button id="start-btn">スタート！</button>
+  </div>
+
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="highScoreArea">
+      ハイスコア：<span id="highScoreValue">0</span> てん
+      <button id="reset-highscore">リセット</button>
+    </div>
+    <div id="dailyCountArea">
+      今日のクリア：<span id="dailyCountValue">0</span> かい
+    </div>
+    <div id="monthlyCountArea">
+      今月のクリア：<span id="monthlyCountValue">0</span> かい
+    </div>
+    <div id="clearCountArea">
+      合計クリア：<span id="clearCountValue">0</span> かい
+    </div>
+    <div id="overallStatusArea">
+        <span id="overallStatusText">ステータス：</span>
+        <span id="overallStars" class="status-stars">―</span>
+    </div>
+    <div id="history-area">
+      りれき（さいきん１０件）<br>
+      <ul id="history-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const APP_NS = "nagasa-tani-v2_";
+    const KEY_HS = APP_NS + "highScore";
+    const KEY_CLEAR = APP_NS + "clearCount";
+    const KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-";
+    const KEY_DAILY_PREFIX = APP_NS + "dailyClear-";
+    const KEY_HISTORY = APP_NS + "history";
+    const KEY_OVERALL_STATUS = APP_NS + "overallStatus";
+
+    const NUM_QUESTIONS = 10;
+    const TIME_LIMIT = 90;
+
+    const SCORE_STARS_THRESHOLD = {
+        star_circle: 100, star1: 101, star2: 110, star3: 120,
+        star4: 130, star5: 140, star6: 150
+    };
+
+    let problems = [], startTime = 0, highScore = 0, totalClearCount = 0,
+        monthlyCount = 0, dailyCount = 0, overallStatusStars = '―', incorrectIndices = [];
+
+    const ls = localStorage;
+
+    function loadAllData(){
+        highScore = +ls.getItem(KEY_HS) || 0;
+        totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
+        overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        dailyCount = +ls.getItem(todayKey) || 0;
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        monthlyCount = +ls.getItem(monthKey) || 0;
+    }
+
+    function loadHistory(){
+        try { return JSON.parse(ls.getItem(KEY_HISTORY)) || []; } catch { return []; }
+    }
+
+    function saveAllData(score) {
+        if (score > highScore) {
+            highScore = score;
+            ls.setItem(KEY_HS, String(highScore));
+        }
+        totalClearCount++; monthlyCount++; dailyCount++;
+        ls.setItem(KEY_CLEAR, String(totalClearCount));
+        ls.setItem(KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10), String(dailyCount));
+        ls.setItem(KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7), String(monthlyCount));
+        ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
+        const history = loadHistory();
+        history.unshift({ datetime: new Date().toLocaleString(), score: score });
+        if (history.length > 10) history.pop();
+        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+    }
+
+    function updateAllDisplays(){
+        document.querySelector('#highScoreValue').textContent = highScore;
+        document.querySelector('#clearCountValue').textContent = totalClearCount;
+        document.querySelector('#monthlyCountValue').textContent = monthlyCount;
+        document.querySelector('#dailyCountValue').textContent = dailyCount;
+        document.querySelector('#overallStars').innerHTML = overallStatusStars;
+        renderHistory();
+    }
+
+    function renderHistory(){
+        const ul = document.querySelector('#history-list');
+        ul.innerHTML = '';
+        const history = loadHistory();
+        history.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.datetime}：${item.score}てん`;
+            ul.appendChild(li);
+        });
+    }
+
+    function generateProblems() {
+        const allFacts = [];
+        for (let i = 0; i < 50; i++) {
+            const km1 = Math.floor(Math.random() * 9) + 1;
+            allFacts.push({ type: 'km_to_m', text: `${km1}km`, answers: { m: km1 * 1000 } });
+            const km2 = Math.floor(Math.random() * 9) + 1;
+            allFacts.push({ type: 'm_to_km', text: `${km2 * 1000}m`, answers: { km: km2 } });
+            const km3 = Math.floor(Math.random() * 9) + 1;
+            const m3 = (Math.floor(Math.random() * 99) + 1) * 10;
+            allFacts.push({ type: 'm_to_km_m', text: `${km3 * 1000 + m3}m`, answers: { km: km3, m: m3 } });
+            const km4 = Math.floor(Math.random() * 9) + 1;
+            const m4 = (Math.floor(Math.random() * 99) + 1) * 10;
+            allFacts.push({ type: 'km_m_to_m', text: `${km4}km ${m4}m`, answers: { m: km4 * 1000 + m4 } });
+        }
+        for (let i = allFacts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allFacts[i], allFacts[j]] = [allFacts[j], allFacts[i]];
+        }
+        problems = allFacts.slice(0, NUM_QUESTIONS);
+    }
+
+    function displayProblems() {
+        const wrap = document.querySelector('#problems-wrapper');
+        wrap.innerHTML = '';
+        problems.forEach((p, i) => {
+            const row = document.createElement('div');
+            row.className = 'problem';
+            const num = document.createElement('div');
+            num.className = 'problem-number';
+            num.textContent = (i + 1) + '.';
+            const eq = document.createElement('div');
+            eq.className = 'problem-equation';
+            let answerFieldsHTML = '';
+            switch (p.type) {
+                case 'km_to_m':
+                case 'km_m_to_m':
+                    answerFieldsHTML = `<input type="number" id="ans-${i}-m"><span class="unit">m</span>`;
+                    break;
+                case 'm_to_km':
+                    answerFieldsHTML = `<input type="number" id="ans-${i}-km" class="km"><span class="unit">km</span>`;
+                    break;
+                case 'm_to_km_m':
+                    answerFieldsHTML = `<input type="number" id="ans-${i}-km" class="km"><span class="unit">km</span> <input type="number" id="ans-${i}-m"><span class="unit">m</span>`;
+                    break;
+            }
+            eq.innerHTML = `<span>${p.text}</span><span class="equals">＝</span>${answerFieldsHTML}`;
+            const icon = document.createElement('span');
+            icon.id = `icon-${i}`;
+            icon.className = 'result-icon';
+            eq.appendChild(icon);
+            row.append(num, eq);
+            wrap.appendChild(row);
+
+            // ▼▼▼ Enterキーでの移動ロジックを修正 ▼▼▼
+            const inputs = eq.querySelectorAll('input');
+            inputs.forEach((input, inputIndex) => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // 現在の入力欄が問題内で最後か？
+                        if (inputIndex === inputs.length - 1) {
+                            let nextProblemToFocus = -1;
+                             // 「直し」モードの場合
+                            if (incorrectIndices.length > 0) {
+                                const currentIndexInIncorrect = incorrectIndices.indexOf(i);
+                                if (currentIndexInIncorrect !== -1 && currentIndexInIncorrect < incorrectIndices.length - 1) {
+                                    nextProblemToFocus = incorrectIndices[currentIndexInIncorrect + 1];
+                                }
+                            } else { // 通常モードの場合
+                                if (i < NUM_QUESTIONS - 1) {
+                                    nextProblemToFocus = i + 1;
+                                }
+                            }
+
+                            if (nextProblemToFocus !== -1) {
+                                const nextInput = document.querySelector(`[id^="ans-${nextProblemToFocus}-"]`);
+                                if (nextInput) {
+                                    nextInput.focus();
+                                    nextInput.select();
+                                }
+                            } else {
+                                document.querySelector('#check-answers').focus();
+                            }
+                        } else { // 問題内に次の入力欄がある場合
+                            inputs[inputIndex + 1].focus();
+                            inputs[inputIndex + 1].select();
+                        }
+                    }
+                });
+            });
+        });
+    }
+
+    function checkAnswers() {
+        document.querySelector('#check-answers').disabled = true;
+        let currentCorrectCount = 0;
+        incorrectIndices = [];
+
+        problems.forEach((p, i) => {
+            let isCorrect = false;
+            const inputs = document.querySelectorAll(`[id^="ans-${i}-"]`);
+            if (inputs.length > 0 && inputs[0].disabled) {
+                currentCorrectCount++;
+                return;
+            }
+
+            switch (p.type) {
+                case 'km_to_m':
+                case 'km_m_to_m':
+                    if (+document.querySelector(`#ans-${i}-m`).value === p.answers.m) isCorrect = true;
+                    break;
+                case 'm_to_km':
+                    if (+document.querySelector(`#ans-${i}-km`).value === p.answers.km) isCorrect = true;
+                    break;
+                case 'm_to_km_m':
+                    if (+document.querySelector(`#ans-${i}-km`).value === p.answers.km &&
+                        +document.querySelector(`#ans-${i}-m`).value === p.answers.m) isCorrect = true;
+                    break;
+            }
+            const icon = document.querySelector(`#icon-${i}`);
+            if (isCorrect) {
+                currentCorrectCount++;
+                icon.textContent = '○';
+                icon.className = 'result-icon correct';
+                inputs.forEach(inp => { inp.disabled = true; inp.style.borderColor = '#a5d6a7'; });
+            } else {
+                icon.textContent = '×';
+                icon.className = 'result-icon wrong';
+                incorrectIndices.push(i);
+                inputs.forEach(inp => { inp.style.borderColor = '#ffab91'; });
+            }
+        });
+
+        const allCorrect = incorrectIndices.length === 0;
+
+        if (allCorrect) {
+            const elapsed = ((Date.now() - startTime) / 1000);
+            let timeBonus = 0;
+            if (elapsed < TIME_LIMIT) {
+                timeBonus = Math.floor((TIME_LIMIT - elapsed) * (100 / TIME_LIMIT));
+            }
+            let score = 100 + timeBonus;
+            if (score >= SCORE_STARS_THRESHOLD.star6) overallStatusStars = '★★★★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star5) overallStatusStars = '★★★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star4) overallStatusStars = '★★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star3) overallStatusStars = '★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star2) overallStatusStars = '★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star1) overallStatusStars = '★';
+            else if (score >= SCORE_STARS_THRESHOLD.star_circle) overallStatusStars = '○';
+            document.querySelector('#result').innerHTML = `スコア: <strong>${score}てん</strong><br>タイム: ${elapsed.toFixed(1)} 秒`;
+            saveAllData(score);
+            updateAllDisplays();
+            document.querySelector('#retry').focus();
+        } else {
+            document.querySelector('#result').innerHTML = `あと<strong>${incorrectIndices.length}もん！</strong>がんばって！`;
+            document.querySelector('#check-answers').disabled = false;
+            const firstWrongInput = document.querySelector(`[id^="ans-${incorrectIndices[0]}-"]`);
+            if (firstWrongInput) {
+                firstWrongInput.focus();
+                firstWrongInput.select();
+            }
+        }
+    }
+
+    function retry() {
+        startTime = Date.now();
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        incorrectIndices = [];
+        generateProblems();
+        displayProblems();
+        const firstInput = document.querySelector('[id^="ans-0-"]');
+        if (firstInput) firstInput.focus();
+    }
+
+    function resetHighScore() {
+        if(confirm('ハイスコアとステータスをリセットしますか？')){
+            highScore = 0; overallStatusStars = '―';
+            ls.removeItem(KEY_HS);
+            ls.removeItem(KEY_OVERALL_STATUS);
+            updateAllDisplays();
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadAllData();
+        updateAllDisplays();
+        const startBtn = document.querySelector('#start-btn');
+        const startArea = document.querySelector('#start-area');
+        const problemsSection = document.querySelector('#problems-section');
+        startBtn.onclick = () => {
+            startArea.style.display = 'none';
+            problemsSection.style.display = 'block';
+            retry();
+        };
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && startArea.style.display !== 'none') {
+                startBtn.click();
+            }
+        });
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = resetHighScore;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>２けた−２けた</title>
+  <style>
+    /* デザインをオレンジ系に変更 */
+    body {
+      font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
+      background: #fff8e1; /* 薄いオレンジの背景 */
+      margin: 20px;
+      color: #333;
+      font-size: 1.8rem;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 15px 0;
+      color: #e65100; /* 濃いオレンジ */
+      text-shadow: 2px 2px 3px rgba(0,0,0,0.1);
+      white-space: nowrap;
+    }
+    h1 {
+      font-size: 3.2rem;
+    }
+    h2 {
+      font-size: 2.2rem;
+      margin-bottom: 30px;
+    }
+    #problems-wrapper {
+      max-width: 600px;
+      margin: 0 auto 30px;
+      padding: 30px;
+      border: 4px dashed #ffcc80; /* オレンジの点線ボーダー */
+      background: #ffffff;
+      box-shadow: 5px 5px 10px rgba(0,0,0,.15);
+      border-radius: 20px;
+    }
+    .problem {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 25px;
+      background: #fff3e0;
+      padding: 10px 15px;
+      border-radius: 10px;
+    }
+    .problem-number {
+      width: 60px;
+      text-align: right;
+      margin-right: 20px;
+      font-weight: bold;
+      font-size: 2.2rem;
+      color: #bf360c;
+    }
+    .problem-equation {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      font-size: 2.2rem;
+    }
+    .problem-equation span {
+      margin: 0 10px;
+      min-width: 40px;
+      text-align: center;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      width: 100px;
+      font-size: 2.2rem;
+      margin-left: 15px;
+      padding: 8px;
+      border: 2px solid #ffb74d;
+      border-radius: 8px;
+      text-align: center;
+    }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .button-area {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    button {
+      font-size: 2.2rem;
+      margin: 0 15px;
+      padding: 15px 30px;
+      background: #fb8c00; /* メインのボタン色 */
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 3px 3px 6px rgba(0,0,0,.2);
+      transition: background 0.3s ease, transform 0.1s ease;
+    }
+    button:hover {
+      background: #ef6c00;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+    #result-area {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+        margin-bottom: 25px;
+        background: #fbe9e7;
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid #ffccbc;
+    }
+    #result {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin: 15px 0;
+      color: #d32f2f;
+    }
+    #highScoreArea, #clearCountArea, #monthlyCountArea, #dailyCountArea, #overallStatusArea {
+      font-size: 1.8rem;
+      margin: 8px 0;
+    }
+    #highScoreValue, #clearCountValue, #monthlyCountValue, #dailyCountValue {
+      font-weight: bold;
+      margin: 0 10px;
+      color: #d84315;
+    }
+    #reset-highscore {
+      font-size: 1.5rem;
+      margin-left: 15px;
+      padding: 6px 14px;
+      background: #ef5350;
+      color: white;
+      border-radius: 10px;
+    }
+    #reset-highscore:hover {
+        background: #c62828;
+    }
+    #history-area {
+      font-size: 1.6rem;
+      margin: 20px 0;
+      text-align: left;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 10px;
+      background: #ffecb3;
+      border-radius: 10px;
+      border: 1px solid #ffe082;
+    }
+    #history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #history-list li {
+      margin: 5px 0;
+      color: #e65100;
+    }
+    .result-icon {
+      margin-left: 15px;
+      font-size: 2.2rem;
+      font-weight: bold;
+    }
+    .correct {
+      color: #388e3c;
+    }
+    .wrong {
+      color: #f57c00;
+    }
+    #overallStatusArea {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .status-stars{
+      display: inline-flex;
+      font-size: 2rem;
+      color: gold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      line-height: 1;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>７　たし算とひき算</h1>
+  <h2>２けた−２けた</h2>
+
+  <div id="start-area" style="text-align:center; margin:40px 0;">
+    <button id="start-btn">スタート！</button>
+  </div>
+
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="highScoreArea">
+      ハイスコア：<span id="highScoreValue">0</span> てん
+      <button id="reset-highscore">リセット</button>
+    </div>
+    <div id="dailyCountArea">
+      今日のクリア：<span id="dailyCountValue">0</span> かい
+    </div>
+    <div id="monthlyCountArea">
+      今月のクリア：<span id="monthlyCountValue">0</span> かい
+    </div>
+    <div id="clearCountArea">
+      合計クリア：<span id="clearCountValue">0</span> かい
+    </div>
+    <div id="overallStatusArea">
+        <span id="overallStatusText">ステータス：</span>
+        <span id="overallStars" class="status-stars">―</span>
+    </div>
+    <div id="history-area">
+      りれき（さいきん１０件）<br>
+      <ul id="history-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // --- 基本設定 ---
+    const APP_NS = "hikizan-2keta_"; // ★アプリ固有IDを新しいものに変更
+    const KEY_HS             = APP_NS + "highScore";
+    const KEY_CLEAR          = APP_NS + "clearCount";
+    const KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-";
+    const KEY_DAILY_PREFIX   = APP_NS + "dailyClear-";
+    const KEY_HISTORY        = APP_NS + "history";
+    const KEY_OVERALL_STATUS = APP_NS + "overallStatus";
+
+    const NUM_QUESTIONS = 10;
+    const TIME_LIMIT    = 80; // ひき算は少し難易度が高いので制限時間を延長
+
+    const SCORE_STARS_THRESHOLD = {
+        star_circle: 100, star1: 101, star2: 110, star3: 120,
+        star4: 130, star5: 140, star6: 150
+    };
+
+    // --- アプリケーションの状態を管理する変数 ---
+    let problems     = [];
+    let startTime    = 0;
+    let highScore    = 0;
+    let totalClearCount = 0;
+    let monthlyCount = 0;
+    let dailyCount   = 0;
+    let overallStatusStars = '―';
+    let incorrectIndices = [];
+
+    const ls = localStorage;
+
+    // --- データ読み込み/保存の関数 (変更なし) ---
+    function loadAllData(){
+        highScore = +ls.getItem(KEY_HS) || 0;
+        totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
+        overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        dailyCount = +ls.getItem(todayKey) || 0;
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        monthlyCount = +ls.getItem(monthKey) || 0;
+    }
+    function loadHistory(){
+        try { return JSON.parse(ls.getItem(KEY_HISTORY)) || []; } catch { return []; }
+    }
+    function saveAllData(score) {
+        if (score > highScore) {
+            highScore = score;
+            ls.setItem(KEY_HS, String(highScore));
+        }
+        totalClearCount++;
+        monthlyCount++;
+        dailyCount++;
+        ls.setItem(KEY_CLEAR, String(totalClearCount));
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        ls.setItem(todayKey, String(dailyCount));
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        ls.setItem(monthKey, String(monthlyCount));
+        ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
+        const history = loadHistory();
+        history.unshift({ datetime: new Date().toLocaleString(), score: score });
+        if (history.length > 10) history.pop();
+        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+    }
+
+    // --- 画面表示を更新する関数 (変更なし) ---
+    function updateAllDisplays(){
+        document.querySelector('#highScoreValue').textContent = highScore;
+        document.querySelector('#clearCountValue').textContent = totalClearCount;
+        document.querySelector('#monthlyCountValue').textContent = monthlyCount;
+        document.querySelector('#dailyCountValue').textContent = dailyCount;
+        document.querySelector('#overallStars').innerHTML = overallStatusStars;
+        renderHistory();
+    }
+    function renderHistory(){
+        const ul = document.querySelector('#history-list');
+        ul.innerHTML = '';
+        const history = loadHistory();
+        history.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.datetime}：${item.score}てん`;
+            ul.appendChild(li);
+        });
+    }
+
+    // --- 問題を生成する関数 ---
+    // ▼▼▼ここのロジックを「2けた - 2けた (答えが負にならない)」ように変更しました▼▼▼
+    function generateProblems(){
+      const allFacts = [];
+      // a - b >= 0 となる組み合わせを生成
+      for (let i = 10; i <= 99; i++) { // 引かれる数 a
+        // 引く数 b (b <= a)
+        for (let j = 10; j <= i; j++) {
+            allFacts.push({a: i, b: j, answer: i - j});
+        }
+      }
+      
+      // 生成した問題リストをシャッフル
+      for (let i = allFacts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allFacts[i], allFacts[j]] = [allFacts[j], allFacts[i]];
+      }
+      
+      problems = allFacts.slice(0, NUM_QUESTIONS);
+    }
+    // ▲▲▲変更ここまで▲▲▲
+
+    // --- 問題を画面に表示する関数 ---
+    function displayProblems(){
+      const wrap = document.querySelector('#problems-wrapper');
+      wrap.innerHTML = '';
+      problems.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className = 'problem';
+        const num = document.createElement('div');
+        num.className = 'problem-number';
+        num.textContent = (i + 1) + '.';
+        const eq = document.createElement('div');
+        eq.className = 'problem-equation';
+        // ★演算子を「−」に変更
+        eq.innerHTML = `<span>${p.a}</span><span>−</span><span>${p.b}</span><span>＝</span>`;
+        const inp = document.createElement('input');
+        inp.type = 'number';
+        inp.id = `ans-${i}`;
+        
+        inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const currentProblemIndex = i;
+
+                if (incorrectIndices.length > 0) {
+                    const currentIndexInIncorrect = incorrectIndices.indexOf(currentProblemIndex);
+                    if (currentIndexInIncorrect !== -1 && currentIndexInIncorrect < incorrectIndices.length - 1) {
+                        const nextIncorrectIndex = incorrectIndices[currentIndexInIncorrect + 1];
+                        const nextInputElement = document.querySelector(`#ans-${nextIncorrectIndex}`);
+                        nextInputElement.focus();
+                        nextInputElement.select();
+                    } else {
+                        document.querySelector('#check-answers').focus();
+                    }
+                } 
+                else {
+                    const nextProblemIndex = currentProblemIndex + 1;
+                    if (nextProblemIndex < NUM_QUESTIONS) {
+                        document.querySelector(`#ans-${nextProblemIndex}`).focus();
+                    } else {
+                        document.querySelector('#check-answers').focus();
+                    }
+                }
+            }
+        });
+
+        const icon = document.createElement('span');
+        icon.id = `icon-${i}`;
+        icon.className = 'result-icon';
+        eq.append(inp, icon);
+        row.append(num, eq);
+        wrap.appendChild(row);
+      });
+    }
+
+    // --- 答え合わせの処理 (変更なし) ---
+    function checkAnswers(){
+        document.querySelector('#check-answers').disabled = true;
+
+        let currentCorrectCount = 0;
+        let newIncorrectIndices = [];
+
+        problems.forEach((p, i) => {
+            const inputField = document.querySelector(`#ans-${i}`);
+            if (inputField.disabled) {
+                currentCorrectCount++;
+                return;
+            }
+            const userAns = +inputField.value;
+            const correctAns = p.answer;
+            const icon = document.querySelector(`#icon-${i}`);
+            if (userAns === correctAns) {
+                currentCorrectCount++;
+                icon.textContent = '○';
+                icon.className = 'result-icon correct';
+                inputField.disabled = true;
+                inputField.style.borderColor = '#c5e1a5';
+            } else {
+                icon.textContent = '×';
+                icon.className = 'result-icon wrong';
+                inputField.style.borderColor = '#ffab91';
+                newIncorrectIndices.push(i);
+            }
+        });
+
+        incorrectIndices = newIncorrectIndices;
+        const allCorrect = incorrectIndices.length === 0;
+
+        if (allCorrect) {
+            const elapsed = ((Date.now() - startTime) / 1000);
+            
+            let timeBonus = 0;
+            if (elapsed < TIME_LIMIT) {
+                timeBonus = Math.floor((TIME_LIMIT - elapsed) * (100 / TIME_LIMIT));
+            }
+            let score = 100 + timeBonus;
+
+            if (score >= SCORE_STARS_THRESHOLD.star6) overallStatusStars = '★★★★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star5) overallStatusStars = '★★★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star4) overallStatusStars = '★★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star3) overallStatusStars = '★★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star2) overallStatusStars = '★★';
+            else if (score >= SCORE_STARS_THRESHOLD.star1) overallStatusStars = '★';
+            else if (score >= SCORE_STARS_THRESHOLD.star_circle) overallStatusStars = '○';
+
+            document.querySelector('#result').innerHTML = `スコア: <strong>${score}てん</strong><br>タイム: ${elapsed.toFixed(1)} 秒`;
+            saveAllData(score);
+            updateAllDisplays();
+            document.querySelector('#retry').focus();
+
+        } else {
+            document.querySelector('#result').innerHTML = `あと<strong>${incorrectIndices.length}もん！</strong>がんばって！`;
+            document.querySelector('#check-answers').disabled = false;
+            if (incorrectIndices.length > 0) {
+                const firstWrongInput = document.querySelector(`#ans-${incorrectIndices[0]}`);
+                firstWrongInput.focus();
+                firstWrongInput.select();
+            }
+        }
+    }
+    
+    // --- 「もういちど」の処理 (変更なし) ---
+    function retry(){
+        startTime = Date.now();
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        incorrectIndices = [];
+        generateProblems();
+        displayProblems();
+        document.querySelector('#ans-0').focus();
+    }
+    
+    // --- ハイスコアリセット (変更なし) ---
+    function resetHighScore() {
+        if(confirm('ハイスコアとステータスをリセットしますか？')){
+            highScore = 0;
+            overallStatusStars = '―';
+            ls.removeItem(KEY_HS);
+            ls.removeItem(KEY_OVERALL_STATUS);
+            updateAllDisplays();
+        }
+    }
+
+    // --- 初期化処理 (変更なし) ---
+    window.addEventListener('DOMContentLoaded', () => {
+        loadAllData();
+        updateAllDisplays();
+      
+        const startBtn = document.querySelector('#start-btn');
+        const startArea = document.querySelector('#start-area');
+        const problemsSection = document.querySelector('#problems-section');
+
+        startBtn.onclick = () => {
+            startArea.style.display = 'none';
+            problemsSection.style.display = 'block';
+            retry();
+        };
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && startArea.style.display !== 'none') {
+                startBtn.click();
+            }
+        });
+
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = resetHighScore;
+    });
+  </script>
+</body>
+</html>

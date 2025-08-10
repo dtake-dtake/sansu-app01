@@ -861,14 +861,9 @@
         "name": "８　　長さ",
         "apps": [
           {
-            "id": "1_nagasa_tani_henkan",
-            "title": "長さのへんかん",
-            "path": "3nen/8_nagasa/1_nagasa_tani_henkan.html"
-          },
-          {
-            "id": "2_nagasa_keisan",
-            "title": "長さのたし算とひき算",
-            "path": "3nen/8_nagasa/2_nagasa_keisan.html"
+            "id": "3n-nagasa",
+            "title": "長さ",
+            "path": "3nen/3nen_nagasa.html"
           }
         ]
       },
