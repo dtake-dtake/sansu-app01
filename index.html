@@ -204,7 +204,36 @@
             border-radius: 999px;
             font-weight: 700;
         }
+        /* 見出しを3列グリッド化：タイトル | バッジ | ▼ */
+        .unit-section h3{
+        display: grid;
+        grid-template-columns: 1fr 4.0rem 2rem; /* ←中央の 4.0rem が“バッジ列の固定幅” */
+        align-items: center;
+        column-gap: 12px;
+        }
 
+        /* タイトルは省略記号で折り返し回避（任意） */
+        .unit-section h3 .unit-title{
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        }
+
+        /* バッジは列幅いっぱいを使い、数字は等幅で中央揃え */
+        .unit-section h3 .count-badge{
+        justify-self: center;
+        width: 100%;
+        padding: 2px 0;            /* 左右パディングをなくして幅を一定に */
+        text-align: center;
+        font-variant-numeric: tabular-nums;  /* 等幅数字 */
+        font-feature-settings: "tnum";       /* 念のため */
+        border-radius: 999px;
+        }
+
+        /* ▼アイコンは右端へ */
+        .unit-section h3 .toggle-icon{
+        justify-self: end;
+        }
     </style>
 </head>
 <body>
