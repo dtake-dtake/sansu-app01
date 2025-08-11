@@ -244,15 +244,14 @@
   </div>
 
   <script>
-    // ★ここを変更！JSONで定義するIDに合わせる（末尾にアンダースコア'_'）
-    const APP_NS = "kuku-8dan-barabara_"; 
-    
-    const KEY_HS             = APP_NS + "highScore"; 
-    const KEY_HISTORY        = APP_NS + "history"; 
-    const KEY_CLEAR          = APP_NS + "clearCount"; 
-    const KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-"; 
-    const KEY_DAILY_PREFIX   = APP_NS + "dailyClear-"; 
-    const KEY_OVERALL_STATUS = APP_NS + "overallStatus"; 
+    // ★ここを変更！JSONで定義するIDに合わせる
+    const APP_ID = "kuku-8dan-barabara";
+    const KEY_HS             = `${APP_ID}:hs`;
+    const KEY_HISTORY        = `${APP_ID}:history`;
+    const KEY_CLEAR          = `${APP_ID}:clearCount`;
+    const KEY_MONTHLY_PREFIX = `${APP_ID}:monthlyClear-`;
+    const KEY_DAILY_PREFIX   = `${APP_ID}:dailyClear-`;
+    const KEY_OVERALL_STATUS = `${APP_ID}:status`;
 
     const NUM_QUESTIONS = 9; 
     const TIME_LIMIT    = NUM_QUESTIONS * 3; // 10問なら 30秒

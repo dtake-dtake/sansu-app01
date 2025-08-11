@@ -57,12 +57,13 @@
     /////////////////////////////////////////////////
     //  定数・共通ユーティリティ
     /////////////////////////////////////////////////
-    const APP_NS = "tashizan-3kuria1_";
-    const NUM_QUESTIONS = 5;  // 固定：タイプ1×2、タイプ2a×1、タイプ2b×1、タイプ3×1
-    const TIME_LIMIT = NUM_QUESTIONS * 30; // 30 秒／題
-
-    const KEY_HS = APP_NS + "highScore", KEY_HISTORY = APP_NS + "history", KEY_CLEAR = APP_NS + "clearCount",
-          KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-", KEY_DAILY_PREFIX = APP_NS + "dailyClear-", KEY_OVERALL_STATUS = APP_NS + "overallStatus";
+    const APP_ID = '01_kuriagari_10i';
+    const KEY_HS             = APP_ID + ':hs';
+    const KEY_CLEAR          = APP_ID + ':clear';
+    const KEY_MONTHLY_PREFIX = APP_ID + ':monthlyClear-';
+    const KEY_DAILY_PREFIX   = APP_ID + ':dailyClear-';
+    const KEY_HISTORY        = APP_ID + ':history';
+    const KEY_OVERALL_STATUS = APP_ID + ':status';
 
     const SCORE_STARS_THRESHOLD = { circle: 100, star1: 110, star2: 130, star3: 150 };
 
