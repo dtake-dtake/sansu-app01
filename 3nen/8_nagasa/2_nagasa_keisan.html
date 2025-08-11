@@ -112,10 +112,13 @@
 
   <script>
     // JavaScript部分は変更ありません
-    const APP_NS = "nagasa-calc-v1_";
-    const KEY_HS = APP_NS + "highScore", KEY_CLEAR = APP_NS + "clearCount",
-          KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-", KEY_DAILY_PREFIX = APP_NS + "dailyClear-",
-          KEY_HISTORY = APP_NS + "history", KEY_OVERALL_STATUS = APP_NS + "overallStatus";
+    const APP_ID = '2_nagasa_keisan';
+    const KEY_HS             = APP_ID + ':hs';
+    const KEY_CLEAR          = APP_ID + ':clear';
+    const KEY_MONTHLY_PREFIX = APP_ID + ':monthlyClear-';
+    const KEY_DAILY_PREFIX   = APP_ID + ':dailyClear-';
+    const KEY_HISTORY        = APP_ID + ':history';
+    const KEY_OVERALL_STATUS = APP_ID + ':status';
     const NUM_QUESTIONS = 10, TIME_LIMIT = 100;
     const SCORE_STARS_THRESHOLD = { star_circle: 100, star1: 101, star2: 110, star3: 120, star4: 130, star5: 140, star6: 150 };
     let problems = [], startTime = 0, highScore = 0, totalClearCount = 0, monthlyCount = 0, dailyCount = 0, overallStatusStars = '―', incorrectIndices = [];
