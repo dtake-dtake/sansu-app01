@@ -413,47 +413,47 @@
           {
             "id": "kuku-5dan-junban",
             "title": "五の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/05kuku_5dan_junban.html"
+            "path": "2nen/10_kakezan1/10kuku_5dan_junban.html"
           },
           {
             "id": "kuku-5dan-barabara",
             "title": "五の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/15kuku_5dan_barabara.html"
+            "path": "2nen/10_kakezan1/20kuku_5dan_barabara.html"
           },
           {
             "id": "kuku-2dan-junban",
             "title": "二の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/02kuku_2dan_junban.html"
+            "path": "2nen/10_kakezan1/30kuku_2dan_junban.html"
           },
           {
             "id": "kuku-2dan-barabara",
             "title": "二の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/12kuku_2dan_barabara.html"
+            "path": "2nen/10_kakezan1/40kuku_2dan_barabara.html"
           },
           {
             "id": "kuku-3dan-junban",
             "title": "三の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/03kuku_3dan_junban.html"
+            "path": "2nen/10_kakezan1/50kuku_3dan_junban.html"
           },
           {
             "id": "kuku-3dan-barabara",
             "title": "三の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/13kuku_3dan_barabara.html"
+            "path": "2nen/10_kakezan1/60kuku_3dan_barabara.html"
           },
           {
             "id": "kuku-4dan-junban",
             "title": "四の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/04kuku_4dan_junban.html"
+            "path": "2nen/10_kakezan1/70kuku_4dan_junban.html"
           },
           {
             "id": "kuku-4dan-barabara",
             "title": "四の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/14kuku_4dan_barabara.html"
+            "path": "2nen/10_kakezan1/80kuku_4dan_barabara.html"
           },
           {
             "id": "kuku-2345dan-random",
             "title": "二、三、四、五の段の九九",
-            "path": "2nen/10-11_kakezan/22kuku_2345dan_random.html"
+            "path": "2nen/10_kakezan1/90kuku_2345dan_random.html"
           }
         ]
       },
@@ -463,67 +463,67 @@
           {
             "id": "kuku-6dan-junban",
             "title": "六の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/06kuku_6dan_junban.html"
+            "path": "2nen/11_kakezan2/10kuku_6dan_junban.html"
           },
           {
             "id": "kuku-6dan-barabara",
             "title": "六の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/16kuku_6dan_barabara.html"
+            "path": "2nen/11_kakezan2/20kuku_6dan_barabara.html"
           },
           {
             "id": "kuku-7dan-junban",
             "title": "七の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/07kuku_7dan_junban.html"
+            "path": "2nen/11_kakezan2/30kuku_7dan_junban.html"
           },
           {
             "id": "kuku-7dan-barabara",
             "title": "七の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/17kuku_7dan_barabara.html"
+            "path": "2nen/11_kakezan2/40kuku_7dan_barabara.html"
           },
           {
             "id": "kuku-8dan-junban",
             "title": "八の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/08uku_8dan_junban.html"
+            "path": "2nen/11_kakezan2/50uku_8dan_junban.html"
           },
           {
             "id": "kuku-8dan-barabara",
             "title": "八の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/18kuku_8dan_barabara.html"
+            "path": "2nen/11_kakezan2/60kuku_8dan_barabara.html"
           },
           {
             "id": "kuku-9dan-junban",
             "title": "九の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/09kuku_9dan_junban.html"
+            "path": "2nen/11_kakezan2/70kuku_9dan_junban.html"
           },
           {
             "id": "kuku-9dan-barabara",
             "title": "九の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/19kuku_9dan_barabara.html"
+            "path": "2nen/11_kakezan2/80kuku_9dan_barabara.html"
           },
           {
             "id": "kuku-1dan-junban",
             "title": "一の段の九九（じゅんばん）",
-            "path": "2nen/10-11_kakezan/01kuku_1dan_junban.html"
+            "path": "2nen/11_kakezan2/90kuku_1dan_junban.html"
           },
           {
             "id": "kuku-1dan-barabara",
             "title": "一の段の九九（ばらばら）",
-            "path": "2nen/10-11_kakezan/11kuku_1dan_barabara.html"
+            "path": "2nen/11_kakezan2/100kuku_1dan_barabara.html"
           },
           {
             "id": "23kuku_16789dan_random",
             "title": "一、六、七、八、九段の九九",
-            "path": "2nen/10-11_kakezan/23kuku_16789dan_random"
+            "path": "2nen/11_kakezan2/110kuku_16789dan_random"
           },
           {
             "id": "kuku-10mondai",
             "title": "九九",
-            "path": "2nen/10-11_kakezan/20kuku_10mondai.html"
+            "path": "2nen/11_kakezan2/120kuku_10mondai.html"
           },
           {
             "id": "kuku-81mondai",
             "title": "九九（81問）",
-            "path": "2nen/10-11_kakezan/21kuku_81mondai.html"
+            "path": "2nen/11_kakezan2/130kuku_81mondai.html"
           }
         ]
       },
