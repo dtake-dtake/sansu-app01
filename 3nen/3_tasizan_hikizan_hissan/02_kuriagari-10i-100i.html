@@ -61,14 +61,13 @@
   </div>
 
   <script>
-    const APP_NS = "kuriagari-10i-100i_";
-    const NUM_QUESTIONS = 5;
-    const TIME_LIMIT = NUM_QUESTIONS * 25;
-    const startArea = document.getElementById('start-area'), problemsSection = document.getElementById('problems-section'), resultArea = document.getElementById('result-area'),
-          checkBtn = document.getElementById('check-answers'), resetHighScoreBtn = document.getElementById('reset-highscore');
-    let retryBtn;
-    const KEY_HS = APP_NS + "highScore", KEY_HISTORY = APP_NS + "history", KEY_CLEAR = APP_NS + "clearCount",
-          KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-", KEY_DAILY_PREFIX = APP_NS + "dailyClear-", KEY_OVERALL_STATUS = APP_NS + "overallStatus";
+    const APP_ID = '02_kuriagari-10i-100i';
+    const KEY_HS             = APP_ID + ':hs';
+    const KEY_CLEAR          = APP_ID + ':clear';
+    const KEY_MONTHLY_PREFIX = APP_ID + ':monthlyClear-';
+    const KEY_DAILY_PREFIX   = APP_ID + ':dailyClear-';
+    const KEY_HISTORY        = APP_ID + ':history';
+    const KEY_OVERALL_STATUS = APP_ID + ':status';
     const SCORE_STARS_THRESHOLD = { star_circle: 100, star1: 101, star2: 121, star3: 141 };
     let problems = [], incorrectFieldIds = [], startTime = 0, highScore = 0;
     let totalClearCount = 0, monthlyCount = 0, dailyCount = 0, overallStatusStars = '―';

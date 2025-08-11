@@ -238,14 +238,13 @@
   </div>
 
   <script>
-    const APP_NS = "warizan-matome_"; 
-    
-    const KEY_HS             = APP_NS + "highScore"; 
-    const KEY_HISTORY        = APP_NS + "history"; 
-    const KEY_CLEAR          = APP_NS + "clearCount"; 
-    const KEY_MONTHLY_PREFIX = APP_NS + "monthlyClear-"; 
-    const KEY_DAILY_PREFIX   = APP_NS + "dailyClear-"; 
-    const KEY_OVERALL_STATUS = APP_NS + "overallStatus"; 
+    const APP_ID = '04_warizan_matome';
+    const KEY_HS             = APP_ID + ':hs';
+    const KEY_CLEAR          = APP_ID + ':clear';
+    const KEY_MONTHLY_PREFIX = APP_ID + ':monthlyClear-';
+    const KEY_DAILY_PREFIX   = APP_ID + ':dailyClear-';
+    const KEY_HISTORY        = APP_ID + ':history';
+    const KEY_OVERALL_STATUS = APP_ID + ':status'; 
 
     const NUM_QUESTIONS = 10; 
     const TIME_LIMIT    = NUM_QUESTIONS * 4;
