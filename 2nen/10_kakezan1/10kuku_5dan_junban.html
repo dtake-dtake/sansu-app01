@@ -240,6 +240,9 @@
     let problems = [], startTime = 0, highScore = 0;
     let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
     let overallStatusStars = '―', incorrectIndices = [];
+    
+    // ★★★ ループする紙吹雪のアニメーションIDを保存する変数 ★★★
+    let confettiIntervalId = null;
 
     const nowDT = () => new Date().toLocaleString();
     const scrollCenter = el => el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -378,28 +381,25 @@
             saveHighScore(score);
             updateHighScore();
             
-            // ★★★ ステップ2：ハイスコア更新時にアニメーションを呼び出す ★★★
-            // 上から紙吹雪が降ってくるくす玉風のアニメーション
-            // 紙吹雪を連続で降らせるための設定
-            const duration = 3 * 1000; // アニメーションの時間（3秒）
-            const animationEnd = Date.now() + duration;
-
-            const interval = setInterval(function() {
-              const timeLeft = animationEnd - Date.now();
-
-              // 時間が来たらアニメーションを停止
-              if (timeLeft <= 0) {
-                return clearInterval(interval);
-              }
-
-              // 残り時間に応じて紙吹雪の量を調整
-              const particleCount = 50 * (timeLeft / duration);
-              
-              // 画面の左端と右端から紙吹雪を発射
-              confetti({ particleCount, startVelocity: 30, spread: 55, origin: { x: 0, y: 0.6 } });
-              confetti({ particleCount, startVelocity: 30, spread: 55, origin: { x: 1, y: 0.6 } });
-
-            }, 250); // 250ミリ秒ごとに発射
+            // ★★★ ループする紙吹雪アニメーションを開始 ★★★
+            if (confettiIntervalId) clearInterval(confettiIntervalId); // 念のため既存のループをクリア
+            
+            confettiIntervalId = setInterval(function() {
+              confetti({
+                particleCount: 2,
+                startVelocity: 10,
+                spread: 360,
+                origin: {
+                  x: Math.random(),
+                  y: Math.random() - 0.2 // 画面上部から少しランダムに
+                },
+                ticks: 400,
+                gravity: 0.3,
+                scalar: 0.8,
+                colors: ['#FFC700', '#FF0000', '#FFFFFF', '#00FF00']
+              });
+            }, 300); // 300ミリ秒ごとに発射
+        }
 
         document.querySelector('#result').innerHTML = `${message}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed} 秒)`;
 
@@ -443,8 +443,19 @@
         document.querySelector(`#ans-${incorrectIndices[0]}`).focus();
       }
     }
+    
+    // ★★★ 紙吹雪アニメーションを停止する共通関数 ★★★
+    function stopConfetti() {
+        if (confettiIntervalId) {
+            clearInterval(confettiIntervalId);
+            confettiIntervalId = null;
+        }
+    }
 
     function retry() {
+      // ★★★ アニメーションを停止 ★★★
+      stopConfetti();
+
       startTime = Date.now();
       document.querySelector('#check-answers').disabled = false;
       incorrectIndices = [];
@@ -462,6 +473,9 @@
 
     function resetAll() {
         if (confirm('ハイスコアとステータスをリセットしますか？')) {
+            // ★★★ アニメーションを停止 ★★★
+            stopConfetti();
+
             highScore = 0;
             ls.removeItem(KEY_HS);
             updateHighScore();
