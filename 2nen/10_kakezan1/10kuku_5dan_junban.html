@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>五の段の九九（じゅんばん）</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  
   <style>
     body {
       font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
-      background: #e0f2f7; /* 薄い水色の背景 */
+      background: #e0f2f7;
       margin: 20px;
       color: #333;
       font-size: 2.2rem;
@@ -15,32 +18,26 @@
     h1, h2 {
       text-align: center;
       margin: 15px 0;
-      color: #1e88e5; /* 濃い青 */
+      color: #1e88e5;
       text-shadow: 2px 2px 3px rgba(0,0,0,0.1);
-      white-space: nowrap; /* タイトルが折り返さないように */
+      white-space: nowrap;
     }
-    h1 {
-      font-size: 3.5rem;
-    }
-    h2 {
-      font-size: 2.5rem;
-      margin-bottom: 40px;
-    }
+    h1 { font-size: 3.5rem; }
+    h2 { font-size: 2.5rem; margin-bottom: 40px; }
     #problems-wrapper {
       max-width: 650px;
       margin: 0 auto 30px;
       padding: 30px;
-      border: 4px dashed #90caf9; /* 水色の点線ボーダー */
-      background: #ffffff; /* 白い背景 */
+      border: 4px dashed #90caf9;
+      background: #ffffff;
       box-shadow: 5px 5px 10px rgba(0,0,0,.15);
       border-radius: 20px;
     }
     .problem {
       display: flex;
-      flex-wrap: wrap; /* 子要素を次の行に折り返す */
       align-items: center;
       margin-bottom: 25px;
-      background: #f0f8ff; /* 各問題の背景を少し変える */
+      background: #f0f8ff;
       padding: 10px 15px;
       border-radius: 10px;
       box-shadow: 1px 1px 3px rgba(0,0,0,.08);
@@ -51,19 +48,17 @@
       margin-right: 25px;
       font-weight: bold;
       font-size: 2.5rem;
-      color: #0d47a1; /* 深い青 */
-      flex-shrink: 0; /* 縮まない */
+      color: #0d47a1;
+      flex-shrink: 0;
     }
     .problem-equation {
-      flex: 1; /* 残りのスペースを占有 */
+      flex: 1;
       display: flex;
       align-items: center;
       font-size: 2.5rem;
-      flex-shrink: 0; /* 縮まない */
+      flex-shrink: 0;
     }
-    .problem-equation span {
-      margin: 0 12px;
-    }
+    .problem-equation span { margin: 0 12px; }
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -75,19 +70,15 @@
       font-size: 2.5rem;
       margin-left: 15px;
       padding: 8px;
-      border: 2px solid #64b5f6; /* 少し濃い水色のボーダー */
+      border: 2px solid #64b5f6;
       border-radius: 8px;
     }
-
-    .button-area {
-      text-align: center;
-      margin-bottom: 30px;
-    }
+    .button-area { text-align: center; margin-bottom: 30px; }
     button {
       font-size: 2.5rem;
       margin: 0 15px;
       padding: 15px 30px;
-      background: #42a5f5; /* 明るい青のボタン */
+      background: #42a5f5;
       color: white;
       border: none;
       border-radius: 15px;
@@ -96,7 +87,7 @@
       transition: background 0.3s ease, transform 0.1s ease;
     }
     button:hover {
-      background: #2196f3; /* ホバーで少し濃い青に */
+      background: #2196f3;
       transform: translateY(-2px);
     }
     button:disabled {
@@ -108,7 +99,7 @@
     #result-area {
       text-align: center;
       margin-bottom: 25px;
-      background: #e3f2fd; /* 結果エリアの背景色 */
+      background: #e3f2fd;
       padding: 20px;
       border-radius: 15px;
       border: 2px solid #90caf9;
@@ -117,7 +108,8 @@
       font-size: 2.8rem;
       font-weight: bold;
       margin: 15px 0;
-      color: #d32f2f; /* 赤系の強調色 */
+      min-height: 4rem;
+      color: #1e88e5;
     }
     #highScoreArea, #clearCountArea, #monthlyCountArea, #dailyCountArea {
       font-size: 2.2rem;
@@ -130,75 +122,76 @@
         justify-content: center;
         align-items: center;
     }
-    #overallStatusText {
-        margin-right: 10px;
-    }
+    #overallStatusText { margin-right: 10px; }
     #highScoreValue, #clearCountValue, #monthlyCountValue, #dailyCountValue {
       font-weight: bold;
       margin: 0 12px;
-      color: #2e7d32; /* 緑系の色 */
+      color: #2e7d32;
     }
     #reset-highscore {
       font-size: 1.8rem;
       margin-left: 15px;
       padding: 8px 18px;
-      background: #ef5350; /* リセットボタンの色 */
+      background: #ef5350;
       color: white;
       border-radius: 10px;
       box-shadow: 2px 2px 4px rgba(0,0,0,.15);
     }
-    #reset-highscore:hover {
-      background: #c62828;
-    }
     #history-area {
       font-size: 1.8rem;
-      margin: 20px 0;
+      margin: 20px auto;
       text-align: left;
       max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
       padding: 10px;
-      background: #bbdefb; /* 履歴エリアの背景色 */
+      background: #bbdefb;
       border-radius: 10px;
       border: 1px solid #90caf9;
     }
-    #history-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #history-list li {
-      margin: 6px 0;
-      color: #1a237e; /* 履歴の文字色 */
-    }
+    #history-list { list-style: none; padding: 0; margin: 0; }
+    #history-list li { margin: 6px 0; color: #1a237e; }
     .result-icon {
       margin-left: 15px;
       font-size: 2.5rem;
       font-weight: bold;
       white-space: nowrap;
     }
-    .correct {
-      color: #388e3c; /* 緑色で正解 */
-    }
-    .wrong {
-      color: #ff8f00; /* オレンジ系の赤で不正解 */
-    }
-    .status-stars{
+    .correct { color: #388e3c; }
+    .wrong { color: #d32f2f; }
+
+    .status-stars {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       vertical-align: middle;
       margin: 0 1px;
       font-size: 2.2rem;
-      color: gold;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
       line-height: 1;
     }
-
+    .stars-circle   { color: #42a5f5; }
+    .stars-bronze   { color: #cd7f32; }
+    .stars-silver   { color: #c0c0c0; }
+    .stars-gold     { color: #ffd700; }
+    .stars-platinum { color: #e5e4e2; text-shadow: 0 0 5px #fff; }
+    .stars-rainbow {
+      background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: rainbow-animation 3s ease-in-out infinite;
+    }
+    @keyframes rainbow-animation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
     @keyframes sparkle {
-      0% { filter: brightness(1); transform: scale(1); }
-      50% { filter: brightness(1.2); transform: scale(1.05); }
-      100% { filter: brightness(1); transform: scale(1); }
+      0% { filter: brightness(1) drop-shadow(0 0 2px gold); transform: scale(1); }
+      50% { filter: brightness(1.5) drop-shadow(0 0 6px gold); transform: scale(1.1); }
+      100% { filter: brightness(1) drop-shadow(0 0 2px gold); transform: scale(1); }
+    }
+    .sparkle-animation {
+        animation: sparkle 1.2s ease-in-out infinite;
     }
   </style>
 </head>
@@ -220,32 +213,16 @@
 
   <div id="result-area">
     <div id="result"></div>
-    <div id="highScoreArea">
-      ハイスコア：<span id="highScoreValue">0</span> てん
-      <button id="reset-highscore">リセット</button>
-    </div>
-    <div id="dailyCountArea">
-      今日のクリア：<span id="dailyCountValue">0</span> かい
-    </div>
-    <div id="monthlyCountArea">
-      今月のクリア：<span id="monthlyCountValue">0</span> かい
-    </div>
-    <div id="clearCountArea">
-      合計クリア：<span id="clearCountValue">0</span> かい
-    </div>
-    <div id="overallStatusArea">
-        <span id="overallStatusText">ステータス：</span>
-        <span id="overallStars">―</span>
-    </div>
-    <div id="history-area">
-      りれき（１０件）<br>
-      <ul id="history-list"></ul>
-    </div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="overallStatusArea"><span id="overallStatusText">ステータス：</span><span id="overallStars" class="status-stars">―</span></div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
   </div>
 
   <script>
-    // ★ここを変更！JSONで定義するIDに合わせる
-    const APP_ID = "kuku-5dan-junban";
+    const APP_ID = "kuku-5dan-junban-final";
     const KEY_HS             = `${APP_ID}:hs`;
     const KEY_HISTORY        = `${APP_ID}:history`;
     const KEY_CLEAR          = `${APP_ID}:clearCount`;
@@ -253,316 +230,258 @@
     const KEY_DAILY_PREFIX   = `${APP_ID}:dailyClear-`;
     const KEY_OVERALL_STATUS = `${APP_ID}:status`;
 
-    const NUM_QUESTIONS = 9; 
-    const TIME_LIMIT    = NUM_QUESTIONS * 3; // 10問なら 30秒
+    const NUM_QUESTIONS = 9;
+    const TIME_LIMIT    = NUM_QUESTIONS * 3;
 
-    // ★星の評価基準を明確化
-    const SCORE_STARS_THRESHOLD = { 
-        star_circle: 100, // ○の基準 (全問正解なら最低100点)
-        star1: 101, // ★の基準
-        star2: 111, // ★★の基準
-        star3: 121, // ★★★の基準
-        star4: 131, // ★★★★の基準
-        star5: 141, // ★★★★★の基準
-        star6: 151  // ★★★★★★の基準
+    const SCORE_STARS_THRESHOLD = {
+        star_circle: 100, star1: 110, star2: 120, star3: 130, star4: 140, star5: 150
     };
 
-    let problems     = []; 
-    let startTime    = 0; 
-    let highScore    = 0; 
-    let totalClearCount   = 0; 
-    let monthlyCount = 0; 
-    let dailyCount   = 0; 
-    let overallStatusStars = '―'; // 全体ステータス（星のHTML文字列）
-    let incorrectIndices = []; // 不正解だった問題のインデックスを保存する配列
+    let problems = [], startTime = 0, highScore = 0;
+    let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
+    let overallStatusStars = '―', incorrectIndices = [];
 
-    const nowDT    = ()=>new Date().toLocaleString(); 
-    const statusOf = s => // 履歴表示用のランク判定 (星とは別)
-      s >= 150 ? "SS" : 
-      s >= 120 ? "S"  :
-      s >= 101 ? "A"  :
-      s >= 90  ? "B"  :
-      s >= 80  ? "C"  : "D";
-    const scrollCenter = el=>el.scrollIntoView({behavior:"smooth",block:"center"}); 
+    const nowDT = () => new Date().toLocaleString();
+    const scrollCenter = el => el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    const ls = localStorage; 
-    function loadHighScore(){ const v=ls.getItem(KEY_HS); if(v) highScore=+v; } 
-    function saveHighScore(v){ ls.setItem(KEY_HS, String(v)); } 
+    const ls = localStorage;
+    function loadHighScore() { highScore = +ls.getItem(KEY_HS) || 0; }
+    function saveHighScore(v) { ls.setItem(KEY_HS, String(v)); }
 
-    function loadClearCounts(){ 
-        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0,10); 
-        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0,7); 
-
-        totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
-        monthlyCount = +ls.getItem(monthKey) || 0; 
-        dailyCount = +ls.getItem(todayKey) || 0; 
+    function loadClearCounts() {
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
+        monthlyCount = +ls.getItem(monthKey) || 0;
+        dailyCount = +ls.getItem(todayKey) || 0;
     }
-    function saveClearCounts(){ 
-        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0,10); 
-        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0,7); 
-
-        ls.setItem(KEY_CLEAR, String(totalClearCount)); 
-        ls.setItem(monthKey, String(monthlyCount)); 
-        ls.setItem(todayKey, String(dailyCount)); 
-    }
-    
-    function loadHistory(){ try{return JSON.parse(ls.getItem(KEY_HISTORY))||[];}catch{return[]} } 
-    function saveHistory(e){ 
-      const h = loadHistory(); h.unshift(e); 
-      if(h.length>10) h.pop(); // 最新10件を保持
-      ls.setItem(KEY_HISTORY, JSON.stringify(h)); 
-      renderHistory(h); 
+    function saveClearCounts() {
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        ls.setItem(KEY_CLEAR, String(totalClearCount));
+        ls.setItem(monthKey, String(monthlyCount));
+        ls.setItem(todayKey, String(dailyCount));
     }
 
-    function loadOverallStatus(){ 
-        const v = ls.getItem(KEY_OVERALL_STATUS); 
-        if(v) overallStatusStars = v; 
-    }
-    function saveOverallStatus(starsHtml){ 
-        ls.setItem(KEY_OVERALL_STATUS, starsHtml); 
-    }
-
-    function renderHistory(hist){ 
-      const ul=document.querySelector('#history-list'); ul.innerHTML=''; 
-      hist.forEach(x=>{ 
-          const li=document.createElement('li'); 
-          li.textContent=`${x.datetime}：${x.score}てん`; 
-          ul.appendChild(li); 
-      });
-    }
-    function updateHighScore(){ document.querySelector('#highScoreValue').textContent=highScore; } 
-    function updateTotalClearCount(){ document.querySelector('#clearCountValue').textContent=totalClearCount; } 
-    function updateMonthlyClearCount(){ document.querySelector('#monthlyCountValue').textContent=monthlyCount; } 
-    function updateDailyClearCount(){ document.querySelector('#dailyCountValue').textContent=dailyCount; } 
-    function updateAllClearCountsDisplay(){ 
-        updateTotalClearCount(); 
-        updateMonthlyClearCount(); 
-        updateDailyClearCount(); 
+    function loadHistory() { try { return JSON.parse(ls.getItem(KEY_HISTORY)) || []; } catch { return [] } }
+    function saveHistory(e) {
+      const h = loadHistory(); h.unshift(e);
+      if (h.length > 10) h.pop();
+      ls.setItem(KEY_HISTORY, JSON.stringify(h));
+      renderHistory(h);
     }
 
-    function updateOverallStatusDisplay(){ 
-        const overallStarsSpan = document.querySelector('#overallStars'); 
-        overallStarsSpan.innerHTML = overallStatusStars; 
+    function loadOverallStatus() { overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―'; }
+    function saveOverallStatus(starsHtml) { ls.setItem(KEY_OVERALL_STATUS, starsHtml); }
+
+    function renderHistory(hist) {
+      document.querySelector('#history-list').innerHTML =
+        hist.map(x => `<li>${x.datetime}：${x.score}てん</li>`).join('');
+    }
+    function updateHighScore() { document.querySelector('#highScoreValue').textContent = highScore; }
+    function updateAllClearCountsDisplay() {
+        document.querySelector('#clearCountValue').textContent = totalClearCount;
+        document.querySelector('#monthlyCountValue').textContent = monthlyCount;
+        document.querySelector('#dailyCountValue').textContent = dailyCount;
+    }
+    function updateOverallStatusDisplay() {
+        document.querySelector('#overallStars').innerHTML = overallStatusStars;
     }
 
-
-    function generateProblems(){ 
-      problems = []; 
-      // ★ここを変更：5の段を順番に生成する
-      const dan = 5; // 5の段を指定
-      for(let b=1; b<=9; b++) { // かける数を1から9まで順番に
-          problems.push({a:dan, b, op:'×'}); 
+    function generateProblems() {
+      problems = [];
+      for (let b = 1; b <= 9; b++) {
+          problems.push({ a: 5, b, op: '×' });
       }
-      // 順番通りなのでシャッフルは不要
     }
-    function displayProblems(){ 
-      const wrap=document.querySelector('#problems-wrapper'); wrap.innerHTML=''; 
-      problems.forEach((p,i)=>{ 
-        const row=document.createElement('div'); row.className='problem'; 
-        const num=document.createElement('div'); num.className='problem-number'; num.textContent=(i+1)+'.'; 
-        const eq=document.createElement('div'); eq.className='problem-equation'; 
-        eq.innerHTML=`<span>${p.a}</span><span>${p.op}</span><span>${p.b}</span>=`; 
-        const inp=document.createElement('input'); inp.type='number'; inp.id=`ans-${i}`; 
-        inp.addEventListener('focus',()=>scrollCenter(inp)); 
-        inp.addEventListener('keydown',e=>{ 
-          if(e.key==='Enter'){ 
-            const currentProblemIndex = parseInt(e.target.id.replace('ans-', '')); 
-            
-            let nextIndexToFocus = -1; 
 
-            const currentIndexInIncorrect = incorrectIndices.indexOf(currentProblemIndex); 
-            if (currentIndexInIncorrect !== -1 && currentIndexInIncorrect < incorrectIndices.length - 1) { 
-                nextIndexToFocus = incorrectIndices[currentIndexInIncorrect + 1]; 
-            } else if (incorrectIndices.length === 0 && currentProblemIndex < NUM_QUESTIONS - 1) { 
-                nextIndexToFocus = currentProblemIndex + 1; 
+    function displayProblems() {
+      const wrap = document.querySelector('#problems-wrapper'); wrap.innerHTML = '';
+      problems.forEach((p, i) => {
+        const row = document.createElement('div'); row.className = 'problem';
+        const num = document.createElement('div'); num.className = 'problem-number'; num.textContent = (i + 1) + '.';
+        const eq = document.createElement('div'); eq.className = 'problem-equation';
+        eq.innerHTML = `<span>${p.a}</span><span>${p.op}</span><span>${p.b}</span>=`;
+        const inp = document.createElement('input'); inp.type = 'number'; inp.id = `ans-${i}`;
+        inp.addEventListener('focus', () => scrollCenter(inp));
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const currentId = e.target.id;
+            const currentProblemIndex = parseInt(currentId.replace('ans-', ''));
+            let nextIndexToFocus = -1;
+
+            if (incorrectIndices.length > 0) {
+              const currentIndexInIncorrect = incorrectIndices.indexOf(currentProblemIndex);
+              if (currentIndexInIncorrect > -1 && currentIndexInIncorrect < incorrectIndices.length - 1) {
+                nextIndexToFocus = incorrectIndices[currentIndexInIncorrect + 1];
+              }
+            } else if (currentProblemIndex < NUM_QUESTIONS - 1) {
+                nextIndexToFocus = currentProblemIndex + 1;
             }
 
-            if (nextIndexToFocus !== -1) { 
-                document.querySelector(`#ans-${nextIndexToFocus}`).focus(); 
-            } else { 
-                document.querySelector('#check-answers').focus(); 
+            if (nextIndexToFocus !== -1) {
+                document.querySelector(`#ans-${nextIndexToFocus}`).focus();
+            } else {
+                document.querySelector('#check-answers').focus();
             }
-            e.preventDefault(); 
           }
         });
-        const icon=document.createElement('span'); icon.id=`icon-${i}`; icon.className='result-icon'; 
-        
-        eq.append(inp, icon); 
-        row.append(num, eq); 
-        wrap.appendChild(row); 
+        const icon = document.createElement('span'); icon.id = `icon-${i}`; icon.className = 'result-icon';
+        eq.append(inp, icon);
+        row.append(num, eq);
+        wrap.appendChild(row);
       });
     }
 
-    function disableAllInputs(){ document.querySelectorAll('input[type=number]').forEach(i=>i.disabled=true); } 
-    function enableAllInputs(){ document.querySelectorAll('input[type=number]').forEach(i=>i.disabled=false); } 
+    function checkAnswers() {
+      document.querySelector('#check-answers').disabled = true;
+      let newIncorrectIndices = [];
 
-    function checkAnswers(){ 
-      document.querySelector('#check-answers').disabled=true; 
+      problems.forEach((p, i) => {
+        const inputField = document.querySelector(`#ans-${i}`);
+        const user = inputField.value;
+        const ans = p.a * p.b;
+        const icon = document.querySelector(`#icon-${i}`);
+        icon.textContent = '';
+        icon.classList.remove('correct', 'wrong');
+        inputField.style.borderColor = '#64b5f6';
 
-      let currentCorrectCount = 0; 
-      let newIncorrectIndices = []; 
-
-      problems.forEach((p,i)=>{ 
-        const user = +document.querySelector(`#ans-${i}`).value; 
-        const ans = p.a * p.b; 
-        const icon = document.querySelector(`#icon-${i}`); 
-        const inputField = document.querySelector(`#ans-${i}`); 
-        
-        icon.textContent = ''; 
-        icon.classList.remove('correct','wrong'); 
-        inputField.style.border = '2px solid #64b5f6'; 
-        inputField.classList.remove('auto-filled'); 
-
-        if(user === ans){ 
-          currentCorrectCount++; 
-          icon.textContent = '○'; 
-          icon.classList.add('correct'); 
-          inputField.disabled = true; 
-        } else { 
-          icon.textContent = `×`; 
-          icon.classList.add('wrong'); 
-          inputField.disabled = false; 
-          inputField.value = ''; 
-          inputField.style.border = '2px solid red'; 
-          newIncorrectIndices.push(i); 
+        if (user !== '' && +user === ans) {
+          icon.textContent = '○';
+          icon.classList.add('correct');
+          inputField.disabled = true;
+        } else {
+          icon.textContent = '×';
+          icon.classList.add('wrong');
+          inputField.disabled = false;
+          inputField.value = '';
+          inputField.style.borderColor = '#d32f2f';
+          newIncorrectIndices.push(i);
         }
       });
+      incorrectIndices = newIncorrectIndices;
 
-      incorrectIndices = newIncorrectIndices; 
-
-      const allCorrect = incorrectIndices.length === 0; 
-
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1); 
-      
-      let score; 
-      const baseScoreForCorrectAnswers = Math.floor((currentCorrectCount / NUM_QUESTIONS) * 100); 
-      
-      const maxTimeBonus = (NUM_QUESTIONS * 20) - 100; 
-      const bonusCalculationLimitTime = TIME_LIMIT; 
-
-      let timeBonus = 0; 
-
-      if (elapsed < bonusCalculationLimitTime) { 
-          const speedFactor = (bonusCalculationLimitTime - elapsed) / bonusCalculationLimitTime; 
-          timeBonus = Math.floor(maxTimeBonus * (currentCorrectCount / NUM_QUESTIONS) * speedFactor); 
-      } else { 
-          timeBonus = 0; 
-      }
-      
-      score = baseScoreForCorrectAnswers + timeBonus; 
-      score = Math.max(0, score); 
-      
-      // ★全問正解なら最低100点に保証
-      if (allCorrect && score < 100) {
-          score = 100;
-      }
-
-      const status = statusOf(score); 
-
-      // ★星の判定ロジックを復元
-      let overallStarsHtml = '―'; // 初期値はハイフン
-      if (allCorrect) { // 全問正解の場合のみ星を評価
-          if (score >= SCORE_STARS_THRESHOLD.star6) { 
-              overallStarsHtml = '★★★★★★'; 
-          } else if (score >= SCORE_STARS_THRESHOLD.star5) { 
-              overallStarsHtml = '★★★★★'; 
-          } else if (score >= SCORE_STARS_THRESHOLD.star4) { 
-              overallStarsHtml = '★★★★'; 
-          } else if (score >= SCORE_STARS_THRESHOLD.star3) { 
-              overallStarsHtml = '★★★'; 
-          } else if (score >= SCORE_STARS_THRESHOLD.star2) { 
-              overallStarsHtml = '★★'; 
-          } else if (score >= SCORE_STARS_THRESHOLD.star1) { 
-              overallStarsHtml = '★'; 
-          } else if (score >= SCORE_STARS_THRESHOLD.star_circle) { 
-              overallStarsHtml = '○'; 
-          }
-      }
-
-      document.querySelector('#result').innerHTML = 
-        `スコア: <strong>${score}点</strong><br>` + 
-        `正答数: ${currentCorrectCount}/${NUM_QUESTIONS}問　タイム: ${elapsed} 秒<br>`; 
-
-      overallStatusStars = overallStarsHtml; 
-      saveOverallStatus(overallStarsHtml); 
-      updateOverallStatusDisplay(); 
-
-      if (allCorrect) { 
-        if(score > highScore){ highScore = score; saveHighScore(score); updateHighScore(); } 
-        
-        totalClearCount++; 
-        monthlyCount++; 
-        dailyCount++; 
-        saveClearCounts(); 
-        updateAllClearCountsDisplay(); 
-
-        saveHistory({datetime:nowDT(),score,status}); 
-
-        disableAllInputs(); 
-        document.querySelector('#retry').focus(); 
-        
-        // 「もういちど」ボタンを画面中央にスクロール
-        const retryButton = document.querySelector('#retry');
-        if (retryButton) {
-            scrollCenter(retryButton); 
+      if (incorrectIndices.length === 0) { // 全問正解
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const baseScore = 100;
+        let timeBonus = 0;
+        if (elapsed < TIME_LIMIT) {
+            timeBonus = Math.floor(50 * ((TIME_LIMIT - elapsed) / TIME_LIMIT));
         }
+        let score = baseScore + timeBonus;
 
-      } else { 
-        document.querySelector('#check-answers').disabled = false; 
-        
-        if (incorrectIndices.length > 0) { 
-            document.querySelector(`#ans-${incorrectIndices[0]}`).focus(); 
-        }
-      }
-    }
-    
-    function retry(){ 
-      startTime=Date.now(); 
-      document.querySelector('#check-answers').disabled=false; 
-      generateProblems(); 
-      displayProblems(); 
-      enableAllInputs(); 
-      document.querySelector('#result').textContent=''; 
-      incorrectIndices = []; 
-      document.querySelector('#ans-0').focus(); 
-    }
-    
-    function resetAll(){ 
-        if(confirm('ハイスコアをリセットしますか？')){ 
-            highScore=0; 
-            ls.removeItem(KEY_HS); 
-            updateHighScore(); 
+        let message = '🎉 全問正解！おめでとう！ 🎉';
+        if (score > highScore) {
+            message = '🏆 ハイスコア達成！すごい！ 🏆';
+            highScore = score;
+            saveHighScore(score);
+            updateHighScore();
             
-            overallStatusStars = '―'; 
-            saveOverallStatus(overallStatusStars); 
-            updateOverallStatusDisplay(); 
+            // ★★★ ステップ2：ハイスコア更新時にアニメーションを呼び出す ★★★
+            // 上から紙吹雪が降ってくるくす玉風のアニメーション
+            confetti({
+              particleCount: 150, // 紙吹雪の量
+              spread: 180,        // 散らばる角度
+              origin: { y: 0 }    // 画面の上から
+            });
+        }
+
+        document.querySelector('#result').innerHTML = `${message}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed} 秒)`;
+
+        let starsHtml = '―';
+        if (score >= SCORE_STARS_THRESHOLD.star5) {
+            starsHtml = `<span class="stars-rainbow status-stars">★★★★★</span>`;
+        } else if (score >= SCORE_STARS_THRESHOLD.star4) {
+            starsHtml = `<span class="stars-platinum status-stars">★★★★☆</span>`;
+        } else if (score >= SCORE_STARS_THRESHOLD.star3) {
+            starsHtml = `<span class="stars-gold status-stars">★★★☆☆</span>`;
+        } else if (score >= SCORE_STARS_THRESHOLD.star2) {
+            starsHtml = `<span class="stars-silver status-stars">★★☆☆☆</span>`;
+        } else if (score >= SCORE_STARS_THRESHOLD.star1) {
+            starsHtml = `<span class="stars-bronze status-stars">★☆☆☆☆</span>`;
+        } else if (score >= SCORE_STARS_THRESHOLD.star_circle) {
+            starsHtml = `<span class="stars-circle status-stars">○</span>`;
+        }
+        
+        overallStatusStars = starsHtml;
+        saveOverallStatus(starsHtml);
+        const overallStarsSpan = document.querySelector('#overallStars');
+        overallStarsSpan.innerHTML = overallStatusStars;
+        if (starsHtml !== '―') {
+            overallStarsSpan.classList.add('sparkle-animation');
+        }
+
+        totalClearCount++; monthlyCount++; dailyCount++;
+        saveClearCounts();
+        updateAllClearCountsDisplay();
+        saveHistory({ datetime: nowDT(), score });
+
+        document.querySelectorAll('input[type=number]').forEach(i => i.disabled = true);
+        const retryBtn = document.querySelector('#retry');
+        retryBtn.focus();
+        scrollCenter(retryBtn);
+
+      } else { // まだ間違いがある
+        document.querySelector('#result').innerHTML = 'おしい！まちがいを直して、もういちど「まるつけ」しよう！';
+        document.querySelector('#result').style.color = '#d32f2f';
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector(`#ans-${incorrectIndices[0]}`).focus();
+      }
+    }
+
+    function retry() {
+      startTime = Date.now();
+      document.querySelector('#check-answers').disabled = false;
+      incorrectIndices = [];
+      generateProblems();
+      displayProblems();
+      document.querySelector('#result').textContent = '';
+      document.querySelector('#result').style.color = '#1e88e5';
+      const overallStarsSpan = document.querySelector('#overallStars');
+      overallStarsSpan.classList.remove('sparkle-animation');
+      if (overallStatusStars === '―') {
+          overallStarsSpan.innerHTML = '―';
+      }
+      document.querySelector('#ans-0').focus();
+    }
+
+    function resetAll() {
+        if (confirm('ハイスコアとステータスをリセットしますか？')) {
+            highScore = 0;
+            ls.removeItem(KEY_HS);
+            updateHighScore();
+            overallStatusStars = '―';
+            saveOverallStatus(overallStatusStars);
+            updateOverallStatusDisplay();
+            document.querySelector('#overallStars').classList.remove('sparkle-animation');
         }
     }
 
-    window.addEventListener('DOMContentLoaded',()=>{ 
-      loadHighScore(); 
-      loadClearCounts(); 
-      loadOverallStatus(); 
-      updateHighScore(); 
-      updateAllClearCountsDisplay(); 
-      updateOverallStatusDisplay(); 
-      renderHistory(loadHistory()); 
-      document.querySelector('#check-answers').onclick=checkAnswers; 
-      document.querySelector('#retry').onclick=retry; 
-      document.querySelector('#reset-highscore').onclick=resetAll; 
-      
-      const startBtn=document.querySelector('#start-btn'); 
-      const startArea = document.querySelector('#start-area'); 
-      const problemsSection = document.querySelector('#problems-section'); 
+    window.addEventListener('DOMContentLoaded', () => {
+      loadHighScore();
+      loadClearCounts();
+      loadOverallStatus();
+      updateHighScore();
+      updateAllClearCountsDisplay();
+      updateOverallStatusDisplay();
+      renderHistory(loadHistory());
+      document.querySelector('#check-answers').onclick = checkAnswers;
+      document.querySelector('#retry').onclick = retry;
+      document.querySelector('#reset-highscore').onclick = resetAll;
 
-      startBtn.onclick=()=>{ 
-        startArea.style.display = 'none'; 
-        problemsSection.style.display = 'block'; 
-        retry(); 
+      const startBtn = document.querySelector('#start-btn');
+      const startArea = document.querySelector('#start-area');
+      const problemsSection = document.querySelector('#problems-section');
+
+      startBtn.onclick = () => {
+        startArea.style.display = 'none';
+        problemsSection.style.display = 'block';
+        retry();
       };
-      document.addEventListener('keydown',e=>{ 
-          if(e.key==='Enter' && startArea.style.display !== 'none') { 
-              startBtn.click(); 
+      document.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && startArea.style.display !== 'none') {
+              startBtn.click();
           }
       });
     });
