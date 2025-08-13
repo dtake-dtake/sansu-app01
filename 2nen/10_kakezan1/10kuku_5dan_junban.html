@@ -380,12 +380,26 @@
             
             // ★★★ ステップ2：ハイスコア更新時にアニメーションを呼び出す ★★★
             // 上から紙吹雪が降ってくるくす玉風のアニメーション
-            confetti({
-              particleCount: 150, // 紙吹雪の量
-              spread: 180,        // 散らばる角度
-              origin: { y: 0 }    // 画面の上から
-            });
-        }
+            // 紙吹雪を連続で降らせるための設定
+            const duration = 3 * 1000; // アニメーションの時間（3秒）
+            const animationEnd = Date.now() + duration;
+
+            const interval = setInterval(function() {
+              const timeLeft = animationEnd - Date.now();
+
+              // 時間が来たらアニメーションを停止
+              if (timeLeft <= 0) {
+                return clearInterval(interval);
+              }
+
+              // 残り時間に応じて紙吹雪の量を調整
+              const particleCount = 50 * (timeLeft / duration);
+              
+              // 画面の左端と右端から紙吹雪を発射
+              confetti({ particleCount, startVelocity: 30, spread: 55, origin: { x: 0, y: 0.6 } });
+              confetti({ particleCount, startVelocity: 30, spread: 55, origin: { x: 1, y: 0.6 } });
+
+            }, 250); // 250ミリ秒ごとに発射
 
         document.querySelector('#result').innerHTML = `${message}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed} 秒)`;
 
