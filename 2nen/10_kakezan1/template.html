@@ -6,17 +6,13 @@
   
   <title>わくわく算数ドリル</title>
   
-  <!-- 外部ファイルを読み込み -->
-  <link rel="stylesheet" href="common.css">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../common.css"> <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
 </head>
 <body>
-  <!-- h1とh2は、JSによって自動で設定されます -->
   <h1 id="main-title"></h1>
   <h2 id="sub-title"></h2>
 
-  <!-- ====== 以下はすべてのドリルで共通のHTML構造 ====== -->
   <div id="start-area" style="text-align:center; margin:40px 0;">
     <button id="start-btn">スタート！</button>
   </div>
@@ -40,15 +36,11 @@
   </div>
 
 
-  <!-- ====== 必要なJavaScriptファイルを順番に読み込みます ====== -->
-  <!-- 1. テーマパレット（色定義）-->
-  <script src="themes.js"></script>
+  <script src="../themes.js"></script>
   
-  <!-- 2. 共通エンジン（アプリの動作）-->
-  <script src="common.js"></script>
+  <script src="../common.js"></script>
   
-  <!-- 3. このページで表示したいドリルの設定ファイル -->
-  <script src="configs/kuku_6dan_junban.js"></script>
+  <script src="../configs/kuku_5dan_junban.js"></script>
   
 </body>
 </html>
