@@ -7,7 +7,7 @@
 const quizConfig = {
   // 1. アプリの基本情報
   // ローカルストレージで他のアプリと区別するためのID
-  appId: 'kuku-5dan-junban-v3', 
+  appId: 'kuku-5dan-junban',
   
   // ブラウザのタブや画面に表示されるタイトル
   title: '五の段の九九（じゅんばん）',
