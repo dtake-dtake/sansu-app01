@@ -4,7 +4,7 @@
 
 const quizConfig = {
   // 1. アプリの基本情報
-  appId: 'kuku-8dan-barabara-v1', 
+  appId: 'kuku-8dan-barabara',
   title: '八の段の九九（ばらばら）',
 
   // 2. 問題を生成する関数
