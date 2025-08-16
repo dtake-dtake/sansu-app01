@@ -4,7 +4,7 @@
 
 const quizConfig = {
   // 1. アプリの基本情報
-  appId: 'kuku-9dan-junban-v1', 
+  appId: 'kuku-9dan-junban', 
   title: '九の段の九九（じゅんばん）',
 
   // 2. 問題を生成する関数
