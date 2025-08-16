@@ -4,7 +4,7 @@
 
 const quizConfig = {
   // 1. アプリの基本情報
-  appId: 'kuku-2345dan-random-v1', 
+  appId: 'kuku-2345dan-random', 
   title: '二～五の段の九九（ランダム）',
 
   // 2. 問題を生成する関数
