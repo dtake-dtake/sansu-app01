@@ -135,7 +135,7 @@
     }
 
     /* ---------- 単元＆アプリ描画 ---------- */
-    function displayUnits(gradeName, units){
+function displayUnits(gradeName, units){
         unitsContainer.innerHTML = '';
         let openUnits = getOpenUnitsForGrade(gradeName);
 
@@ -143,7 +143,9 @@
         const unitSection = document.createElement('div');
         unitSection.className = 'unit-section';
 
-        const appsCount = Array.isArray(unit.apps) ? unit.apps.length : 0;
+        // ★変更点1: 未実装のアプリを除外してカウントする
+        const implementedApps = Array.isArray(unit.apps) ? unit.apps.filter(app => !app.path.endsWith('/')) : [];
+        const appsCount = implementedApps.length;
 
         const unitHeader = document.createElement('h3');
         unitHeader.innerHTML = `
@@ -156,43 +158,54 @@
         const appsList = document.createElement('div');
         appsList.className = 'apps-list';
 
-        if (appsCount > 0){
+        if (Array.isArray(unit.apps) && unit.apps.length > 0){ // 元のapps配列でループ
             unit.apps.forEach(app => {
-            const a = document.createElement('a');
-            a.href  = app.path;
-            a.className = 'app-item';
-            a.id = `app-${app.id}`; // ← この id を唯一の参照元にする
+              // ★変更点2: pathが「/」で終わるものは「工事中」として表示
+              const isUnderConstruction = app.path.endsWith('/');
 
-            const title = document.createElement('div');
-            title.className = 'app-title-section';
-            title.textContent = app.title;
+              const a = document.createElement(isUnderConstruction ? 'div' : 'a'); // 工事中はリンクにしない
+              if (!isUnderConstruction) {
+                a.href  = app.path;
+              }
+              a.className = 'app-item';
+              a.id = `app-${app.id}`;
 
-            const status = document.createElement('div');
-            status.className = 'app-status-section';
+              const title = document.createElement('div');
+              title.className = 'app-title-section';
+              title.textContent = app.title;
 
-            const scoreSpan = document.createElement('span');
-            scoreSpan.className = 'app-score';
-            scoreSpan.textContent = 'ハイスコア: -';
-            status.appendChild(scoreSpan);
+              const status = document.createElement('div');
+              status.className = 'app-status-section';
 
-            const starsSpan = document.createElement('span');
-            starsSpan.className = 'app-stars no-data';
-            starsSpan.textContent = '―';
-            status.appendChild(starsSpan);
+              if (isUnderConstruction) {
+                const constructionText = document.createElement('span');
+                constructionText.textContent = '（工事中）';
+                constructionText.style.color = 'red';
+                constructionText.style.fontWeight = 'bold';
+                status.appendChild(constructionText);
+              } else {
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = 'app-score';
+                scoreSpan.textContent = 'ハイスコア: -';
+                status.appendChild(scoreSpan);
 
-            a.appendChild(title);
-            a.appendChild(status);
-            appsList.appendChild(a);
-
-            // ← ここで id属性からローカルストレージを読む
-            const stats = getStatsByElement(a);
-            if (stats.highScore !== null){
-                scoreSpan.textContent = `ハイスコア: ${stats.highScore}点`;
-            }
-            if (stats.overallStatus){
-                starsSpan.classList.remove('no-data');
-                starsSpan.innerHTML = stats.overallStatus;
-            }
+                const starsSpan = document.createElement('span');
+                starsSpan.className = 'app-stars no-data';
+                starsSpan.textContent = '―';
+                status.appendChild(starsSpan);
+                
+                const stats = getStatsByElement(a);
+                if (stats.highScore !== null){
+                    scoreSpan.textContent = `ハイスコア: ${stats.highScore}点`;
+                }
+                if (stats.overallStatus){
+                    starsSpan.classList.remove('no-data');
+                    starsSpan.innerHTML = stats.overallStatus;
+                }
+              }
+              a.appendChild(title);
+              a.appendChild(status);
+              appsList.appendChild(a);
             });
         }else{
             const p = document.createElement('p');
@@ -201,6 +214,37 @@
             appsList.appendChild(p);
         }
 
+        unitSection.appendChild(appsList);
+        unitsContainer.appendChild(unitSection);
+
+        if (openUnits.includes(unit.name)){
+            appsList.style.display = 'flex';
+            unitSection.classList.add('expanded');
+            unitHeader.querySelector('.toggle-icon').textContent = '▲';
+        }else{
+            appsList.style.display = 'none';
+        }
+
+        unitHeader.addEventListener('click', () => {
+            const isClosed = (appsList.style.display === 'none');
+            if (isClosed){
+              appsList.style.display = 'flex';
+              unitSection.classList.add('expanded');
+              unitHeader.querySelector('.toggle-icon').textContent = '▲';
+              if (!openUnits.includes(unit.name)){
+                  openUnits.push(unit.name);
+                  setOpenUnitsForGrade(gradeName, openUnits);
+              }
+            }else{
+              appsList.style.display = 'none';
+              unitSection.classList.remove('expanded');
+              unitHeader.querySelector('.toggle-icon').textContent = '▼';
+              openUnits = openUnits.filter(n => n !== unit.name);
+              setOpenUnitsForGrade(gradeName, openUnits);
+            }
+        });
+        });
+    }
         unitSection.appendChild(appsList);
         unitsContainer.appendChild(unitSection);
 
