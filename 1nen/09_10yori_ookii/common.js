@@ -242,7 +242,7 @@ function initializeDrillApp(config) {
     // ===== アプリケーションの初期化と実行 =====
     (function main() {
         applyThemeColors(config.themeColors);
-        document.title = config.mainTitle || config.title;
+        document.title = config.title; // ← このように修正します
         document.getElementById('main-title').textContent = config.mainTitle || 'わくわく算数ドリル';
         document.getElementById('sub-title').textContent = config.title;
         loadData();
