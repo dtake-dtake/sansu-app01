@@ -51,7 +51,7 @@ def main():
     if not os.path.isdir(scan_dir):
         raise SystemExit(f"対象フォルダが見つかりません: {scan_dir}")
 
-    html_files = [f for f in os.listdir(scan_dir) if f.lower().endswith(".html")]
+    html_files = [f for f in os.listdir(scan_dir) if f.lower().endswith(".html") and f.lower() != "template.html"]
     if not html_files:
         raise SystemExit("HTML ファイルが見つかりませんでした。")
 
