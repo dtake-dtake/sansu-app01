@@ -1,9 +1,6 @@
 /* ============================================= */
 /* ===== 1. CSS変数（テーマカラー）の定義 ===== */
 /* ============================================= */
-/* ここで定義するのは、基本となるデフォルトの配色（青テーマ）です。
-   各アプリの設定ファイルでthemeColorsが指定されると、
-   JavaScriptによってこれらの値が上書きされます。 */
 :root {
   /* 背景色 */
   --c-bg-main: #e0f2f7;
@@ -60,10 +57,11 @@ h2 { font-size: 2.5rem; margin-bottom: 40px; }
 
 /* ===== 問題表示エリア ===== */
 #problems-wrapper {
-  max-width: 850px; /* 横幅の最大値を広げる */
-  width: auto;      /* ★追加：内容に合わせて幅を自動調整 */
-  display: inline-block; /* ★追加：幅を内容に合わせるための設定 */
+  max-width: 850px;
+  width: auto;
+  display: inline-block;
   margin: 0 auto 30px;
+  padding: 30px;
   border: 4px dashed var(--c-primary-light);
   background: var(--c-white);
   box-shadow: 5px 5px 10px rgba(0,0,0,.15);
@@ -72,12 +70,23 @@ h2 { font-size: 2.5rem; margin-bottom: 40px; }
 .problem {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* ← ★変更点 */
   margin-bottom: 25px;
   background: var(--c-problem-row-bg);
   padding: 10px 15px;
   border-radius: 10px;
   box-shadow: 1px 1px 3px rgba(0,0,0,.08);
 }
+/* ▼▼▼ 新しく追加 ▼▼▼ */
+.problem-content {
+  display: flex;
+  align-items: center;
+}
+.problem-actions {
+  /* 将来的にヒントボタンなどを置くためのスペース */
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
+
 .problem-number {
   width: 70px;
   text-align: right;
@@ -88,13 +97,15 @@ h2 { font-size: 2.5rem; margin-bottom: 40px; }
   flex-shrink: 0;
 }
 .problem-equation {
-  flex: 1;
+  /* flex: 1; は削除 */
   display: flex;
   align-items: center;
   font-size: 2.5rem;
   flex-shrink: 0;
 }
-.problem-equation span { margin: 0 12px; }
+.problem-equation span { 
+  margin: 0 18px; /* ← ★変更点: 余白を広げる */
+}
 input[type=number] {
   -moz-appearance: textfield;
   width: 80px;
@@ -109,8 +120,6 @@ input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
-/* problems-wrapperを中央揃えにするための追加設定 */
 #problems-section {
     text-align: center;
 }
@@ -209,7 +218,6 @@ button:disabled {
 
 
 /* ===== 星評価の見た目（色は固定）===== */
-/* 星の色はテーマカラーではなく、達成度を示す固定色なので変数は使いません */
 .status-stars {
   display: inline-flex;
   align-items: center;

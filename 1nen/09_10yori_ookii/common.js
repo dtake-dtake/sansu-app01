@@ -66,6 +66,11 @@ function initializeDrillApp(config) {
       const wrap = document.querySelector('#problems-wrapper'); wrap.innerHTML = '';
       generatedProblems.forEach((p, i) => {
         const row = document.createElement('div'); row.className = 'problem';
+        
+        // 問題番号と式をまとめるための左側ラッパーを作成
+        const problemContent = document.createElement('div');
+        problemContent.className = 'problem-content';
+
         const num = document.createElement('div'); num.className = 'problem-number'; num.textContent = (i + 1) + '.';
         const eq = document.createElement('div'); eq.className = 'problem-equation';
         
@@ -74,10 +79,9 @@ function initializeDrillApp(config) {
         // ★★★【アップグレード部分】★★★
         // configのdisplayTextに "__INPUT__" があれば、その場所に入力欄を埋め込む
         if (p.displayText && p.displayText.includes('__INPUT__')) {
-            // ★変更点: inp.outerHTML を span タグで囲む
             const inputHtml = `<span>${inp.outerHTML}</span>`;
             eq.innerHTML = p.displayText.replace('__INPUT__', inputHtml);
-                } else {
+        } else {
             // なければ、これまで通り末尾に入力欄を追加
             eq.innerHTML = p.displayText || `<span>${p.a}</span><span>${p.op}</span><span>${p.b}</span>=`;
             eq.appendChild(inp);
@@ -85,7 +89,16 @@ function initializeDrillApp(config) {
 
         const icon = document.createElement('span'); icon.id = `icon-${i}`; icon.className = 'result-icon';
         eq.appendChild(icon);
-        row.append(num, eq); 
+        
+        // 作成したラッパーに番号と式を追加
+        problemContent.append(num, eq);
+
+        // 将来のボタンなどを置くための右側スペース（今は空）
+        const problemActions = document.createElement('div');
+        problemActions.className = 'problem-actions';
+
+        // problem行に左側ラッパーと右側スペースを追加
+        row.append(problemContent, problemActions); 
         wrap.appendChild(row);
 
         // イベントリスナーは、HTMLを挿入した後に要素を見つけて設定する
