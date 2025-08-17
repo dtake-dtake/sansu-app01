@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>６　　たしざん(1)</title>
+  <title>１０までのたしざん</title>
   
-  <link rel="stylesheet" href="./common.css">
+  <link rel="stylesheet" href="../../common/common.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
 </head>
@@ -32,14 +32,24 @@
     <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
     <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
     <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
-    <div id="overallStatusArea"><span id="overallStatusText">ステータス：</span><span id="overallStars" class="status-stars">―</span></div>
-    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+    <div id="overallStatusArea">
+      <span id="overallStatusText">ステータス：</span><span id="overallStars">―</span>
+    </div>
+    <div id="history-area">
+      <strong>さいきんのきろく</strong>
+      <ul id="history-list"></ul>
+    </div>
   </div>
 
-  <script src="./themes.js"></script>
-  <script src="./common.js"></script>
-  
   <script src="./configs/tashizan_10made.js"></script>
   
+  <script src="../../common/common.js"></script>
+  <script src="./themes.js"></script>
+  
+  <script>
+    // 設定を元にアプリを初期化
+    initializeDrillApp(drillConfig);
+  </script>
+
 </body>
 </html>
