@@ -134,151 +134,118 @@
         });
     }
 
-    /* ---------- 単元＆アプリ描画 ---------- */
-function displayUnits(gradeName, units){
+    /* ---------- 単元＆アプリ描画 ---------- */function displayUnits(gradeName, units){
         unitsContainer.innerHTML = '';
         let openUnits = getOpenUnitsForGrade(gradeName);
 
         units.forEach(unit => {
-        const unitSection = document.createElement('div');
-        unitSection.className = 'unit-section';
+            const unitSection = document.createElement('div');
+            unitSection.className = 'unit-section';
 
-        // ★変更点1: 未実装のアプリを除外してカウントする
-        const implementedApps = Array.isArray(unit.apps) ? unit.apps.filter(app => !app.path.endsWith('/')) : [];
-        const appsCount = implementedApps.length;
+            // ★修正点1: 未実装のアプリを正しく除外してカウントします
+            const implementedApps = Array.isArray(unit.apps) 
+                ? unit.apps.filter(app => typeof app.path === 'string' && !app.path.endsWith('/') && app.path !== '') 
+                : [];
+            const appsCount = implementedApps.length;
 
-        const unitHeader = document.createElement('h3');
-        unitHeader.innerHTML = `
-            <span class="unit-title">${unit.name}</span>
-            <span class="count-badge" title="この単元のドリル数">${appsCount}</span>
-            <span class="toggle-icon">▼</span>
-        `;
-        unitSection.appendChild(unitHeader);
+            const unitHeader = document.createElement('h3');
+            unitHeader.innerHTML = `
+                <span class="unit-title">${unit.name}</span>
+                <span class="count-badge" title="この単元のドリル数">${appsCount}</span>
+                <span class="toggle-icon">▼</span>
+            `;
+            unitSection.appendChild(unitHeader);
 
-        const appsList = document.createElement('div');
-        appsList.className = 'apps-list';
+            const appsList = document.createElement('div');
+            appsList.className = 'apps-list';
 
-        if (Array.isArray(unit.apps) && unit.apps.length > 0){ // 元のapps配列でループ
-            unit.apps.forEach(app => {
-              // ★変更点2: pathが「/」で終わるものは「工事中」として表示
-              const isUnderConstruction = app.path.endsWith('/');
+            if (Array.isArray(unit.apps) && unit.apps.length > 0){
+                unit.apps.forEach(app => {
+                    // ★修正点2: pathが存在し、末尾が「/」のものを「工事中」と判断します
+                    const isUnderConstruction = typeof app.path === 'string' && app.path.endsWith('/');
 
-              const a = document.createElement(isUnderConstruction ? 'div' : 'a'); // 工事中はリンクにしない
-              if (!isUnderConstruction) {
-                a.href  = app.path;
-              }
-              a.className = 'app-item';
-              a.id = `app-${app.id}`;
+                    const a = document.createElement(isUnderConstruction ? 'div' : 'a');
+                    if (!isUnderConstruction) {
+                        a.href  = app.path;
+                    }
+                    a.className = 'app-item';
+                    a.id = `app-${app.id}`;
 
-              const title = document.createElement('div');
-              title.className = 'app-title-section';
-              title.textContent = app.title;
+                    const title = document.createElement('div');
+                    title.className = 'app-title-section';
+                    title.textContent = app.title;
 
-              const status = document.createElement('div');
-              status.className = 'app-status-section';
+                    const status = document.createElement('div');
+                    status.className = 'app-status-section';
 
-              if (isUnderConstruction) {
-                const constructionText = document.createElement('span');
-                constructionText.textContent = '（工事中）';
-                constructionText.style.color = 'red';
-                constructionText.style.fontWeight = 'bold';
-                status.appendChild(constructionText);
-              } else {
-                const scoreSpan = document.createElement('span');
-                scoreSpan.className = 'app-score';
-                scoreSpan.textContent = 'ハイスコア: -';
-                status.appendChild(scoreSpan);
+                    if (isUnderConstruction) {
+                        const constructionText = document.createElement('span');
+                        constructionText.textContent = '（工事中）';
+                        constructionText.style.color = 'red';
+                        constructionText.style.fontWeight = 'bold';
+                        status.appendChild(constructionText);
+                    } else {
+                        const scoreSpan = document.createElement('span');
+                        scoreSpan.className = 'app-score';
+                        scoreSpan.textContent = 'ハイスコア: -';
+                        status.appendChild(scoreSpan);
 
-                const starsSpan = document.createElement('span');
-                starsSpan.className = 'app-stars no-data';
-                starsSpan.textContent = '―';
-                status.appendChild(starsSpan);
-                
-                const stats = getStatsByElement(a);
-                if (stats.highScore !== null){
-                    scoreSpan.textContent = `ハイスコア: ${stats.highScore}点`;
-                }
-                if (stats.overallStatus){
-                    starsSpan.classList.remove('no-data');
-                    starsSpan.innerHTML = stats.overallStatus;
-                }
-              }
-              a.appendChild(title);
-              a.appendChild(status);
-              appsList.appendChild(a);
-            });
-        }else{
-            const p = document.createElement('p');
-            p.textContent = 'この単元のアプリはまだありません。';
-            p.style.cssText = 'font-size:1.2em;color:#666;padding:10px 0;';
-            appsList.appendChild(p);
-        }
+                        const starsSpan = document.createElement('span');
+                        starsSpan.className = 'app-stars no-data';
+                        starsSpan.textContent = '―';
+                        status.appendChild(starsSpan);
+                        
+                        const stats = getStatsByElement(a);
+                        if (stats.highScore !== null){
+                            scoreSpan.textContent = `ハイスコア: ${stats.highScore}点`;
+                        }
+                        if (stats.overallStatus){
+                            starsSpan.classList.remove('no-data');
+                            starsSpan.innerHTML = stats.overallStatus;
+                        }
+                    }
+                    a.appendChild(title);
+                    a.appendChild(status);
+                    appsList.appendChild(a);
+                });
+            } else {
+                const p = document.createElement('p');
+                p.textContent = 'この単元のアプリはまだありません。';
+                p.style.cssText = 'font-size:1.2em;color:#666;padding:10px 0;';
+                appsList.appendChild(p);
+            }
 
-        unitSection.appendChild(appsList);
-        unitsContainer.appendChild(unitSection);
+            unitSection.appendChild(appsList);
+            unitsContainer.appendChild(unitSection);
 
-        if (openUnits.includes(unit.name)){
-            appsList.style.display = 'flex';
-            unitSection.classList.add('expanded');
-            unitHeader.querySelector('.toggle-icon').textContent = '▲';
-        }else{
-            appsList.style.display = 'none';
-        }
+            if (openUnits.includes(unit.name)){
+                appsList.style.display = 'flex';
+                unitSection.classList.add('expanded');
+                unitHeader.querySelector('.toggle-icon').textContent = '▲';
+            }else{
+                appsList.style.display = 'none';
+            }
 
-        unitHeader.addEventListener('click', () => {
-            const isClosed = (appsList.style.display === 'none');
-            if (isClosed){
-              appsList.style.display = 'flex';
-              unitSection.classList.add('expanded');
-              unitHeader.querySelector('.toggle-icon').textContent = '▲';
-              if (!openUnits.includes(unit.name)){
-                  openUnits.push(unit.name);
+            unitHeader.addEventListener('click', () => {
+                const isClosed = (appsList.style.display === 'none');
+                if (isClosed){
+                  appsList.style.display = 'flex';
+                  unitSection.classList.add('expanded');
+                  unitHeader.querySelector('.toggle-icon').textContent = '▲';
+                  if (!openUnits.includes(unit.name)){
+                      openUnits.push(unit.name);
+                      setOpenUnitsForGrade(gradeName, openUnits);
+                  }
+                }else{
+                  appsList.style.display = 'none';
+                  unitSection.classList.remove('expanded');
+                  unitHeader.querySelector('.toggle-icon').textContent = '▼';
+                  openUnits = openUnits.filter(n => n !== unit.name);
                   setOpenUnitsForGrade(gradeName, openUnits);
-              }
-            }else{
-              appsList.style.display = 'none';
-              unitSection.classList.remove('expanded');
-              unitHeader.querySelector('.toggle-icon').textContent = '▼';
-              openUnits = openUnits.filter(n => n !== unit.name);
-              setOpenUnitsForGrade(gradeName, openUnits);
-            }
-        });
+                }
+            });
         });
     }
-        unitSection.appendChild(appsList);
-        unitsContainer.appendChild(unitSection);
-
-        // 保存状態を反映（複数同時オープンOK）
-        if (openUnits.includes(unit.name)){
-            appsList.style.display = 'flex';
-            unitSection.classList.add('expanded');
-            unitHeader.querySelector('.toggle-icon').textContent = '▲';
-        }else{
-            appsList.style.display = 'none';
-        }
-
-        // 単元トグル（他は閉じない）
-        unitHeader.addEventListener('click', () => {
-            const isClosed = (appsList.style.display === 'none');
-            if (isClosed){
-            appsList.style.display = 'flex';
-            unitSection.classList.add('expanded');
-            unitHeader.querySelector('.toggle-icon').textContent = '▲';
-            if (!openUnits.includes(unit.name)){
-                openUnits.push(unit.name);
-                setOpenUnitsForGrade(gradeName, openUnits);
-            }
-            }else{
-            appsList.style.display = 'none';
-            unitSection.classList.remove('expanded');
-            unitHeader.querySelector('.toggle-icon').textContent = '▼';
-            openUnits = openUnits.filter(n => n !== unit.name);
-            setOpenUnitsForGrade(gradeName, openUnits);
-            }
-        });
-        });
-    }
-
     /* ---------- app_data.json 読み込み ---------- */
     async function loadAppData(){
         try{
