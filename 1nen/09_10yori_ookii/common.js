@@ -74,8 +74,10 @@ function initializeDrillApp(config) {
         // ★★★【アップグレード部分】★★★
         // configのdisplayTextに "__INPUT__" があれば、その場所に入力欄を埋め込む
         if (p.displayText && p.displayText.includes('__INPUT__')) {
-            eq.innerHTML = p.displayText.replace('__INPUT__', inp.outerHTML);
-        } else {
+            // ★変更点: inp.outerHTML を span タグで囲む
+            const inputHtml = `<span>${inp.outerHTML}</span>`;
+            eq.innerHTML = p.displayText.replace('__INPUT__', inputHtml);
+                } else {
             // なければ、これまで通り末尾に入力欄を追加
             eq.innerHTML = p.displayText || `<span>${p.a}</span><span>${p.op}</span><span>${p.b}</span>=`;
             eq.appendChild(inp);
