@@ -87,32 +87,32 @@
         "apps": [
           {
             "id": "10_to_ikutu_1",
-            "title": "１０たす いくつ",
+            "title": "９ 10より おおきい かず",
             "path": "1nen/09_10yori_ookii/10_to_ikutu_1.html"
           },
           {
             "id": "10_to_ikutu_2",
-            "title": "□にはいる かずは？",
+            "title": "９ 10より おおきい かず",
             "path": "1nen/09_10yori_ookii/10_to_ikutu_2.html"
           },
           {
             "id": "20_tashizan_bunshodai",
-            "title": "かずは いくつ？",
+            "title": "９ 10より おおきい かず",
             "path": "1nen/09_10yori_ookii/20_tashizan_bunshodai.html"
           },
           {
             "id": "30_hikizan_to_10",
-            "title": "こたえが１０になる ひきざん",
+            "title": "９ 10より おおきい かず",
             "path": "1nen/09_10yori_ookii/30_hikizan_to_10.html"
           },
           {
             "id": "40_tashizan_2keta_1keta",
-            "title": "２けたと１けたの たしざん",
+            "title": "９ 10より おおきい かず",
             "path": "1nen/09_10yori_ookii/40_tashizan_2keta_1keta.html"
           },
           {
             "id": "50_hikizan_2keta_1keta",
-            "title": "２けたと１けたの ひきざん",
+            "title": "９ 10より おおきい かず",
             "path": "1nen/09_10yori_ookii/50_hikizan_2keta_1keta.html"
           }
         ]
