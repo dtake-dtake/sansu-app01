@@ -712,23 +712,18 @@
         "apps": [
           {
             "id": "01_10nokakezan",
-            "title": "わくわく算数ドリル",
+            "title": "10のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/01_10nokakezan.html"
           },
           {
             "id": "02_0nokakezan",
-            "title": "わくわく算数ドリル",
+            "title": "0のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/02_0nokakezan.html"
           },
           {
             "id": "03_shikaku_kakezan",
             "title": "□のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/03_shikaku_kakezan.html"
-          },
-          {
-            "id": "template",
-            "title": "わくわく算数ドリル",
-            "path": "3nen/1_kuku_hyo_kakezan/template.html"
           }
         ]
       },

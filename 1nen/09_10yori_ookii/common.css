@@ -60,9 +60,10 @@ h2 { font-size: 2.5rem; margin-bottom: 40px; }
 
 /* ===== 問題表示エリア ===== */
 #problems-wrapper {
-  max-width: 650px;
+  max-width: 850px; /* 横幅の最大値を広げる */
+  width: auto;      /* ★追加：内容に合わせて幅を自動調整 */
+  display: inline-block; /* ★追加：幅を内容に合わせるための設定 */
   margin: 0 auto 30px;
-  padding: 30px;
   border: 4px dashed var(--c-primary-light);
   background: var(--c-white);
   box-shadow: 5px 5px 10px rgba(0,0,0,.15);
@@ -109,6 +110,10 @@ input[type=number]::-webkit-inner-spin-button {
   margin: 0;
 }
 
+/* problems-wrapperを中央揃えにするための追加設定 */
+#problems-section {
+    text-align: center;
+}
 
 /* ===== ボタン類 ===== */
 .button-area { 

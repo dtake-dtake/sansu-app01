@@ -96,39 +96,9 @@
         "name": "９　　10より おおきい かず",
         "apps": [
           {
-            "id": "10_to_ikutu_1",
-            "title": "９ 10より おおきい かず",
-            "path": "1nen/09_10yori_ookii/10_to_ikutu_1.html"
-          },
-          {
-            "id": "10_to_ikutu_2",
-            "title": "９ 10より おおきい かず",
-            "path": "1nen/09_10yori_ookii/10_to_ikutu_2.html"
-          },
-          {
-            "id": "20_tashizan_bunshodai",
-            "title": "９ 10より おおきい かず",
-            "path": "1nen/09_10yori_ookii/20_tashizan_bunshodai.html"
-          },
-          {
-            "id": "30_hikizan_to_10",
-            "title": "９ 10より おおきい かず",
-            "path": "1nen/09_10yori_ookii/30_hikizan_to_10.html"
-          },
-          {
-            "id": "40_tashizan_2keta_1keta",
-            "title": "９ 10より おおきい かず",
-            "path": "1nen/09_10yori_ookii/40_tashizan_2keta_1keta.html"
-          },
-          {
-            "id": "50_hikizan_2keta_1keta",
-            "title": "９ 10より おおきい かず",
-            "path": "1nen/09_10yori_ookii/50_hikizan_2keta_1keta.html"
-          },
-          {
-            "id": "template",
-            "title": "１０ かけ算⑴",
-            "path": "1nen/09_10yori_ookii/template.html"
+            "id": "1n-10yori-ookii",
+            "title": "10より おおきい かず",
+            "path": "1nen/1nen_10yori-ookii.html"
           }
         ]
       },
@@ -341,14 +311,9 @@
         "name": "３　　時こくと時間",
         "apps": [
           {
-            "id": "01_tokeino_yomikata_1min",
-            "title": "とけいの読み方（１分ずつ）",
-            "path": "2nen/03_jikoku_jikan/01_tokeino_yomikata_1min.html"
-          },
-          {
-            "id": "01_tokeino_yomikata_5min",
-            "title": "とけいの読み方（５分ずつ）",
-            "path": "2nen/03_jikoku_jikan/01_tokeino_yomikata_5min.html"
+            "id": "2n-jikoku-jikan",
+            "title": "3　時こくと時間",
+            "path": "2nen/2nen_jikoku_jikan.html"
           }
         ]
       },
@@ -456,54 +421,49 @@
         "name": "１０　かけ算⑴",
         "apps": [
           {
-            "id": "10kuku_5dan_junban",
-            "title": "１０ かけ算⑴",
+            "id": "kuku-5dan-junban",
+            "title": "五の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/10kuku_5dan_junban.html"
           },
           {
-            "id": "20kuku_5dan_barabara",
-            "title": "かけ算⑴",
+            "id": "kuku-5dan-barabara",
+            "title": "五の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/20kuku_5dan_barabara.html"
           },
           {
-            "id": "30kuku_2dan_junban",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-2dan-junban",
+            "title": "二の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/30kuku_2dan_junban.html"
           },
           {
-            "id": "40kuku_2dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-2dan-barabara",
+            "title": "二の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/40kuku_2dan_barabara.html"
           },
           {
-            "id": "50kuku_3dan_junban",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-3dan-junban",
+            "title": "三の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/50kuku_3dan_junban.html"
           },
           {
-            "id": "60kuku_3dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-3dan-barabara",
+            "title": "三の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/60kuku_3dan_barabara.html"
           },
           {
-            "id": "70kuku_4dan_junban",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-4dan-junban",
+            "title": "四の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/70kuku_4dan_junban.html"
           },
           {
-            "id": "80kuku_4dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-4dan-barabara",
+            "title": "四の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/80kuku_4dan_barabara.html"
           },
           {
-            "id": "90kuku_5234dan_random",
-            "title": "わくわく算数ドリル",
-            "path": "2nen/10_kakezan1/90kuku_5234dan_random.html"
-          },
-          {
-            "id": "template",
-            "title": "１０ かけ算⑴",
-            "path": "2nen/10_kakezan1/template.html"
+            "id": "kuku-2345dan-random",
+            "title": "二、三、四、五の段の九九",
+            "path": "2nen/10_kakezan1/90kuku_2345dan_random.html"
           }
         ]
       },
@@ -511,74 +471,69 @@
         "name": "１１　かけ算⑵",
         "apps": [
           {
-            "id": "10kuku_6dan_junban",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-6dan-junban",
+            "title": "六の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/10kuku_6dan_junban.html"
           },
           {
-            "id": "20kuku_6dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-6dan-barabara",
+            "title": "六の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/20kuku_6dan_barabara.html"
           },
           {
-            "id": "30kuku_7dan_junban",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-7dan-junban",
+            "title": "七の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/30kuku_7dan_junban.html"
           },
           {
-            "id": "40kuku_7dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-7dan-barabara",
+            "title": "七の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/40kuku_7dan_barabara.html"
           },
           {
-            "id": "50kuku_8dan_junban",
-            "title": "わくわく算数ドリル",
-            "path": "2nen/11_kakezan2/50kuku_8dan_junban.html"
+            "id": "kuku-8dan-junban",
+            "title": "八の段の九九（じゅんばん）",
+            "path": "2nen/11_kakezan2/50uku_8dan_junban.html"
           },
           {
-            "id": "60kuku_8dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-8dan-barabara",
+            "title": "八の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/60kuku_8dan_barabara.html"
           },
           {
-            "id": "70kuku_9dan_junban",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-9dan-junban",
+            "title": "九の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/70kuku_9dan_junban.html"
           },
           {
-            "id": "80kuku_9dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-9dan-barabara",
+            "title": "九の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/80kuku_9dan_barabara.html"
           },
           {
-            "id": "90kuku_1dan_junban",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-1dan-junban",
+            "title": "一の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/90kuku_1dan_junban.html"
           },
           {
-            "id": "100kuku_1dan_barabara",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-1dan-barabara",
+            "title": "一の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/100kuku_1dan_barabara.html"
           },
           {
-            "id": "110kuku_16789dan_random",
-            "title": "わくわく算数ドリル",
-            "path": "2nen/11_kakezan2/110kuku_16789dan_random.html"
+            "id": "23kuku_16789dan_random",
+            "title": "一、六、七、八、九段の九九",
+            "path": "2nen/11_kakezan2/110kuku_16789dan_random"
           },
           {
-            "id": "120kuku_10mondai",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-10mondai",
+            "title": "九九",
             "path": "2nen/11_kakezan2/120kuku_10mondai.html"
           },
           {
-            "id": "130kuku_81mondai",
-            "title": "わくわく算数ドリル",
+            "id": "kuku-81mondai",
+            "title": "九九（81問）",
             "path": "2nen/11_kakezan2/130kuku_81mondai.html"
-          },
-          {
-            "id": "template",
-            "title": "わくわく算数ドリル",
-            "path": "2nen/11_kakezan2/template.html"
           }
         ]
       },
@@ -712,23 +667,18 @@
         "apps": [
           {
             "id": "01_10nokakezan",
-            "title": "わくわく算数ドリル",
+            "title": "10のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/01_10nokakezan.html"
           },
           {
             "id": "02_0nokakezan",
-            "title": "わくわく算数ドリル",
+            "title": "0のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/02_0nokakezan.html"
           },
           {
             "id": "03_shikaku_kakezan",
             "title": "□のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/03_shikaku_kakezan.html"
-          },
-          {
-            "id": "template",
-            "title": "わくわく算数ドリル",
-            "path": "3nen/1_kuku_hyo_kakezan/template.html"
           }
         ]
       },
