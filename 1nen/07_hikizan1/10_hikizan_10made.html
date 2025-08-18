@@ -32,17 +32,73 @@
     <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
     <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
     <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
-    <div id="overallStatusArea"><span id="overallStatusText">ステータス：</span><span id="overallStars" class="status-stars">―</span></div>
-    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+    <div id="overallStatusArea">
+      <span id="overallStatusText">ステータス：</span><span id="overallStars">―</span>
+    </div>
+    <div id="history-area">
+      <strong>さいきんのきろく</strong>
+      <ul id="history-list"></ul>
+    </div>
   </div>
 
-  <script src="./themes.js"></script>
+  <script>
+    // 「10までのひきざん」ドリルの設定
+    const drillConfig = {
+      // アプリのID（記録を保存するために使います）
+      appId: "hikizan-10made",
+
+      // メインタイトル
+      mainTitle: "７　ひきざん(1)",
+
+      // サブタイトル
+      title: "１０までのひきざん",
+
+      // ひき算の問題を10問作る関数
+      problemGenerator: () => {
+        const problems = [];
+        const generated = new Set(); // 問題の重複を防ぎます
+        const NUM_QUESTIONS = 10;
+
+        while (problems.length < NUM_QUESTIONS) {
+          // 1. 引かれる数「a」を決める (2から10まで)
+          const a = Math.floor(Math.random() * 9) + 2;
+
+          // 2. 引く数「b」を決める (1から「a-1」まで)
+          const b = Math.floor(Math.random() * (a - 1)) + 1;
+
+          const key = `${a}-${b}`;
+          if (generated.has(key)) {
+            continue; // 同じ問題がすでにあれば作り直す
+          }
+          generated.add(key);
+
+          problems.push({
+            answer: a - b,
+            displayText: `<span>${a}</span><span>−</span><span>${b}</span><span>=</span>__INPUT__`
+          });
+        }
+        return problems;
+      },
+      
+      // ハイスコアに応じた星の閾値
+      starThresholds: {
+        star_circle: 100,
+        star1: 110,
+        star2: 120,
+        star3: 130,
+        star4: 140,
+        star5: 150,
+      }
+    };
+  </script>
   
-  <!-- ★アップグレード版のcommon.jsを読み込みます★ -->
   <script src="../../common/common.js"></script>
   
-  <!-- ★ひき算用の設定ファイルを読み込みます★ -->
-  <script src="./configs/hikizan_10made.js"></script>
+  <script src="./themes.js"></script>
   
-</body>
+  <script>
+    // 設定を元にアプリを初期化
+    initializeDrillApp(drillConfig);
+  </script>
+  </body>
 </html>

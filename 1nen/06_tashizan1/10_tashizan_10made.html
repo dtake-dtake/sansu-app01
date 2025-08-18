@@ -41,7 +41,57 @@
     </div>
   </div>
 
-  <script src="./configs/tashizan_10made.js"></script>
+  <script>
+    // 「10までのたし算」ドリルの設定
+    const drillConfig = {
+      // アプリのID（LocalStorageのキーなどで使用）
+      appId: "tashizan-10made-ver3",
+
+      // メインタイトルとして表示される文字列
+      mainTitle: "６　たしざん(1)",
+
+      // サブタイトル（問題内容）として表示される文字列
+      title: "１０までのたしざん",
+
+      // 問題を自動で作る関数
+      problemGenerator: () => {
+        const problems = [];
+        const generated = new Set();
+        const NUM_QUESTIONS = 10;
+
+        while (problems.length < NUM_QUESTIONS) {
+          // 答えが2から10になる組み合わせを生成
+          const answer = Math.floor(Math.random() * 9) + 2;
+          const a = Math.floor(Math.random() * (answer - 1)) + 1;
+          const b = answer - a;
+
+          // 「1+2」と「2+1」のような重複を避ける
+          const problemKey = a < b ? `${a}+${b}` : `${b}+${a}`;
+          if (generated.has(problemKey)) continue;
+          generated.add(problemKey);
+
+          problems.push({
+            a: a,
+            b: b,
+            op: "+",
+            answer: answer,
+            displayText: `<span>${a}</span><span>+</span><span>${b}</span><span>=</span>__INPUT__`
+          });
+        }
+        return problems;
+      },
+
+      // ハイスコアに応じた星の閾値
+      starThresholds: {
+        star_circle: 100,
+        star1: 110,
+        star2: 120,
+        star3: 130,
+        star4: 140,
+        star5: 150,
+      }
+    };
+  </script>
   
   <script src="../../common/common.js"></script>
   <script src="./themes.js"></script>
@@ -50,6 +100,5 @@
     // 設定を元にアプリを初期化
     initializeDrillApp(drillConfig);
   </script>
-
-</body>
+  </body>
 </html>
