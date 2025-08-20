@@ -1,104 +1,41 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>１０までのたしざん</title>
-  
-  <link rel="stylesheet" href="../../common/common.css">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+// drills/1nen/tashizan_10made/drill.js
 
-</head>
-<body>
-  <h1 id="main-title"></h1>
-  <h2 id="sub-title"></h2>
+// ① ドリルのメタ（見出し・保存キー・テーマ・配点・秒数・★しきい値）
+window.drillMeta = {
+  main:  "６　たし算⑴",              // h1
+  sub:   "１０までのたしざん",        // h2（document.titleにも反映）
+  appId: "1nen-tashizan-10made",      // ローカルストレージのキー分離に必須
+  theme: "theme_sky",                 // themes.js の変数名
 
-  <div id="start-area" style="text-align:center; margin:40px 0;">
-    <button id="start-btn">スタート！</button>
-  </div>
+  // スコア関連（必要なものだけ書けばOK）
+  pointsPerQuestion:    10,           // 1問あたりの点
+  timeLimitPerQuestion: 5,            // 1問あたりの秒数（ボーナス用）
 
-  <div id="problems-section" style="display:none;">
-    <div id="problems-wrapper"></div>
-    <div class="button-area">
-      <button id="check-answers">まるつけ</button>
-      <button id="retry">もういちど</button>
-    </div>
-  </div>
+  // ★しきい値（旧・新どちらのキーでもOK：common.jsが吸収）
+  starThresholds: {
+    circle: 100,  // ○
+    bronze: 110,  // ★☆☆☆☆
+    silver: 120,  // ★★☆☆☆
+    gold:   130,  // ★★★☆☆
+    diamond:140   // ★★★★☆
+  }
+};
 
-  <div id="result-area">
-    <div id="result"></div>
-    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
-    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
-    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
-    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
-    <div id="overallStatusArea">
-      <span id="overallStatusText">ステータス：</span><span id="overallStars">―</span>
-    </div>
-    <div id="history-area">
-      <strong>さいきんのきろく</strong>
-      <ul id="history-list"></ul>
-    </div>
-  </div>
-
-  <script>
-    // 「10までのたし算」ドリルの設定
-    const drillConfig = {
-      // アプリのID（LocalStorageのキーなどで使用）
-      appId: "tashizan-10made-ver3",
-
-      // メインタイトルとして表示される文字列
-      mainTitle: "６　たしざん(1)",
-
-      // サブタイトル（問題内容）として表示される文字列
-      title: "１０までのたしざん",
-
-      // 問題を自動で作る関数
-      problemGenerator: () => {
-        const problems = [];
-        const generated = new Set();
-        const NUM_QUESTIONS = 10;
-
-        while (problems.length < NUM_QUESTIONS) {
-          // 答えが2から10になる組み合わせを生成
-          const answer = Math.floor(Math.random() * 9) + 2;
-          const a = Math.floor(Math.random() * (answer - 1)) + 1;
-          const b = answer - a;
-
-          // 「1+2」と「2+1」のような重複を避ける
-          const problemKey = a < b ? `${a}+${b}` : `${b}+${a}`;
-          if (generated.has(problemKey)) continue;
-          generated.add(problemKey);
-
-          problems.push({
-            a: a,
-            b: b,
-            op: "+",
-            answer: answer,
-            displayText: `<span>${a}</span><span>+</span><span>${b}</span><span>=</span>__INPUT__`
-          });
-        }
-        return problems;
-      },
-
-      // ハイスコアに応じた星の閾値
-      starThresholds: {
-        star_circle: 100,
-        star1: 110,
-        star2: 120,
-        star3: 130,
-        star4: 140,
-        star5: 150,
-      }
-    };
-  </script>
-  
-  <script src="../../common/common.js"></script>
-  <script src="./themes.js"></script>
-  
-  <script>
-    // 設定を元にアプリを初期化
-    initializeDrillApp(drillConfig);
-  </script>
-  </body>
-</html>
+// ② 必須：問題生成ロジック
+window.generateProblems = function () {
+  // 例：2〜10の和になる足し算を重複なしで10問
+  const list = [], used = new Set(), N = 10;
+  while (list.length < N) {
+    const ans = Math.floor(Math.random() * 9) + 2;      // 2〜10
+    const a = Math.floor(Math.random() * (ans - 1)) + 1;
+    const b = ans - a;
+    const key = a < b ? `${a}+${b}` : `${b}+${a}`;
+    if (used.has(key)) continue; used.add(key);
+    list.push({
+      // __INPUT__ の位置に回答欄が入る（common.jsの仕様）
+      displayText: `<span>${a}</span> + <span>${b}</span> = __INPUT__`,
+      answer: ans
+    });
+  }
+  return list;
+};

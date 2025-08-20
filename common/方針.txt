@@ -1,0 +1,45 @@
+要望まとめ
+
+運用スタイル
+
+template.html を1枚使い回す（HTML骨組みは共通化）
+
+各ドリル側は極力シンプルにして管理しやすくする
+
+各ドリルで個別管理したいもの
+
+見出し：h1(main-title) / h2(sub-title)
+
+appId：ローカルストレージ分離用の一意名
+
+theme：themes.jsのテーマをドリルごとに指定
+
+難易度（★）しきい値：ドリルごとに調整可能にしたい
+
+配点／制限時間：pointsPerQuestion / timeLimitPerQuestion
+
+問題生成ロジック：各ドリル独自の generateProblems() を持つ
+
+ファイルの持ち方（管理簡単が最優先）
+
+ドリル＝1ファイルで完結が理想
+
+例：drill.js に meta（h1/h2/appId/theme/しきい値/配点/秒数） と generateProblems を同居
+
+template.html は URLで ?mod=/path/to/drill.js を受け取り、読み込み後に meta を反映して起動
+
+（必要なら）一時的に URL パラメータで上書きできるとテストが楽（任意）
+
+既存の共通仕様は維持
+
+ローカルストレージの構造（ハイスコア・日/月/合計クリア・履歴10件）
+
+レイアウト/見た目は common.css、テーマは themes.js、動作は拡張版 common.js に任せる
+
+common.js は HTMLに値があれば上書きしない／window.generateProblems を自動検出／★キー新旧どちらも解釈 でOK
+
+ゴール
+
+「新しいドリルを作る＝drill.jsを1本作ってリンクを貼るだけ」
+
+難易度（★しきい値）をドリルごとに柔軟に調整できる
