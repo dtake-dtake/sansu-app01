@@ -1,16 +1,15 @@
-// common.js - HTML主導でも動く拡張版
+// common.js - HTML主導＋フック対応版
 //  - main/subタイトルはHTMLに書いてあれば尊重
 //  - <body data-theme="theme_xxx"> でテーマ適用（themes.jsの変数名）
 //  - <body data-app-id="..."> で appId を指定可能
 //  - 問題生成は config.problemGenerator / config.createProblems / window.generateProblems を自動検出
-//  - 星の閾値は旧(new)両表記に対応
-// 既存版をベースに必要最小限の非破壊変更を加えています。
-
+//  - 星の閾値は旧(new)両表記に対応（fallback）
+//  - ★フック: window.drillHooks.computeScore / getStars を定義すれば各ドリルで自由化
 (function () {
   'use strict';
 
   function initializeDrillApp(userConfig) {
-    // ===== アプリの状態を管理する変数 =====
+    // ===== アプリ状態 =====
     let problems = [];
     let startTime = 0;
     let highScore = 0;
@@ -26,22 +25,33 @@
     const byId = (id) => document.getElementById(id);
     const scrollCenter = (el) => el && el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    // ===== 設定の取り込み（HTML優先の互換レイヤ） =====
+    // ★レベル→表示HTML（0~5 or 'circle' or 直接HTML）
+    function renderStars(level) {
+      if (typeof level === 'string') {
+        if (level.trim().startsWith('<')) return level;
+        if (level === 'circle') return `<span class="stars-circle status-stars">○</span>`;
+      }
+      switch (Number(level)) {
+        case 5: return `<span class="stars-rainbow status-stars">★★★★★</span>`;
+        case 4: return `<span class="stars-diamond status-stars">★★★★☆</span>`;
+        case 3: return `<span class="stars-gold status-stars">★★★☆☆</span>`;
+        case 2: return `<span class="stars-silver status-stars">★★☆☆☆</span>`;
+        case 1: return `<span class="stars-bronze status-stars">★☆☆☆☆</span>`;
+        default: return '―';
+      }
+    }
+
+    // ===== 設定取り込み（HTML優先） =====
     const config = Object.assign({}, userConfig || {});
-    // appId: data-属性優先
     const appIdFromDOM = document.body && document.body.dataset ? document.body.dataset.appId : '';
     config.appId = appIdFromDOM || config.appId || 'app-unknown';
 
-    // タイトルは「HTMLに文字があれば尊重」。空なら補完。
     const mainTitleEl = byId('main-title');
     const subTitleEl  = byId('sub-title');
 
-    // ドキュメントタイトル補完（HTMLにsubがあればそれをタイトルに）
     if (document.title.trim() === '' && subTitleEl && subTitleEl.textContent.trim() !== '') {
       document.title = subTitleEl.textContent.trim();
     }
-
-    // HTMLが空のときだけJSで埋める
     if (mainTitleEl && mainTitleEl.textContent.trim() === '') {
       mainTitleEl.textContent = config.mainTitle || 'わくわく算数ドリル';
     }
@@ -49,7 +59,7 @@
       subTitleEl.textContent = config.subTitle || config.title || document.title || '';
     }
 
-    // ===== ローカルストレージキー =====
+    // ===== ストレージキー =====
     const KEY_HS             = `${config.appId}:hs`;
     const KEY_HISTORY        = `${config.appId}:history`;
     const KEY_CLEAR          = `${config.appId}:clearCount`;
@@ -57,7 +67,7 @@
     const KEY_DAILY_PREFIX   = `${config.appId}:dailyClear-`;   // YYYY-MM-DD
     const KEY_OVERALL_STATUS = `${config.appId}:status`;
 
-    // ===== データ保存・読み込み =====
+    // ===== データ読書き =====
     function loadData() {
       highScore = +ls.getItem(KEY_HS) || 0;
       const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
@@ -112,10 +122,9 @@
         root.style.setProperty(key, value);
       }
     }
-    // data-theme から themes.js の同名変数を解決して適用（HTML優先）
     const themeNameFromDOM = (document.body && document.body.dataset) ? document.body.dataset.theme : '';
     const themeFromDOM = themeNameFromDOM && window[themeNameFromDOM]; // e.g. theme_sky
-    applyThemeColors(themeFromDOM || config.themeColors); // HTML > config【themes.jsを想定】:contentReference[oaicite:2]{index=2}
+    applyThemeColors(themeFromDOM || config.themeColors);
 
     // ===== 問題の描画 =====
     function displayProblems(generatedProblems) {
@@ -141,10 +150,7 @@
         inp.type = 'number';
         inp.id = `ans-${i}`;
 
-        // 表示文字列の互換対応:
-        //  1) p.displayText（__INPUT__ 置換対応）
-        //  2) p.question（末尾に入力欄を追加）
-        //  3) {a,op,b} から合成
+        // 表示文字列の互換対応
         if (p.displayText && typeof p.displayText === 'string') {
           const inputHtml = `<span>${inp.outerHTML}</span>`;
           eq.innerHTML = p.displayText.includes('__INPUT__')
@@ -154,7 +160,6 @@
           eq.innerHTML = p.question;
           eq.appendChild(inp);
         } else {
-          // 従来形式: a, b, op
           const a = (p.a != null) ? p.a : '';
           const b = (p.b != null) ? p.b : '';
           const op = p.op || '+';
@@ -175,7 +180,6 @@
         row.append(problemContent, problemActions);
         wrap.appendChild(row);
 
-        // 入力欄イベント（Enterで次の誤答 or 次問 or まるつけ）
         const inputElement = byId(`ans-${i}`);
         if (inputElement) {
           inputElement.addEventListener('focus', () => scrollCenter(inputElement));
@@ -200,10 +204,9 @@
       });
     }
 
-    // ===== スコア算出・採点 =====
+    // ===== スコア・採点 =====
     function normalizeStarThresholds(s) {
       if (!s) return null;
-      // 旧記法(star5..star1, star_circle) と 新記法(diamond..circle) の両対応
       return {
         star5:       s.star5       ?? s.diamond,
         star4:       s.star4       ?? s.gold,
@@ -262,13 +265,27 @@
         const TIME_LIMIT = NUM_QUESTIONS * (config.timeLimitPerQuestion || 5);
         const pointsPerQuestion = config.pointsPerQuestion || 10;
 
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        const elapsed = +elapsedSec.toFixed(1);
         const baseScore = correctCount * pointsPerQuestion;
+
+        // 既定の時間ボーナス
         let timeBonus = 0;
-        if (+elapsed < TIME_LIMIT) {
-          timeBonus = Math.floor(50 * ((TIME_LIMIT - (+elapsed)) / TIME_LIMIT));
+        if (elapsed < TIME_LIMIT) {
+          timeBonus = Math.floor(50 * ((TIME_LIMIT - elapsed) / TIME_LIMIT));
         }
-        const score = baseScore + timeBonus;
+
+        // ★ フック：各ドリルでスコア式を自由化
+        const hooks = window.drillHooks || {};
+        const details = { correctCount, total: NUM_QUESTIONS, elapsed, baseScore, timeBonus, timeLimit: TIME_LIMIT };
+
+        let score = baseScore + timeBonus;
+        if (typeof hooks.computeScore === 'function') {
+          try {
+            const s = hooks.computeScore(details);
+            if (Number.isFinite(s)) score = s;
+          } catch (_) { /* フォールバック */ }
+        }
 
         let message = '🎉 全問正解！おめでとう！ 🎉';
         if (score > highScore) {
@@ -283,16 +300,26 @@
           resultEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--c-primary');
         }
 
-        // 星の評価
+        // ★ フック：各ドリルで★判定を自由化
         let starsHtml = '―';
-        const s2 = normalizeStarThresholds(config.starThresholds);
-        if (s2) {
-          if      (score >= s2.star5)       starsHtml = `<span class="stars-rainbow status-stars">★★★★★</span>`;
-          else if (score >= s2.star4)       starsHtml = `<span class="stars-diamond status-stars">★★★★☆</span>`;
-          else if (score >= s2.star3)       starsHtml = `<span class="stars-gold status-stars">★★★☆☆</span>`;
-          else if (score >= s2.star2)       starsHtml = `<span class="stars-silver status-stars">★★☆☆☆</span>`;
-          else if (score >= s2.star1)       starsHtml = `<span class="stars-bronze status-stars">★☆☆☆☆</span>`;
-          else if (score >= s2.star_circle) starsHtml = `<span class="stars-circle status-stars">○</span>`;
+        if (typeof hooks.getStars === 'function') {
+          try {
+            const level = hooks.getStars({ score, details });
+            starsHtml = renderStars(level);
+          } catch (_) {
+            starsHtml = '―';
+          }
+        } else {
+          // 従来のしきい値方式（後方互換）
+          const s2 = normalizeStarThresholds(config.starThresholds);
+          if (s2) {
+            if      (score >= s2.star5)       starsHtml = `<span class="stars-rainbow status-stars">★★★★★</span>`;
+            else if (score >= s2.star4)       starsHtml = `<span class="stars-diamond status-stars">★★★★☆</span>`;
+            else if (score >= s2.star3)       starsHtml = `<span class="stars-gold status-stars">★★★☆☆</span>`;
+            else if (score >= s2.star2)       starsHtml = `<span class="stars-silver status-stars">★★☆☆☆</span>`;
+            else if (score >= s2.star1)       starsHtml = `<span class="stars-bronze status-stars">★☆☆☆☆</span>`;
+            else if (score >= s2.star_circle) starsHtml = `<span class="stars-circle status-stars">○</span>`;
+          }
         }
 
         overallStatusStars = starsHtml;
@@ -337,7 +364,6 @@
         });
       }, 200);
     }
-
     function stopConfetti() {
       if (confettiIntervalId) clearInterval(confettiIntervalId);
       confettiIntervalId = null;
@@ -357,7 +383,6 @@
       startTime = Date.now();
       incorrectIndices = [];
 
-      // 問題生成関数の解決
       const gen = resolveProblemGenerator();
       if (!gen) {
         const resultEl = byId('result');
@@ -419,17 +444,16 @@
           problemsSection.style.display = 'block';
           retry();
         };
-        // Enterでも開始
         document.addEventListener('keydown', e => {
           if (e.key === 'Enter' && startArea.style.display !== 'none') startBtn.click();
         });
       } else {
-        // スタートUIが無いテンプレでも素直に開始できるように
+        // スタートUIが無いテンプレでも素直に開始
         retry();
       }
     })();
   }
 
-  // グローバル公開（従来互換）
+  // 公開（互換）
   window.initializeDrillApp = initializeDrillApp;
 })();
