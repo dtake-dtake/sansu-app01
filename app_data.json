@@ -7,8 +7,8 @@
         "apps": [
           {
             "id": "1nen-tashizan-10made",
-            "title": "10 tashizan 10made",
-            "path": "1nen/06_tashizan1/10_tashizan_10made.html"
+            "title": "１０までのたしざん",
+            "path": "1nen/06_tashizan1/9-3_tashizan_10made.html"
           }
         ]
       },
@@ -16,9 +16,9 @@
         "name": "７　　ひきざん(1)",
         "apps": [
           {
-            "id": "hikizan-10made",
+            "id": "1nen-hikizan-10made",
             "title": "１０までのひきざん",
-            "path": "1nen/07_hikizan1/10_hikizan_10made.html"
+            "path": "1nen/07_hikizan1/18-6_hikizan_10made.html"
           }
         ]
       },
@@ -26,34 +26,34 @@
         "name": "９　　10より おおきい かず",
         "apps": [
           {
-            "id": "tashizan-10plus",
-            "title": "１０たす いくつ",
-            "path": "1nen/09_10yori_ookii/10_to_ikutu_1.html"
+            "id": "1nen-10toikutsu",
+            "title": "１０といくつ",
+            "path": "1nen/09_10yori_ookii/35-2_10_to_ikutsu.html"
           },
           {
-            "id": "tashizan-shikaku",
-            "title": "□にはいる かずは？",
-            "path": "1nen/09_10yori_ookii/10_to_ikutu_2.html"
+            "id": "35-2_sikaku_ni_hairukazu",
+            "title": "□にはいるかず",
+            "path": "1nen/09_10yori_ookii/35-2_sikaku_ni_hairukazu.html"
           },
           {
-            "id": "tashizan-bunshodai",
+            "id": "36-3_kazuha_ikutu",
             "title": "かずは いくつ？",
-            "path": "1nen/09_10yori_ookii/20_tashizan_bunshodai.html"
+            "path": "1nen/09_10yori_ookii/36-3_kazuha_ikutu.html"
           },
           {
-            "id": "hikizan-to-10",
+            "id": "38-4_kotaega_10ninaru_hikizan",
             "title": "こたえが１０になる ひきざん",
-            "path": "1nen/09_10yori_ookii/30_hikizan_to_10.html"
+            "path": "1nen/09_10yori_ookii/38-4_kotaega_10ninaru_hikizan.html"
           },
           {
-            "id": "tashizan-2keta-1keta",
+            "id": "39-6_2keta_tasu_1keta",
             "title": "２けたと１けたの たしざん",
-            "path": "1nen/09_10yori_ookii/40_tashizan_2keta_1keta.html"
+            "path": "1nen/09_10yori_ookii/39-6_2keta_tasu_1keta.html"
           },
           {
-            "id": "hikizan-2keta-1keta",
+            "id": "39-8_nikita_tasu_1keta",
             "title": "２けたと１けたの ひきざん",
-            "path": "1nen/09_10yori_ookii/50_hikizan_2keta_1keta.html"
+            "path": "1nen/09_10yori_ookii/39-8_nikita_hiku_1keta.html"
           }
         ]
       }

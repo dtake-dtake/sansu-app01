@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>２けたと１けたの ひきざん</title>
-  
-  <link rel="stylesheet" href="../../common/common.css">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <title>こたえが１０になる ひきざん</title>
 
+  <!-- 共通スタイル -->
+  <link rel="stylesheet" href="common.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body>
   <h1 id="main-title"></h1>
@@ -36,11 +35,11 @@
     <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
   </div>
 
-  <script src="./themes.js"></script>
-  <script src="../../common/common.js"></script>
-  
-  <!-- ★このドリル専用の設定ファイルを読み込みます★ -->
-  <script src="./configs/hikizan_2keta_1keta.js"></script>
-  
+  <!-- 共通ロジック -->
+  <script src="themes.js"></script>
+  <script src="common.js"></script>
+
+  <!-- このドリル固有 -->
+  <script src="38-4_kotaega_10ninaru_hikizan.js"></script>
 </body>
 </html>

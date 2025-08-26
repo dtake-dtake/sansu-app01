@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title></title>
-  
-  <link rel="stylesheet" href="../common.css"> <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <title>２けたと１けたの たしざん</title>
 
+  <!-- 共通スタイル -->
+  <link rel="stylesheet" href="common.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body>
   <h1 id="main-title"></h1>
@@ -35,12 +35,11 @@
     <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
   </div>
 
+  <!-- 共通ロジック -->
+  <script src="themes.js"></script>
+  <script src="common.js"></script>
 
-  <script src="../themes.js"></script>
-  
-  <script src="../common.js"></script>
-  
-  <script src="../configs/kuku_5dan_junban.js"></script>
-  
+  <!-- このドリル固有 -->
+  <script src="39-6_2keta_tasu_1keta.js"></script>
 </body>
 </html>

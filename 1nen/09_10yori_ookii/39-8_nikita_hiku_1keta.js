@@ -1,21 +1,20 @@
-// 「2けた-1けた（繰り下がりなし）」ドリルの設定ファイル
-
+// ９　１０より おおきい かず ／ ２けたと１けたの ひきざん
 const config = {
-  appId: "hikizan-2keta-1keta",
-  mainTitle: "９　10より おおきい かず",
-  title: "２けたと１けたの ひきざん",
+  appId: "39-8_nikita_tasu_1keta",
+  mainTitle: "９　１０より おおきい かず",   // ← h1
+  title: "２けたと１けたの ひきざん",        // ← h2 & タブ
 
   problemGenerator: () => {
     const problems = [];
     const NUM_QUESTIONS = 10;
-    const used = new Set(); // 問題の重複を防ぐ
+    const used = new Set();
 
     while (problems.length < NUM_QUESTIONS) {
-      // 1. 1けたの数を2つ作る (例: 5と2)
+      // 1. 1けたの数を2つ作る (繰り下がりが出ないように調整)
       const onesA = Math.floor(Math.random() * 8) + 2; // 2〜9
       const onesB = Math.floor(Math.random() * (onesA - 1)) + 1; // onesAより小さい数
 
-      // 2. 2けたの数「a」と1けたの数「b」に割り振る
+      // 2. 2けたの数「a」と1けたの数「b」にする
       const a = 10 + onesA;
       const b = onesB;
 
@@ -34,12 +33,16 @@ const config = {
   pointsPerQuestion: 10,
   timeLimitPerQuestion: 6,
   starThresholds: {
-    star_circle: 100, star1: 105, star2: 115, star3: 125, star4: 135, star5: 145,
+    star_circle: 100,
+    star1: 105,
+    star2: 115,
+    star3: 125,
+    star4: 135,
+    star5: 145
   },
-  themeColors: theme_ruby, // ルビーの赤色テーマ
+  themeColors: theme_ruby
 };
 
-// ドリルを開始
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   initializeDrillApp(config);
 });
