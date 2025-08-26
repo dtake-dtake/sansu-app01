@@ -381,24 +381,9 @@
         "name": "５　　たし算とひき算の筆算⑴",
         "apps": [
           {
-            "id": "g2_add_nocarry_2digit",
-            "title": "くり上がりのない２けたのひっ算",
-            "path": "2nen/05_hissan_th1/48_kuriagari_nasi.html"
-          },
-          {
-            "id": "g2_add_kuriagari_o1_2digit",
-            "title": "一の位がたして１０をこえるひっ算",
-            "path": "2nen/05_hissan_th1/50_tasu_to_over10_rank1.html"
-          },
-          {
-            "id": "g2_add_kuriagari_o1_2digit",
-            "title": "２けたまでのたし算のひっ算",
-            "path": "2nen/05_hissan_th1/51_2keta_hissan_sum.html"
-          },
-          {
-            "id": "g2_sub_noborrow_2digit",
-            "title": "くり上がりのない２けたのひっ算",
-            "path": "2nen/05_hissan_th1/110_kuriagari_nasi.html"
+            "id": "2n-hissan-th1",
+            "title": "5　たし算とひき算の筆算(1)",
+            "path": "2nen/2nen_hissan_th1.html"
           }
         ]
       },
@@ -486,47 +471,47 @@
         "name": "１０　かけ算⑴",
         "apps": [
           {
-            "id": "kuku-5dan-junban",
+            "id": "10kuku_5dan_junban",
             "title": "五の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/10kuku_5dan_junban.html"
           },
           {
-            "id": "kuku-5dan-barabara",
+            "id": "20kuku_5dan_barabara",
             "title": "五の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/20kuku_5dan_barabara.html"
           },
           {
-            "id": "kuku-2dan-junban",
+            "id": "30kuku_2dan_junban",
             "title": "二の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/30kuku_2dan_junban.html"
           },
           {
-            "id": "kuku-2dan-barabara",
+            "id": "40kuku_2dan_barabara",
             "title": "二の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/40kuku_2dan_barabara.html"
           },
           {
-            "id": "kuku-3dan-junban",
+            "id": "50kuku_3dan_junban",
             "title": "三の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/50kuku_3dan_junban.html"
           },
           {
-            "id": "kuku-3dan-barabara",
+            "id": "60kuku_3dan_barabara",
             "title": "三の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/60kuku_3dan_barabara.html"
           },
           {
-            "id": "kuku-4dan-junban",
+            "id": "70kuku_4dan_junban",
             "title": "四の段の九九（じゅんばん）",
             "path": "2nen/10_kakezan1/70kuku_4dan_junban.html"
           },
           {
-            "id": "kuku-4dan-barabara",
+            "id": "80kuku_4dan_barabara",
             "title": "四の段の九九（ばらばら）",
             "path": "2nen/10_kakezan1/80kuku_4dan_barabara.html"
           },
           {
-            "id": "kuku-5234dan-random",
+            "id": "90kuku_5234dan_random",
             "title": "二、三、四、五の段の九九",
             "path": "2nen/10_kakezan1/90kuku_5234dan_random.html"
           }
@@ -536,62 +521,62 @@
         "name": "１１　かけ算⑵",
         "apps": [
           {
-            "id": "kuku-6dan-junban",
+            "id": "10kuku_6dan_junban",
             "title": "六の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/10kuku_6dan_junban.html"
           },
           {
-            "id": "kuku-6dan-barabara",
+            "id": "20kuku_6dan_barabara",
             "title": "六の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/20kuku_6dan_barabara.html"
           },
           {
-            "id": "kuku-7dan-junban",
+            "id": "30kuku_7dan_junban",
             "title": "七の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/30kuku_7dan_junban.html"
           },
           {
-            "id": "kuku-7dan-barabara",
+            "id": "40kuku_7dan_barabara",
             "title": "七の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/40kuku_7dan_barabara.html"
           },
           {
-            "id": "kuku-8dan-junban",
+            "id": "50kuku_8dan_junban",
             "title": "八の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/50kuku_8dan_junban.html"
           },
           {
-            "id": "kuku-8dan-barabara",
+            "id": "60kuku_8dan_barabara",
             "title": "八の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/60kuku_8dan_barabara.html"
           },
           {
-            "id": "kuku-9dan-junban",
+            "id": "70kuku_9dan_junban",
             "title": "九の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/70kuku_9dan_junban.html"
           },
           {
-            "id": "kuku-9dan-barabara",
+            "id": "80kuku_9dan_barabara",
             "title": "九の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/80kuku_9dan_barabara.html"
           },
           {
-            "id": "kuku-1dan-junban-v1",
+            "id": "90kuku_1dan_junban",
             "title": "一の段の九九（じゅんばん）",
             "path": "2nen/11_kakezan2/90kuku_1dan_junban.html"
           },
           {
-            "id": "kuku-1dan-barabara-v1",
+            "id": "100kuku_1dan_barabara",
             "title": "一の段の九九（ばらばら）",
             "path": "2nen/11_kakezan2/100kuku_1dan_barabara.html"
           },
           {
-            "id": "kuku-16789dan-random-v1",
+            "id": "110kuku_16789dan_random",
             "title": "一、六、七、八、九段の九九",
             "path": "2nen/11_kakezan2/110kuku_16789dan_random.html"
           },
           {
-            "id": "kuku-10mondai-v1",
+            "id": "120kuku_10mondai",
             "title": "九九",
             "path": "2nen/11_kakezan2/120kuku_10mondai.html"
           },
@@ -731,12 +716,12 @@
         "name": "１　　九九の表とかけ算",
         "apps": [
           {
-            "id": "kakezan-10-v1",
+            "id": "01_10nokakezan",
             "title": "わくわく算数ドリル",
             "path": "3nen/1_kuku_hyo_kakezan/01_10nokakezan.html"
           },
           {
-            "id": "kakezan-0-v1",
+            "id": "02_0nokakezan",
             "title": "わくわく算数ドリル",
             "path": "3nen/1_kuku_hyo_kakezan/02_0nokakezan.html"
           },

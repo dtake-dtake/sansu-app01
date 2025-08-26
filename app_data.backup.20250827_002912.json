@@ -731,12 +731,12 @@
         "name": "１　　九九の表とかけ算",
         "apps": [
           {
-            "id": "kakezan-10-v1",
+            "id": "01_10nokakezan",
             "title": "わくわく算数ドリル",
             "path": "3nen/1_kuku_hyo_kakezan/01_10nokakezan.html"
           },
           {
-            "id": "kakezan-0-v1",
+            "id": "02_0nokakezan",
             "title": "わくわく算数ドリル",
             "path": "3nen/1_kuku_hyo_kakezan/02_0nokakezan.html"
           },
