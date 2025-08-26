@@ -251,8 +251,9 @@
         try{
         const res = await fetch('app_data.json');
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        initializeUI(data);
+const data  = await res.json();
+const clean = sanitizeAppData(data);   // ← 実ファイルのみ・空単元除去
+initializeUI(clean);
         }catch(err){
         console.error(err);
         unitsContainer.innerHTML = "<p style='text-align:center;color:red;'>アプリデータを読み込めませんでした。'app_data.json' を確認してください。</p>";
@@ -260,6 +261,19 @@
     }
     loadAppData();
     });
+// .html だけを残し、apps が 0 件の単元を落とす（見た目は既存のまま）
+const isImplementedPath = (p) => typeof p === 'string' && /\.html?$/i.test(p);
+
+function sanitizeAppData(data){
+  return (data || []).map(g => ({
+    ...g,
+    units: (g.units || [])
+      .map(u => ({ ...u, apps: (u.apps || []).filter(a => isImplementedPath(a?.path)) }))
+      .filter(u => u.apps.length > 0)
+  })).filter(g => (g.units || []).length > 0);
+}
+
+
     </script>
     </body>
     </html>
