@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title> くり上がりのない２けたのひっ算</title>
+
+  <link rel="stylesheet" href="common.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <script src="themes.js"></script>
+
+  <script src="common.js"></script>
+
+  <style>
+    /* 筆算テーブル（教材固有の最小スタイル） */
+    .hissan-table{ border-collapse:collapse; margin:26px auto; font-family:"Kyokasho","教科書体",serif; direction:rtl }
+    .hissan-table td{ width:70px; height:70px; text-align:center; vertical-align:middle; font-size:3rem; padding:0; border:none; direction:ltr }
+    .answer-row td:not(.problem-number-cell){border-top:3px solid #333}
+    .sign-col{width:40px}
+    .problem-number-cell{font-size:2.0rem; color:var(--c-primary-dark); font-weight:bold; padding-right:10px; font-family:sans-serif}
+  </style>
+</head>
+<body>
+  <h1 id="main-title">５　たし算とひき算のひっ算⑴</h1>
+  <h2 id="sub-title">くり上がりのない２けたのひっ算</h2>
+
+  <div id="start-area" style="text-align:center; margin:24px 0;">
+    <button id="start-btn">スタート！</button>
+  </div>
+
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+  </div>
+
+<script>
+/* =========================
+   設定
+========================= */
+const APP_ID = 'g2_sub_noborrow_2digit';
+const STAR_THRESHOLDS = { circle:100, star1:110, star2:120, star3:130, star4:140, star5:150 };
+const NUM_QUESTIONS = 5;
+
+// テーマは固定
+const SELECTED_THEME = (typeof theme_forest !== 'undefined') ? theme_forest : {};
+function applyThemeColors(themeObj){
+  const root = document.documentElement;
+  Object.entries(themeObj || {}).forEach(([k,v])=> root.style.setProperty(k, v));
+}
+
+/* =========================
+   出題（2桁-2桁、くり下がり無し）
+========================= */
+let problems = [];
+
+function generateProblems(){
+  problems = [];
+  const used = new Set();
+  while (problems.length < NUM_QUESTIONS){
+    const a = Math.floor(Math.random() * 90) + 10;
+    const b = Math.floor(Math.random() * 90) + 10;
+    if (a < b) continue;
+
+    const [at, ao] = toDigits(a, 2);
+    const [bt, bo] = toDigits(b, 2);
+    if (ao < bo || at < bt) continue;
+
+    const key = `${a}-${b}`;
+    if (used.has(key)) continue;
+    used.add(key);
+    
+    const diff = a - b;
+    const [dt, do_] = toDigits(diff, 2);
+    problems.push({ numA:{t:at,o:ao}, numB:{t:bt,o:bo}, answer:{t:dt,o:do_} });
+  }
+}
+
+function displayProblems(){
+  const wrap = document.getElementById('problems-wrapper');
+  wrap.innerHTML = '';
+
+  problems.forEach((p, i) => {
+    const tb = document.createElement('table');
+    tb.className = 'hissan-table';
+
+    tb.innerHTML = `
+      <tr><td>${p.numA.o}</td><td>${p.numA.t}</td><td class="sign-col"></td><td class="problem-number-cell">${i + 1}.</td></tr>
+      <tr><td>${p.numB.o}</td><td>${p.numB.t}</td><td class="sign-col">-</td><td class="problem-number-cell"></td></tr>
+      <tr class="answer-row">
+        <td><input type="number" id="ans-o-${i}" inputmode="numeric"></td>
+        <td><input type="number" id="ans-t-${i}" inputmode="numeric"></td>
+        <td class="sign-col"></td><td class="problem-number-cell"></td>
+      </tr>`;
+    wrap.appendChild(tb);
+
+    // --- ここからナビゲーションとスクロールの改善部分 ---
+    const o = document.getElementById(`ans-o-${i}`);
+    const t = document.getElementById(`ans-t-${i}`);
+    const F = el => { if (el) { el.focus(); el.select(); } };
+
+    const attachFocus = (el) => {
+      if (!el) return;
+      el.addEventListener('focus', () => {
+        if (currentProblemInView !== i) {
+          scrollCenter(tb);
+          currentProblemInView = i;
+        }
+        el.select();
+      });
+    };
+    attachFocus(o); attachFocus(t);
+
+    o.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === 'ArrowLeft') { e.preventDefault(); F(t); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); F(document.getElementById(`ans-o-${i - 1}`)); }
+      else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextO = document.getElementById(`ans-o-${i + 1}`);
+        if (nextO) F(nextO); else document.getElementById('check-answers').focus();
+      }
+    });
+
+    t.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); F(o); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); F(document.getElementById(`ans-t-${i - 1}`)); }
+      else if (e.key === 'Enter' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextO = document.getElementById(`ans-o-${i + 1}`);
+        if (nextO) F(nextO); else document.getElementById('check-answers').focus();
+      }
+    });
+    // --- ここまで ---
+  });
+}
+
+// 上下矢印で数値が増減しないようにする
+document.addEventListener('keydown', function(e){
+  if (e.target && e.target.type === 'number' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')){
+    e.preventDefault();
+  }
+});
+
+/* =========================
+   採点
+========================= */
+function checkAnswers(){
+  let allCorrect = true;
+  let firstWrongEl = null;
+
+  problems.forEach((p, i) => {
+    const o = document.getElementById(`ans-o-${i}`);
+    const t = document.getElementById(`ans-t-${i}`);
+
+    // --- 採点ロジックの改善 ---
+    const checks = [
+      { el: o, ok: o.value === String(p.answer.o) },
+      { el: t, ok: t.value === String(p.answer.t) }
+    ];
+
+    checks.forEach(({ el, ok }) => {
+      el.classList.remove('incorrect-field', 'correct-field');
+      if (ok) {
+        el.classList.add('correct-field');
+        el.disabled = true;
+      } else {
+        allCorrect = false;
+        if (!firstWrongEl) firstWrongEl = el;
+        el.classList.add('incorrect-field');
+        el.disabled = false;
+      }
+    });
+  });
+
+  if (!allCorrect) {
+    Common.showResultNG();
+    if (firstWrongEl) {
+      firstWrongEl.focus();
+      firstWrongEl.select();
+      const tbl = firstWrongEl.closest('table');
+      if (tbl) scrollCenter(tbl);
+    }
+    return;
+  }
+  // --- ここまで ---
+
+  const elapsed = Common.elapsedSec();
+  const score = Common.computeScore(elapsed, 100);
+  const starsHtml = Common.buildStarsHtml(score);
+  Common.saveRun(score, starsHtml);
+  Common.showResultOK({ score, elapsedSec: elapsed, starsHtml });
+}
+
+/* =========================
+   リトライ / 初期化
+========================= */
+function retry(){
+  Common.resetResultArea();
+  generateProblems();
+  displayProblems();
+  Common.beginAttempt();
+  setTimeout(() => {
+    const el = document.getElementById('ans-o-0');
+    if (el) el.focus();
+  }, 0);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  applyThemeColors(SELECTED_THEME);
+
+  Common.setup({
+    appId: APP_ID,
+    starThresholds: STAR_THRESHOLDS,
+    timeLimitSec: 60,
+    confetti: true
+  });
+
+  const startBtn = document.getElementById('start-btn');
+  const startArea = document.getElementById('start-area');
+  const problemsSection = document.getElementById('problems-section');
+
+  startBtn.onclick = () => {
+    startArea.style.display = 'none';
+    problemsSection.style.display = 'block';
+    retry();
+  };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && startArea.style.display !== 'none') {
+      e.preventDefault();
+      startBtn.click();
+    }
+  });
+
+  document.getElementById('check-answers').onclick = checkAnswers;
+  document.getElementById('retry').onclick = retry;
+});
+
+// --- スクロール用の変数と関数を追加 ---
+let currentProblemInView = -1;
+const scrollCenter = el => el && el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+</script>
+</body>
+</html>

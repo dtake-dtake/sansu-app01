@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>２けたまでのたし算のひっ算</title>
+
+  <!-- 共通スタイル -->
+  <link rel="stylesheet" href="common.css" />
+
+  <!-- 紙吹雪（ハイスコア更新時） -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- テーマ定義 -->
+  <script src="themes.js"></script>
+
+  <!-- スコア/星/履歴/紙吹雪の共通ユーティリティ -->
+  <script src="common.js"></script>
+
+  <style>
+    /* 筆算テーブル（教材固有の最小スタイル） */
+    .hissan-table{ border-collapse:collapse; margin:26px auto; font-family:"Kyokasho","教科書体",serif; direction:rtl }
+    .hissan-table td{ width:70px; height:70px; text-align:center; vertical-align:middle; font-size:3rem; padding:0; border:none; direction:ltr; position:relative }
+    .carry-row td{ height:46px } /* キャリー行は少し低め */
+    .carry-input{ font-size:2.2rem; color:#d32f2f; border:1px solid #ddd; width:100%; height:100%; border-radius:8px; background:transparent; text-align:center; box-sizing:border-box }
+    .answer-row td:not(.problem-number-cell){ border-top:3px solid #333 }
+    .sign-col{ width:40px }
+    .problem-number-cell{ font-size:2.0rem; color:var(--c-primary-dark); font-weight:bold; padding-right:10px; font-family:sans-serif }
+  </style>
+</head>
+<body>
+  <h1 id="main-title">５　たし算とひき算のひっ算⑴</h1>
+  <h2 id="sub-title">２けたまでのたし算のひっ算</h2>
+
+  <div id="start-area" style="text-align:center; margin:24px 0;">
+    <button id="start-btn">スタート！</button>
+  </div>
+
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+  </div>
+
+<script>
+/* =========================
+   設定
+========================= */
+const APP_ID = 'g2_add_kuriagari_o1_2digit'; // 学年_操作_くり上がり位置_桁数
+const STAR_THRESHOLDS = { circle:100, star1:110, star2:120, star3:130, star4:140, star5:150 };
+const NUM_QUESTIONS = 5;
+
+// ドリル固定テーマ（必要なら変更可）
+const SELECTED_THEME = (typeof theme_lemon !== 'undefined') ? theme_lemon : {};
+function applyThemeColors(themeObj){
+  const root = document.documentElement;
+  Object.entries(themeObj || {}).forEach(([k,v])=> root.style.setProperty(k, v));
+}
+
+/* =========================
+   共有ユーティリティ
+========================= */
+// 画面中央スクロール（別問題に移った時だけ）
+let currentProblemInView = -1;
+const scrollCenter = el => el && el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+// 誤答巡回用
+let incorrectFieldIds = [];           // 例: ["ans-o-0","ans-t-0","carry-t-0","carry-o-0",...]
+let lastFocusReturnId = null;         // 「まるつけ」に飛ばした直前の入力欄ID
+function focusNextIncorrect(fromId = null){
+  if (!incorrectFieldIds.length){
+    const cb = document.getElementById('check-answers');
+    if (cb) cb.focus();
+    return;
+  }
+  const start = fromId ? incorrectFieldIds.indexOf(fromId) + 1 : 0;
+  for (let k = start; k < incorrectFieldIds.length; k++){
+    const el = document.getElementById(incorrectFieldIds[k]);
+    if (el && !el.readOnly){ el.focus(); el.select(); return; }
+  }
+  // 末尾まで来たら まるつけ へ
+  lastFocusReturnId = fromId;
+  const cb = document.getElementById('check-answers');
+  if (cb) cb.focus();
+}
+
+/* =========================
+   出題（2桁+2桁／答えは2桁：100未満）
+   くり上がり無し・10ちょうど・10超えの全ケースを含む
+========================= */
+let problems = [];
+
+function generateProblems(){
+  problems = [];
+  const used = new Set();
+  while (problems.length < NUM_QUESTIONS){
+    const a = Math.floor(Math.random()*90)+10;  // 10..99
+    const b = Math.floor(Math.random()*90)+10;
+    const [at,ao] = toDigits(a,2), [bt,bo] = toDigits(b,2);
+    const sum = a + b;
+
+    // 条件：答えは2桁（100未満）のみ
+    if (sum >= 100) continue;
+
+    const key = `${a}+${b}`; if (used.has(key)) continue;
+    used.add(key);
+
+    const [st,so] = toDigits(sum,2);
+    const carryT = (ao + bo >= 10) ? 1 : null;   // 10ちょうど以上で十の位上に1、未満は空欄
+    problems.push({
+      numA:{t:at,o:ao},
+      numB:{t:bt,o:bo},
+      answer:{t:st,o:so},
+      carry:{ o:null, t:carryT }                 // 1の位上は常に空欄が正解
+    });
+  }
+}
+
+/* =========================
+   表示
+========================= */
+function displayProblems(){
+  const wrap = document.getElementById('problems-wrapper'); 
+  wrap.innerHTML = '';
+
+  const checkBtn = document.getElementById('check-answers');
+  const goCheckFrom = (id) => { lastFocusReturnId = id; if (checkBtn) checkBtn.focus(); };
+
+  problems.forEach((p, i) => {
+    const tb = document.createElement('table'); 
+    tb.className = 'hissan-table';
+
+    tb.innerHTML = `
+      <tr class="carry-row">
+        <td><input type="number" class="carry-input" id="carry-o-${i}" inputmode="numeric"></td>
+        <td><input type="number" class="carry-input" id="carry-t-${i}" inputmode="numeric"></td>
+        <td class="sign-col"></td>
+        <td class="problem-number-cell"></td>
+      </tr>
+      <tr>
+        <td>${p.numA.o}</td>
+        <td>${p.numA.t}</td>
+        <td class="sign-col"></td>
+        <td class="problem-number-cell">${i+1}.</td>
+      </tr>
+      <tr>
+        <td>${p.numB.o}</td>
+        <td>${p.numB.t}</td>
+        <td class="sign-col">+</td>
+        <td class="problem-number-cell"></td>
+      </tr>
+      <tr class="answer-row">
+        <td><input type="number" id="ans-o-${i}" inputmode="numeric"></td>
+        <td><input type="number" id="ans-t-${i}" inputmode="numeric"></td>
+        <td class="sign-col"></td>
+        <td class="problem-number-cell"></td>
+      </tr>
+    `;
+    wrap.appendChild(tb);
+
+    // 参照
+    const o  = document.getElementById(`ans-o-${i}`);   // 1の位（右）
+    const t  = document.getElementById(`ans-t-${i}`);   // 10の位（左）
+    const co = document.getElementById(`carry-o-${i}`); // 1の位の上（右上）
+    const ct = document.getElementById(`carry-t-${i}`); // 10の位の上（左上）
+    const F  = el => { if (el){ el.focus(); el.select(); } };
+
+    // 別問題に移ったときだけ中央へ
+    const attachFocus = (el) => {
+      if (!el) return;
+      el.addEventListener('focus', () => {
+        if (currentProblemInView !== i) {
+          scrollCenter(tb);
+          currentProblemInView = i;
+        }
+        el.select();
+      });
+    };
+    [o,t,co,ct].forEach(attachFocus);
+
+    /* 1の位（右）
+       Enter/← : 同じ問題の 10の位へ
+       ↑       : 同じ問題の 1の位の上へ
+       ↓       : 次の問題の 1の位の上へ（なければ「まるつけ」）
+       ※ 誤答がある間は Enter で誤答巡回を最優先
+    */
+    o.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && incorrectFieldIds.length){ e.preventDefault(); focusNextIncorrect(e.target.id); return; }
+      if (e.key === 'Enter' || e.key === 'ArrowLeft'){ e.preventDefault(); F(t); }
+      else if (e.key === 'ArrowUp'){ e.preventDefault(); F(co); }
+      else if (e.key === 'ArrowDown'){
+        e.preventDefault();
+        const nextCo = document.getElementById(`carry-o-${i+1}`);
+        if (nextCo) F(nextCo); else goCheckFrom(`ans-o-${i}`);
+      }
+    });
+
+    /* 10の位（左）
+       →       : 同じ問題の 1の位へ
+       ↑       : 同じ問題の 10の位の上へ
+       Enter   : 次の問題の 1の位へ（最終行なら「まるつけ」）
+       ↓       : 次の問題の 10の位の上へ（なければ「まるつけ」）
+       ※ 誤答がある間は Enter で誤答巡回を最優先
+    */
+    t.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && incorrectFieldIds.length){ e.preventDefault(); focusNextIncorrect(e.target.id); return; }
+      if (e.key === 'ArrowRight'){ e.preventDefault(); F(o); }
+      else if (e.key === 'ArrowUp'){ e.preventDefault(); F(ct); }
+      else if (e.key === 'Enter'){
+        e.preventDefault();
+        const next = document.getElementById(`ans-o-${i+1}`);
+        if (next) F(next); else goCheckFrom(`ans-t-${i}`);
+      } else if (e.key === 'ArrowDown'){
+        e.preventDefault();
+        const nextCt = document.getElementById(`carry-t-${i+1}`);
+        if (nextCt) F(nextCt); else goCheckFrom(`ans-t-${i}`);
+      }
+    });
+
+    /* 1の位の上（右上）
+       ←       : 同じ問題の 10の位の上へ
+       ↓       : 同じ問題の 1の位へ
+       ↑       : 前の問題の 1の位へ（往復）
+       ※ 誤答がある間は Enter で誤答巡回を最優先
+    */
+    co.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && incorrectFieldIds.length){ e.preventDefault(); focusNextIncorrect(e.target.id); return; }
+      if (e.key === 'ArrowLeft'){ e.preventDefault(); F(ct); }
+      else if (e.key === 'ArrowDown'){ e.preventDefault(); F(o); }
+      else if (e.key === 'ArrowUp'){
+        e.preventDefault();
+        const prevAnsO = document.getElementById(`ans-o-${i-1}`);
+        if (prevAnsO) F(prevAnsO);
+      }
+    });
+
+    /* 10の位の上（左上）
+       →       : 同じ問題の 1の位の上へ
+       ↓       : 同じ問題の 10の位へ
+       ↑       : 前の問題の 10の位へ（往復）
+       ※ 誤答がある間は Enter で誤答巡回を最優先
+    */
+    ct.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && incorrectFieldIds.length){ e.preventDefault(); focusNextIncorrect(e.target.id); return; }
+      if (e.key === 'ArrowRight'){ e.preventDefault(); F(co); }
+      else if (e.key === 'ArrowDown'){ e.preventDefault(); F(t); }
+      else if (e.key === 'ArrowUp'){
+        e.preventDefault();
+        const prevT = document.getElementById(`ans-t-${i-1}`);
+        if (prevT) F(prevT);
+      }
+    });
+  });
+
+  // 「まるつけ」上で ↑ → 直前の入力欄に戻る
+  if (checkBtn){
+    checkBtn.onkeydown = (e) => {
+      if (e.key === 'ArrowUp' && lastFocusReturnId){
+        e.preventDefault();
+        const back = document.getElementById(lastFocusReturnId);
+        if (back){ back.focus(); back.select(); }
+      }
+    };
+  }
+}
+
+// 上下矢印で number の値が増減しないようにする
+document.addEventListener('keydown', function(e){
+  if (e.target && e.target.type === 'number' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')){
+    e.preventDefault();
+  }
+});
+
+/* =========================
+   採点（×の最初へ移動・スクロール）
+========================= */
+function checkAnswers(){
+  let allCorrect = true;
+  let firstWrongEl = null;
+  incorrectFieldIds = []; // 毎回作り直す（巡回順：一→十→十上→一上）
+
+  problems.forEach((p,i)=>{
+    const o  = document.getElementById(`ans-o-${i}`);
+    const t  = document.getElementById(`ans-t-${i}`);
+    const co = document.getElementById(`carry-o-${i}`);
+    const ct = document.getElementById(`carry-t-${i}`);
+
+    // 期待される正解
+    const okO  = (o.value === String(p.answer.o));
+    const okT  = (t.value === String(p.answer.t));
+    const okCt = (p.carry.t === 1 ? ct.value === '1' : ct.value.trim() === '');
+    const okCo = (co.value.trim() === ''); // 1の位上は常に空欄が正解
+
+    // 巡回順：一の位 → 十の位 → 十の位上 → 一の位上
+    if (!okO)  incorrectFieldIds.push(`ans-o-${i}`);
+    if (!okT)  incorrectFieldIds.push(`ans-t-${i}`);
+    if (!okCt) incorrectFieldIds.push(`carry-t-${i}`);
+    if (!okCo) incorrectFieldIds.push(`carry-o-${i}`);
+
+    // 見た目＆ロック：正解は readOnly、誤答は編集可
+    [[o, okO],[t, okT],[ct, okCt],[co, okCo]].forEach(([el, ok])=>{
+      el.classList.remove('incorrect-field','correct-field');
+      el.readOnly = false;
+      if (ok){
+        el.classList.add('correct-field');
+        el.readOnly = true; // disabledではなくreadOnly（フォーカス移動は可能）
+      } else {
+        el.classList.add('incorrect-field');
+      }
+    });
+
+    if (!okO || !okT || !okCt || !okCo){
+      allCorrect = false;
+      if (!firstWrongEl){
+        if (!okO) firstWrongEl = o;
+        else if (!okT) firstWrongEl = t;
+        else if (!okCt) firstWrongEl = ct;
+        else firstWrongEl = co;
+      }
+    }
+  });
+
+  if (!allCorrect){
+    Common.showResultNG();
+    if (firstWrongEl){
+      firstWrongEl.focus(); firstWrongEl.select();
+      const tbl = firstWrongEl.closest('table');
+      if (tbl) scrollCenter(tbl);
+    }
+    return;
+  }
+
+  const elapsed = Common.elapsedSec();
+  const score = Common.computeScore(elapsed, 100);
+  const starsHtml = Common.buildStarsHtml(score);
+  const { isNewHigh } = Common.saveRun(score, starsHtml);
+  Common.showResultOK({ score, elapsedSec: elapsed, starsHtml, isNewHigh });
+
+  // 全問正解したので誤答巡回は解除
+  incorrectFieldIds = [];
+}
+
+/* =========================
+   リトライ / 初期化
+========================= */
+function retry(){
+  Common.resetResultArea();
+  incorrectFieldIds = [];
+  generateProblems(); displayProblems();
+  Common.beginAttempt();
+  // はじめは 1の位 にフォーカス
+  setTimeout(()=>{ const el=document.getElementById('ans-o-0'); if(el) el.focus(); },0);
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  // テーマ適用
+  applyThemeColors(SELECTED_THEME);
+
+  Common.setup({
+    appId: APP_ID,
+    starThresholds: STAR_THRESHOLDS,
+    timeLimitSec: 60,
+    confetti: true
+  });
+
+  const startBtn = document.getElementById('start-btn');
+  const startArea = document.getElementById('start-area');
+  const problemsSection = document.getElementById('problems-section');
+
+  startBtn.onclick = ()=>{ startArea.style.display='none'; problemsSection.style.display='block'; retry(); };
+
+  // Enterでスタート
+  document.addEventListener('keydown', e=>{
+    if (e.key==='Enter' && startArea.style.display!=='none'){ e.preventDefault(); startBtn.click(); }
+  });
+
+  document.getElementById('check-answers').onclick = checkAnswers;
+  document.getElementById('retry').onclick = retry;
+});
+</script>
+</body>
+</html>

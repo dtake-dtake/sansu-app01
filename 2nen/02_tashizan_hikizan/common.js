@@ -209,7 +209,7 @@ function initializeDrillApp(config) {
     (function main() {
         applyThemeColors(config.themeColors);
         document.title = config.title;
-        document.getElementById('main-title').textContent = '１０　かけ算⑴';
+        document.getElementById('main-title').textContent = '２　たし算とひき算';
         document.getElementById('sub-title').textContent = config.title;
         loadData();
         updateDisplay();

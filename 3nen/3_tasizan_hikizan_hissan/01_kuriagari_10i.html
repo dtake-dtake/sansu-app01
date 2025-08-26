@@ -67,6 +67,10 @@
 
     const SCORE_STARS_THRESHOLD = { circle: 100, star1: 110, star2: 130, star3: 150 };
 
+    // ←ここを追加（未定義だったためクリック時に落ちていました）
+    const NUM_QUESTIONS = 5;   // 出題数（必要なら 10 などに変更）
+    const TIME_LIMIT = 60;     // 制限時間（秒）
+
     const startArea = document.getElementById('start-area'), problemsSection = document.getElementById('problems-section'), resultArea = document.getElementById('result-area');
     const checkBtn = document.getElementById('check-answers'), resetHighScoreBtn = document.getElementById('reset-highscore');
     let retryBtn;
@@ -143,9 +147,7 @@
       problems = [];
       const used = new Set();
 
-      //////////////////////////////////////////
-      //  各タイプの条件関数
-      //////////////////////////////////////////
+      // 各タイプの条件関数
       const condType1 = () => { // 繰り上がりなし
         const a = Math.floor(Math.random() * 900) + 100;
         const b = Math.floor(Math.random() * 900) + 100;
@@ -204,9 +206,6 @@
         return null;
       };
 
-      //////////////////////////////////////////
-      //  問題を収集
-      //////////////////////////////////////////
       const pushIf = (cond) => {
         const p = genProblem(cond, used);
         if (p) problems.push(p);
@@ -218,7 +217,7 @@
       // 残りタイプ
       pushIf(condType2a);
       pushIf(condType2b);
-      pushIf(condType3a); // 3a と 3b のどちらかが生成出来なければ再試行
+      pushIf(condType3a);
       if (problems.length < NUM_QUESTIONS) pushIf(condType3b);
 
       // まだ足りない場合、タイプ2a で穴埋め
@@ -254,7 +253,7 @@
         table.className = 'hissan-table';
         table.id = `problem-table-${i}`;
 
-        // 2 桁の表示を処理
+        // 2 桁の表示を処理（左側の空位は空文字に）
         const numB_h_disp = p.numB.h > 0 ? p.numB.h : '';
         const numB_t_disp = (p.numB.h > 0 || p.numB.t > 0) ? p.numB.t : '';
 

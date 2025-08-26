@@ -61,6 +61,7 @@
   </div>
 
   <script>
+    // ===== 定数 =====
     const APP_ID = '02_kuriagari-10i-100i';
     const KEY_HS             = APP_ID + ':hs';
     const KEY_CLEAR          = APP_ID + ':clear';
@@ -69,6 +70,20 @@
     const KEY_HISTORY        = APP_ID + ':history';
     const KEY_OVERALL_STATUS = APP_ID + ':status';
     const SCORE_STARS_THRESHOLD = { star_circle: 100, star1: 101, star2: 121, star3: 141 };
+
+    // ★追加：未定義だった定数
+    const NUM_QUESTIONS = 5;   // 出題数
+    const TIME_LIMIT    = 60;  // 制限時間（秒）
+
+    // ★追加：未定義だったDOM参照
+    const startArea = document.getElementById('start-area');
+    const problemsSection = document.getElementById('problems-section');
+    const resultArea = document.getElementById('result-area');
+    const checkBtn = document.getElementById('check-answers');
+    const resetHighScoreBtn = document.getElementById('reset-highscore');
+    let   retryBtn = document.getElementById('retry');
+
+    // ===== ユーティリティ =====
     let problems = [], incorrectFieldIds = [], startTime = 0, highScore = 0;
     let totalClearCount = 0, monthlyCount = 0, dailyCount = 0, overallStatusStars = '―';
     let currentProblemInView = -1;
@@ -77,241 +92,257 @@
     const nowDT = () => new Date().toLocaleString();
     const ls = localStorage;
 
+    // ===== 永続化 =====
     function loadData() {
-        highScore = +ls.getItem(KEY_HS) || 0;
-        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10), monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
-        totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
-        monthlyCount = +ls.getItem(monthKey) || 0;
-        dailyCount = +ls.getItem(todayKey) || 0;
-        overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      highScore = +ls.getItem(KEY_HS) || 0;
+      const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+      const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+      totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
+      monthlyCount = +ls.getItem(monthKey) || 0;
+      dailyCount = +ls.getItem(todayKey) || 0;
+      overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
     }
     function saveData(score, starsHtml) {
-        if (score > highScore) { highScore = score; ls.setItem(KEY_HS, highScore); }
-        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10), monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
-        ls.setItem(KEY_CLEAR, ++totalClearCount); ls.setItem(monthKey, ++monthlyCount); ls.setItem(todayKey, ++dailyCount);
-        overallStatusStars = starsHtml; ls.setItem(KEY_OVERALL_STATUS, starsHtml);
-        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
-        history.unshift({ datetime: nowDT(), score });
-        if (history.length > 10) history.pop();
-        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+      if (score > highScore) { highScore = score; ls.setItem(KEY_HS, highScore); }
+      const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+      const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+      ls.setItem(KEY_CLEAR, ++totalClearCount);
+      ls.setItem(monthKey, ++monthlyCount);
+      ls.setItem(todayKey, ++dailyCount);
+      overallStatusStars = starsHtml; ls.setItem(KEY_OVERALL_STATUS, starsHtml);
+      const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+      history.unshift({ datetime: nowDT(), score });
+      if (history.length > 10) history.pop();
+      ls.setItem(KEY_HISTORY, JSON.stringify(history));
     }
     function resetHighScore() {
-        if (confirm('ハイスコアをリセットしますか？')) {
-            highScore = 0; ls.removeItem(KEY_HS);
-            overallStatusStars = '―'; ls.removeItem(KEY_OVERALL_STATUS);
-            updateDisplay();
-        }
+      if (confirm('ハイスコアをリセットしますか？')) {
+        highScore = 0; ls.removeItem(KEY_HS);
+        overallStatusStars = '―'; ls.removeItem(KEY_OVERALL_STATUS);
+        updateDisplay();
+      }
     }
     function updateDisplay() {
-        document.getElementById('highScoreValue').textContent = highScore;
-        document.getElementById('dailyCountValue').textContent = dailyCount;
-        document.getElementById('monthlyCountValue').textContent = monthlyCount;
-        document.getElementById('clearCountValue').textContent = totalClearCount;
-        document.getElementById('overallStars').innerHTML = overallStatusStars;
-        document.getElementById('history-list').innerHTML = (JSON.parse(ls.getItem(KEY_HISTORY) || '[]')).map(item => `<li>${item.datetime}：${item.score}てん</li>`).join('');
+      document.getElementById('highScoreValue').textContent = highScore;
+      document.getElementById('dailyCountValue').textContent = dailyCount;
+      document.getElementById('monthlyCountValue').textContent = monthlyCount;
+      document.getElementById('clearCountValue').textContent = totalClearCount;
+      document.getElementById('overallStars').innerHTML = overallStatusStars;
+      document.getElementById('history-list').innerHTML =
+        (JSON.parse(ls.getItem(KEY_HISTORY) || '[]')).map(item => `<li>${item.datetime}：${item.score}てん</li>`).join('');
     }
 
+    // ===== 問題生成 =====
     function generateProblems() {
-        const consecutiveCarryProblems = [];
-        const tensCarryOnlyProblems = [];
-        const usedPairs = new Set();
-        while (consecutiveCarryProblems.length < 15 || tensCarryOnlyProblems.length < 10) {
-            const a = Math.floor(Math.random() * 900) + 100;
-            const rand = Math.random();
-            let b;
-            if (rand < 0.3) b = Math.floor(Math.random() * 90) + 10;
-            else b = Math.floor(Math.random() * 900) + 100;
-            if (a + b >= 1000) continue;
-            const pairKey = `${a}-${b}`;
-            if (usedPairs.has(pairKey)) continue;
-            const [ah, at, ao] = toDigits(a, 3);
-            const [bh, bt, bo] = toDigits(b, 3);
-            const carry_t = (ao + bo >= 10) ? 1 : 0;
-            const carry_h = (at + bt + carry_t >= 10) ? 1 : 0;
-            const sum = a + b;
-            const [ansh, anst, anso] = toDigits(sum, 3);
-            const problemData = {
-                numA: { h: ah, t: at, o: ao }, numB: { h: bh, t: bt, o: bo },
-                carry: { h: carry_h, t: carry_t }, answer: { h: ansh, t: anst, o: anso }
-            };
-            if (carry_t === 1 && carry_h === 1) {
-                consecutiveCarryProblems.push(problemData); usedPairs.add(pairKey);
-            } else if (carry_t === 0 && carry_h === 1) {
-                tensCarryOnlyProblems.push(problemData); usedPairs.add(pairKey);
-            }
-        }
-        problems = [];
-        shuffleArray(consecutiveCarryProblems);
-        shuffleArray(tensCarryOnlyProblems);
-        problems.push(...consecutiveCarryProblems.slice(0, 4));
-        problems.push(...tensCarryOnlyProblems.slice(0, 1));
-        shuffleArray(problems);
-    }
+      const consecutiveCarryProblems = []; // 十→百で連続くり上がり
+      const tensCarryOnlyProblems = [];    // 十の位だけくり上がり
+      const usedPairs = new Set();
 
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
+      while (consecutiveCarryProblems.length < 15 || tensCarryOnlyProblems.length < 10) {
+        const a = Math.floor(Math.random() * 900) + 100;
+        const b = (Math.random() < 0.3) ? (Math.floor(Math.random() * 90) + 10)
+                                        : (Math.floor(Math.random() * 900) + 100);
+        if (a + b >= 1000) continue;
+        const pairKey = `${a}-${b}`;
+        if (usedPairs.has(pairKey)) continue;
 
-    function displayProblems() {
-        const wrapper = document.getElementById('problems-wrapper');
-        wrapper.innerHTML = '';
-        problems.forEach((p, i) => {
-            const table = document.createElement('table');
-            table.className = 'hissan-table';
-            table.id = `problem-table-${i}`;
-            const numB_h_display = p.numB.h > 0 ? p.numB.h : '', numB_t_display = (p.numB.h > 0 || p.numB.t > 0) ? p.numB.t : '';
-            table.innerHTML = `
-                <tr class="carry-row">
-                    <td></td>
-                    <td><input type="number" class="carry-input" id="carry-t-${i}" maxlength="1" ${p.carry.t === 0 ? 'style="visibility:hidden"' : ''}></td>
-                    <td><input type="number" class="carry-input" id="carry-h-${i}" maxlength="1" ${p.carry.h === 0 ? 'style="visibility:hidden"' : ''}></td>
-                    <td class="sign-col"></td><td class="problem-number-cell"></td>
-                </tr>
-                <tr>
-                    <td>${p.numA.o}</td><td>${p.numA.t}</td><td>${p.numA.h}</td>
-                    <td class="sign-col"></td><td class="problem-number-cell">${i + 1}.</td>
-                </tr>
-                <tr>
-                    <td>${p.numB.o}</td><td>${numB_t_display}</td><td>${numB_h_display}</td>
-                    <td class="sign-col">+</td><td class="problem-number-cell"></td>
-                </tr>
-                <tr class="answer-row">
-                    <td><input type="number" class="answer-input" id="ans-o-${i}" maxlength="1"></td>
-                    <td><input type="number" class="answer-input" id="ans-t-${i}" maxlength="1"></td>
-                    <td><input type="number" class="answer-input" id="ans-h-${i}" maxlength="1"></td>
-                    <td class="sign-col"></td><td class="problem-number-cell"></td>
-                </tr>`;
-            wrapper.appendChild(table);
-            const allInputs = ['ans-o', 'ans-t', 'ans-h', 'carry-t', 'carry-h'].map(id => `${id}-${i}`);
-            allInputs.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('focus', () => {
-                        if(currentProblemInView !== i) { scrollCenter(table); currentProblemInView = i; }
-                        el.select(); 
-                    });
-                    el.addEventListener('keydown', (e) => handleNav(e, i, id));
-                }
-            });
-        });
-    }
-    
-    // ★変更点: Enterキーの移動ロジックをご指定の「意識の流れ」に修正
-    function handleNav(e, i, id) {
-        let nextId = null;
-        const p = problems[i];
-        const enterNavOrder = [ `carry-t-${i}`, `ans-o-${i}`, `carry-h-${i}`, `ans-t-${i}`, `ans-h-${i}` ];
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const order = (incorrectFieldIds.length > 0) ? incorrectFieldIds : enterNavOrder;
-            const currentIndex = order.indexOf(id);
-            let nextIndex = currentIndex + 1;
-            while(nextIndex < order.length) {
-                const nextElId = order[nextIndex];
-                const nextEl = document.getElementById(nextElId);
-                if (nextEl && nextEl.style.visibility !== 'hidden') {
-                   nextId = nextElId;
-                   break;
-                }
-                nextIndex++;
-            }
-            if (!nextId && incorrectFieldIds.length === 0 && i < NUM_QUESTIONS - 1) {
-                const nextP = problems[i + 1];
-                nextId = nextP.carry.t === 1 ? `carry-t-${i + 1}` : `ans-o-${i + 1}`;
-            }
-        } 
-        else {
-            const navMap = {
-                [`ans-o-${i}`]: { ArrowUp: `carry-t-${i}`, ArrowRight: `ans-t-${i}`},
-                [`ans-t-${i}`]: { ArrowUp: `carry-h-${i}`, ArrowRight: `ans-h-${i}`, ArrowLeft: `ans-o-${i}`},
-                [`ans-h-${i}`]: { ArrowLeft: `ans-t-${i}`},
-                [`carry-t-${i}`]: { ArrowDown: `ans-o-${i}`, ArrowRight: `carry-h-${i}`},
-                [`carry-h-${i}`]: { ArrowDown: `ans-t-${i}`, ArrowLeft: `carry-t-${i}`}
-            };
-            if (navMap[id] && navMap[id][e.key]) { e.preventDefault(); nextId = navMap[id][e.key]; }
-        }
-        if (nextId && document.getElementById(nextId)) {
-            document.getElementById(nextId).focus();
-        } else if (e.key === 'Enter') {
-            checkBtn.focus();
-        }
-    }
-    
-    // ★変更点: まるつけ後のフォーカス順を「意識の流れ」に修正
-    function checkAnswers() {
-        incorrectFieldIds = []; let allCorrect = true;
-        currentProblemInView = -1;
-        const checkOrder = [ `carry-t`, `ans-o`, `carry-h`, `ans-t`, `ans-h` ];
-        problems.forEach((p, i) => {
-            const fields = checkOrder.map(f => ({ id: `${f}-${i}`, correct: f.startsWith('ans-') ? p.answer[f.slice(-1)] : p.carry[f.slice(-1)] }));
-            fields.forEach(field => {
-                const el = document.getElementById(field.id);
-                if (!el || el.style.visibility === 'hidden') return;
-                const userValue = el.value.trim() === '' ? 0 : +el.value;
-                el.classList.remove('incorrect-field', 'correct-field');
-                if (userValue !== field.correct) {
-                    allCorrect = false; incorrectFieldIds.push(field.id); el.classList.add('incorrect-field'); el.disabled = false;
-                } else {
-                    el.disabled = true; el.classList.add('correct-field');
-                }
-            });
-        });
-        const resultDiv = document.getElementById('result');
-        if (allCorrect) {
-            checkBtn.disabled = true; retryBtn.disabled = false; retryBtn.focus();
-            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-            const baseScore = 100, timeBonus = Math.max(0, Math.floor((TIME_LIMIT - elapsed) * 50 / TIME_LIMIT));
-            const score = baseScore + timeBonus;
-            let starsHtml = '―';
-            if (score >= SCORE_STARS_THRESHOLD.star3) starsHtml = '★★★';
-            else if (score >= SCORE_STARS_THRESHOLD.star2) starsHtml = '★★';
-            else if (score >= SCORE_STARS_THRESHOLD.star1) starsHtml = '★';
-            else if (score >= SCORE_STARS_THRESHOLD.star_circle) starsHtml = '○';
-            resultDiv.innerHTML = `スコア: <strong>${score}点</strong><br>タイム: ${elapsed} 秒`;
-            saveData(score, starsHtml); updateDisplay();
-        } else {
-            resultDiv.innerHTML = '❌ まちがいがあります。<br>赤いところを直そう！';
-            resultDiv.style.color = 'red';
-            const orderMap = { 'carry-t': 0, 'ans-o': 1, 'carry-h': 2, 'ans-t': 3, 'ans-h': 4 };
-            incorrectFieldIds.sort((a, b) => {
-                const indexA = parseInt(a.split('-').pop()); const indexB = parseInt(b.split('-').pop());
-                if(indexA !== indexB) return indexA - indexB;
-                const typeA = a.split('-').slice(0, 2).join('-'); const typeB = b.split('-').slice(0, 2).join('-');
-                return orderMap[typeA.replace(/-\d+$/, '')] - orderMap[typeB.replace(/-\d+$/, '')];
-            });
-            if (incorrectFieldIds.length > 0) document.getElementById(incorrectFieldIds[0]).focus();
-        }
-    }
-    function retry() {
-        incorrectFieldIds = [];
-        currentProblemInView = -1;
-        document.getElementById('result').textContent = '';
-        checkBtn.disabled = false; retryBtn.disabled = true;
-        startTime = Date.now();
-        generateProblems(); displayProblems();
-        const firstProblem = problems[0];
-        const firstInputId = firstProblem.carry.t === 1 ? `carry-t-0` : `ans-o-0`;
-        const firstInput = document.getElementById(firstInputId);
-        setTimeout(() => { if (firstInput) firstInput.focus(); }, 0);
-    }
-    window.addEventListener('DOMContentLoaded', () => {
-        const startBtn = document.getElementById('start-btn');
-        startBtn.onclick = () => {
-            startArea.style.display = 'none'; problemsSection.style.display = 'block'; resultArea.style.display = 'block';
-            retry();
+        const [ah, at, ao] = toDigits(a, 3);
+        const [bh, bt, bo] = toDigits(b, 3);
+        const carry_t = (ao + bo >= 10) ? 1 : 0;
+        const carry_h = (at + bt + carry_t >= 10) ? 1 : 0;
+
+        const sum = a + b;
+        const [ansh, anst, anso] = toDigits(sum, 3);
+        const problemData = {
+          numA: { h: ah, t: at, o: ao }, numB: { h: bh, t: bt, o: bo },
+          carry: { h: carry_h, t: carry_t }, answer: { h: ansh, t: anst, o: anso }
         };
-        checkBtn.onclick = checkAnswers;
-        retryBtn = document.getElementById('retry');
-        retryBtn.onclick = retry;
-        resetHighScoreBtn.onclick = resetHighScore;
-        loadData(); updateDisplay();
-        startBtn.focus();
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && startArea.style.display !== 'none') { e.preventDefault(); startBtn.click(); }
+
+        if (carry_t === 1 && carry_h === 1) {
+          consecutiveCarryProblems.push(problemData); usedPairs.add(pairKey);
+        } else if (carry_t === 0 && carry_h === 1) {
+          tensCarryOnlyProblems.push(problemData); usedPairs.add(pairKey);
+        }
+      }
+
+      problems = [];
+      shuffleArray(consecutiveCarryProblems);
+      shuffleArray(tensCarryOnlyProblems);
+      problems.push(...consecutiveCarryProblems.slice(0, 4));
+      problems.push(...tensCarryOnlyProblems.slice(0, 1));
+      shuffleArray(problems);
+    }
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // ===== 描画 =====
+    function displayProblems() {
+      const wrapper = document.getElementById('problems-wrapper');
+      wrapper.innerHTML = '';
+
+      problems.forEach((p, i) => {
+        const table = document.createElement('table');
+        table.className = 'hissan-table';
+        table.id = `problem-table-${i}`;
+
+        const numB_h_display = p.numB.h > 0 ? p.numB.h : '';
+        const numB_t_display = (p.numB.h > 0 || p.numB.t > 0) ? p.numB.t : '';
+
+        table.innerHTML = `
+          <tr class="carry-row">
+            <td></td>
+            <td><input type="number" class="carry-input" id="carry-t-${i}" maxlength="1" ${p.carry.t === 0 ? 'style="visibility:hidden"' : ''}></td>
+            <td><input type="number" class="carry-input" id="carry-h-${i}" maxlength="1" ${p.carry.h === 0 ? 'style="visibility:hidden"' : ''}></td>
+            <td class="sign-col"></td><td class="problem-number-cell"></td>
+          </tr>
+          <tr>
+            <td>${p.numA.o}</td><td>${p.numA.t}</td><td>${p.numA.h}</td>
+            <td class="sign-col"></td><td class="problem-number-cell">${i + 1}.</td>
+          </tr>
+          <tr>
+            <td>${p.numB.o}</td><td>${numB_t_display}</td><td>${numB_h_display}</td>
+            <td class="sign-col">+</td><td class="problem-number-cell"></td>
+          </tr>
+          <tr class="answer-row">
+            <td><input type="number" class="answer-input" id="ans-o-${i}" maxlength="1"></td>
+            <td><input type="number" class="answer-input" id="ans-t-${i}" maxlength="1"></td>
+            <td><input type="number" class="answer-input" id="ans-h-${i}" maxlength="1"></td>
+            <td class="sign-col"></td><td class="problem-number-cell"></td>
+          </tr>`;
+        wrapper.appendChild(table);
+
+        const allIds = ['ans-o','ans-t','ans-h','carry-t','carry-h'].map(x => `${x}-${i}`);
+        allIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.addEventListener('focus', () => {
+            if (currentProblemInView !== i) { scrollCenter(table); currentProblemInView = i; }
+            el.select();
+          });
+          el.addEventListener('keydown', e => handleNav(e, i, id));
         });
+      });
+    }
+
+    // ===== キーボード遷移 =====
+    function handleNav(e, i, id) {
+      let nextId = null;
+      const enterNavOrder = [ `carry-t-${i}`, `ans-o-${i}`, `carry-h-${i}`, `ans-t-${i}`, `ans-h-${i}` ];
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const order = (incorrectFieldIds.length > 0) ? incorrectFieldIds : enterNavOrder;
+        const cur = order.indexOf(id);
+        for (let k = cur + 1; k < order.length; k++) {
+          const cand = document.getElementById(order[k]);
+          if (cand && cand.style.visibility !== 'hidden') { nextId = order[k]; break; }
+        }
+        if (!nextId && incorrectFieldIds.length === 0 && i < NUM_QUESTIONS - 1) {
+          const np = problems[i + 1];
+          nextId = np.carry.t === 1 ? `carry-t-${i + 1}` : `ans-o-${i + 1}`;
+        }
+      } else {
+        const navMap = {
+          [`ans-o-${i}`]: { ArrowUp:`carry-t-${i}`, ArrowRight:`ans-t-${i}` },
+          [`ans-t-${i}`]: { ArrowUp:`carry-h-${i}`, ArrowRight:`ans-h-${i}`, ArrowLeft:`ans-o-${i}` },
+          [`ans-h-${i}`]: { ArrowLeft:`ans-t-${i}` },
+          [`carry-t-${i}`]: { ArrowDown:`ans-o-${i}`, ArrowRight:`carry-h-${i}` },
+          [`carry-h-${i}`]: { ArrowDown:`ans-t-${i}`, ArrowLeft:`carry-t-${i}` }
+        };
+        if (navMap[id] && navMap[id][e.key]) { e.preventDefault(); nextId = navMap[id][e.key]; }
+      }
+      if (nextId) document.getElementById(nextId).focus();
+      else if (e.key === 'Enter') checkBtn.focus();
+    }
+
+    // ===== 採点 =====
+    function checkAnswers() {
+      incorrectFieldIds = []; let allCorrect = true;
+      currentProblemInView = -1;
+      const types = [ 'carry-t', 'ans-o', 'carry-h', 'ans-t', 'ans-h' ];
+
+      problems.forEach((p, i) => {
+        const fields = types.map(t => ({
+          id: `${t}-${i}`,
+          correct: t.startsWith('ans-') ? p.answer[t.slice(-1)] : p.carry[t.slice(-1)]
+        }));
+        fields.forEach(f => {
+          const el = document.getElementById(f.id);
+          if (!el || el.style.visibility === 'hidden') return;
+          const val = el.value.trim() === '' ? 0 : +el.value;
+          el.classList.remove('incorrect-field','correct-field');
+          if (val !== f.correct) {
+            allCorrect = false; incorrectFieldIds.push(f.id);
+            el.classList.add('incorrect-field'); el.disabled = false;
+          } else {
+            el.disabled = true; el.classList.add('correct-field');
+          }
+        });
+      });
+
+      const resultDiv = document.getElementById('result');
+      if (allCorrect) {
+        checkBtn.disabled = true; retryBtn.disabled = false; retryBtn.focus();
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const baseScore = 100;
+        const timeBonus = Math.max(0, Math.floor((TIME_LIMIT - elapsed) * 50 / TIME_LIMIT));
+        const score = baseScore + timeBonus;
+        let starsHtml = '―';
+        if (score >= SCORE_STARS_THRESHOLD.star3) starsHtml = '★★★';
+        else if (score >= SCORE_STARS_THRESHOLD.star2) starsHtml = '★★';
+        else if (score >= SCORE_STARS_THRESHOLD.star1) starsHtml = '★';
+        else if (score >= SCORE_STARS_THRESHOLD.star_circle) starsHtml = '○';
+        resultDiv.innerHTML = `スコア: <strong>${score}点</strong><br>タイム: ${elapsed} 秒`;
+        saveData(score, starsHtml); updateDisplay();
+      } else {
+        resultDiv.innerHTML = '❌ まちがいがあります。<br>赤いところを直そう！';
+        resultDiv.style.color = 'red';
+        const orderMap = { 'carry-t':0, 'ans-o':1, 'carry-h':2, 'ans-t':3, 'ans-h':4 };
+        incorrectFieldIds.sort((a,b)=>{
+          const ai = +a.split('-').pop(), bi = +b.split('-').pop();
+          if (ai !== bi) return ai - bi;
+          const ta = a.split('-').slice(0,2).join('-');
+          const tb = b.split('-').slice(0,2).join('-');
+          return orderMap[ta] - orderMap[tb];
+        });
+        if (incorrectFieldIds.length) document.getElementById(incorrectFieldIds[0]).focus();
+      }
+    }
+
+    // ===== リトライ =====
+    function retry() {
+      incorrectFieldIds = []; currentProblemInView = -1;
+      document.getElementById('result').textContent = '';
+      checkBtn.disabled = false; retryBtn.disabled = true;
+      startTime = Date.now();
+      generateProblems(); displayProblems();
+      const first = problems[0];
+      const firstId = first.carry.t === 1 ? 'carry-t-0' : 'ans-o-0';
+      setTimeout(()=>{ const el = document.getElementById(firstId); if (el) el.focus(); }, 0);
+    }
+
+    // ===== 初期化 =====
+    window.addEventListener('DOMContentLoaded', () => {
+      const startBtn = document.getElementById('start-btn');
+      startBtn.onclick = () => {
+        startArea.style.display = 'none';
+        problemsSection.style.display = 'block';
+        resultArea.style.display = 'block';
+        retry();
+      };
+      checkBtn.onclick = checkAnswers;
+      retryBtn.onclick = retry;
+      resetHighScoreBtn.onclick = resetHighScore;
+
+      loadData(); updateDisplay();
+      startBtn.focus();
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && startArea.style.display !== 'none') { e.preventDefault(); startBtn.click(); }
+      });
     });
   </script>
 </body>

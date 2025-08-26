@@ -161,7 +161,7 @@ function initializeDrillApp(config) {
         
         const retryBtn = document.querySelector('#retry'); retryBtn.focus(); scrollCenter(retryBtn);
       } else { // まだ間違いがある
-        document.querySelector('#result').innerHTML = 'おしい！まちがいを直して、もういちど「まるつけ」しよう！';
+        document.querySelector('#result').innerHTML = 'おしい！まちがいを直そう！';
         document.querySelector('#result').style.color = wrongColor;
         document.querySelector('#check-answers').disabled = false;
         document.querySelector(`#ans-${incorrectIndices[0]}`).focus();
@@ -209,7 +209,7 @@ function initializeDrillApp(config) {
     (function main() {
         applyThemeColors(config.themeColors);
         document.title = config.title;
-        document.getElementById('main-title').textContent = 'わくわく算数ドリル';
+        document.getElementById('main-title').textContent = '１１　かけ算⑵';
         document.getElementById('sub-title').textContent = config.title;
         loadData();
         updateDisplay();
