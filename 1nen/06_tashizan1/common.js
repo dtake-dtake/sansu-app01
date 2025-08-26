@@ -1,5 +1,5 @@
 // このファイルは、全てのドリルアプリの動作を管理する共通エンジンです。
-// このファイル自体は、特定のアプリに依存しません。
+// このファイル自体は、特定のアプリ（例：「5の段」）に依存しません。
 // どのドリルを動かすかは、外部から渡される「config」オブジェクトによって決まります。
 
 function initializeDrillApp(config) {
@@ -16,7 +16,8 @@ function initializeDrillApp(config) {
 
     // ===== 設定からローカルストレージのキーを生成 =====
     const KEY_HS             = `${config.appId}:hs`;
-    const KEY_HISTORY        = `${config.appId}:history`;
+    // ↓↓↓ ここにタイプミスがありました (config.g.appId -> config.appId)
+    const KEY_HISTORY        = `${config.appId}:history`; 
     const KEY_CLEAR          = `${config.appId}:clearCount`;
     const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`;
     const KEY_DAILY_PREFIX   = `${config.appId}:dailyClear-`;
@@ -66,63 +67,30 @@ function initializeDrillApp(config) {
       const wrap = document.querySelector('#problems-wrapper'); wrap.innerHTML = '';
       generatedProblems.forEach((p, i) => {
         const row = document.createElement('div'); row.className = 'problem';
-        
-        // 問題番号と式をまとめるための左側ラッパーを作成
-        const problemContent = document.createElement('div');
-        problemContent.className = 'problem-content';
-
         const num = document.createElement('div'); num.className = 'problem-number'; num.textContent = (i + 1) + '.';
         const eq = document.createElement('div'); eq.className = 'problem-equation';
-        
+        eq.innerHTML = `<span>${p.a}</span><span>${p.op}</span><span>${p.b}</span>=`;
         const inp = document.createElement('input'); inp.type = 'number'; inp.id = `ans-${i}`;
-
-        // ★★★【アップグレード部分】★★★
-        // configのdisplayTextに "__INPUT__" があれば、その場所に入力欄を埋め込む
-        if (p.displayText && p.displayText.includes('__INPUT__')) {
-            const inputHtml = `<span>${inp.outerHTML}</span>`;
-            eq.innerHTML = p.displayText.replace('__INPUT__', inputHtml);
-        } else {
-            // なければ、これまで通り末尾に入力欄を追加
-            eq.innerHTML = p.displayText || `<span>${p.a}</span><span>${p.op}</span><span>${p.b}</span>=`;
-            eq.appendChild(inp);
-        }
-
-        const icon = document.createElement('span'); icon.id = `icon-${i}`; icon.className = 'result-icon';
-        eq.appendChild(icon);
-        
-        // 作成したラッパーに番号と式を追加
-        problemContent.append(num, eq);
-
-        // 将来のボタンなどを置くための右側スペース（今は空）
-        const problemActions = document.createElement('div');
-        problemActions.className = 'problem-actions';
-
-        // problem行に左側ラッパーと右側スペースを追加
-        row.append(problemContent, problemActions); 
-        wrap.appendChild(row);
-
-        // イベントリスナーは、HTMLを挿入した後に要素を見つけて設定する
-        const inputElement = document.getElementById(`ans-${i}`);
-        if(inputElement) {
-            inputElement.addEventListener('focus', () => scrollCenter(inputElement));
-            inputElement.addEventListener('keydown', e => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                const currentProblemIndex = i;
-                let nextIndexToFocus = -1;
-                if (incorrectIndices.length > 0) {
-                  const currentIndexInIncorrect = incorrectIndices.indexOf(currentProblemIndex);
-                  if (currentIndexInIncorrect > -1 && currentIndexInIncorrect < incorrectIndices.length - 1) {
-                    nextIndexToFocus = incorrectIndices[currentIndexInIncorrect + 1];
-                  }
-                } else if (currentProblemIndex < problems.length - 1) {
-                    nextIndexToFocus = currentProblemIndex + 1;
-                }
-                if (nextIndexToFocus !== -1) document.querySelector(`#ans-${nextIndexToFocus}`).focus();
-                else document.querySelector('#check-answers').focus();
+        inp.addEventListener('focus', () => scrollCenter(inp));
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const currentProblemIndex = parseInt(e.target.id.replace('ans-', ''));
+            let nextIndexToFocus = -1;
+            if (incorrectIndices.length > 0) {
+              const currentIndexInIncorrect = incorrectIndices.indexOf(currentProblemIndex);
+              if (currentIndexInIncorrect > -1 && currentIndexInIncorrect < incorrectIndices.length - 1) {
+                nextIndexToFocus = incorrectIndices[currentIndexInIncorrect + 1];
               }
-            });
-        }
+            } else if (currentProblemIndex < problems.length - 1) {
+                nextIndexToFocus = currentProblemIndex + 1;
+            }
+            if (nextIndexToFocus !== -1) document.querySelector(`#ans-${nextIndexToFocus}`).focus();
+            else document.querySelector('#check-answers').focus();
+          }
+        });
+        const icon = document.createElement('span'); icon.id = `icon-${i}`; icon.className = 'result-icon';
+        eq.append(inp, icon); row.append(num, eq); wrap.appendChild(row);
       });
     }
 
@@ -159,10 +127,9 @@ function initializeDrillApp(config) {
 
       if (incorrectIndices.length === 0) { // 全問正解
         const NUM_QUESTIONS = problems.length;
-        const TIME_LIMIT = NUM_QUESTIONS * (config.timeLimitPerQuestion || 5);
-        const pointsPerQuestion = config.pointsPerQuestion || 10;
+        const TIME_LIMIT = NUM_QUESTIONS * config.timeLimitPerQuestion;
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        const baseScore = correctCount * pointsPerQuestion;
+        const baseScore = correctCount * config.pointsPerQuestion;
         let timeBonus = 0;
         if (elapsed < TIME_LIMIT) timeBonus = Math.floor(50 * ((TIME_LIMIT - elapsed) / TIME_LIMIT));
         let score = baseScore + timeBonus;
@@ -176,14 +143,12 @@ function initializeDrillApp(config) {
         document.querySelector('#result').innerHTML = `${message}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed} 秒)`;
         
         let starsHtml = '―'; const s = config.starThresholds;
-        if (s) {
-            if      (score >= s.star5) starsHtml = `<span class="stars-rainbow status-stars">★★★★★</span>`;
-            else if (score >= s.star4) starsHtml = `<span class="stars-diamond status-stars">★★★★☆</span>`;
-            else if (score >= s.star3) starsHtml = `<span class="stars-gold status-stars">★★★☆☆</span>`;
-            else if (score >= s.star2) starsHtml = `<span class="stars-silver status-stars">★★☆☆☆</span>`;
-            else if (score >= s.star1) starsHtml = `<span class="stars-bronze status-stars">★☆☆☆☆</span>`;
-            else if (score >= s.star_circle) starsHtml = `<span class="stars-circle status-stars">○</span>`;
-        }
+        if      (score >= s.star5) starsHtml = `<span class="stars-rainbow status-stars">★★★★★</span>`;
+        else if (score >= s.star4) starsHtml = `<span class="stars-diamond status-stars">★★★★☆</span>`;
+        else if (score >= s.star3) starsHtml = `<span class="stars-gold status-stars">★★★☆☆</span>`;
+        else if (score >= s.star2) starsHtml = `<span class="stars-silver status-stars">★★☆☆☆</span>`;
+        else if (score >= s.star1) starsHtml = `<span class="stars-bronze status-stars">★☆☆☆☆</span>`;
+        else if (score >= s.star_circle) starsHtml = `<span class="stars-circle status-stars">○</span>`;
         
         overallStatusStars = starsHtml;
         document.querySelector('#overallStars').innerHTML = overallStatusStars;
@@ -196,7 +161,7 @@ function initializeDrillApp(config) {
         
         const retryBtn = document.querySelector('#retry'); retryBtn.focus(); scrollCenter(retryBtn);
       } else { // まだ間違いがある
-        document.querySelector('#result').innerHTML = 'おしい！まちがいを直して、もういちど「まるつけ」しよう！';
+        document.querySelector('#result').innerHTML = 'おしい！まちがいを直そう！';
         document.querySelector('#result').style.color = wrongColor;
         document.querySelector('#check-answers').disabled = false;
         document.querySelector(`#ans-${incorrectIndices[0]}`).focus();
@@ -234,6 +199,7 @@ function initializeDrillApp(config) {
             stopConfetti();
             highScore = 0;
             overallStatusStars = '―';
+            // totalClearCount などはリセットしない方針
             saveData();
             updateDisplay();
         }
@@ -242,8 +208,8 @@ function initializeDrillApp(config) {
     // ===== アプリケーションの初期化と実行 =====
     (function main() {
         applyThemeColors(config.themeColors);
-        document.title = config.title; // ← このように修正します
-        document.getElementById('main-title').textContent = config.mainTitle || '９　１０より おおきい かず';
+        document.title = config.title;
+        document.getElementById('main-title').textContent = '６　たし算⑴';
         document.getElementById('sub-title').textContent = config.title;
         loadData();
         updateDisplay();
