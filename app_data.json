@@ -3,6 +3,10 @@
     "grade": "1年",
     "units": [
       {
+        "name": "５　　ふえたり へったり",
+        "apps": []
+      },
+      {
         "name": "６　　たしざん(1)",
         "apps": [
           {
@@ -21,6 +25,10 @@
             "path": "1nen/07_hikizan1/18-6_hikizan_10made.html"
           }
         ]
+      },
+      {
+        "name": "８　　かずしらべ",
+        "apps": []
       },
       {
         "name": "９　　10より おおきい かず",
@@ -56,12 +64,149 @@
             "path": "1nen/09_10yori_ookii/39-8_nikita_hiku_1keta.html"
           }
         ]
+      },
+      {
+        "name": "１０　なんじ なんじはん",
+        "apps": [
+          {
+            "id": "1nen-nanji-nanjihan-v1",
+            "title": "とけいの　よみかた",
+            "path": "1nen/10_nanji_nanjihan/45-2_nanji_nanjihan.html"
+          }
+        ]
+      },
+      {
+        "name": "１１　おおきさくらべ(1)",
+        "apps": []
+      },
+      {
+        "name": "１２　3つの かずの けいさん",
+        "apps": [
+          {
+            "id": "55-2_3ttuno_kazu_tasizan",
+            "title": "３つのかずのけいさん⑴",
+            "path": "1nen/12_3kazu_keisan/55-2_3ttuno_kazu_tasizan.html"
+          },
+          {
+            "id": "56-4_3ttuno_kazuno_hikizan",
+            "title": "３つのかずのひき算⑴",
+            "path": "1nen/12_3kazu_keisan/56-4_3ttuno_kazuno_hikizan.html"
+          },
+          {
+            "id": "57-7_3ttuno_kazuno_tasihiki",
+            "title": "３つのかずのけいさん",
+            "path": "1nen/12_3kazu_keisan/57-7_3ttuno_kazuno_tasihiki.html"
+          }
+        ]
+      },
+      {
+        "name": "１３　たしざん(2)",
+        "apps": [
+          {
+            "id": "63-5_kuriagari_tasizan",
+            "title": "くりあがりのあるたし算",
+            "path": "1nen/13_tashizan2/63-5_kuriagari_tasizan.html"
+          }
+        ]
+      },
+      {
+        "name": "１４　かたちづくり",
+        "apps": []
+      },
+      {
+        "name": "１５　ひきざん(2)",
+        "apps": [
+          {
+            "id": "79-5_hikizan_kurisagari",
+            "title": "くりさがりのあるひきざん",
+            "path": "1nen/15_hikizan2/79-5_hikizan_kurisagari.html"
+          }
+        ]
+      },
+      {
+        "name": "１６　0の たしざんと ひきざん",
+        "apps": [
+          {
+            "id": "88-2_0no_tasizan",
+            "title": "０のたしざん",
+            "path": "1nen/16_zero_keisan/88-2_0no_tasizan.html"
+          },
+          {
+            "id": "89-4_0no_hikizan",
+            "title": "０のひきざん",
+            "path": "1nen/16_zero_keisan/89-4_0no_hikizan.html"
+          }
+        ]
+      },
+      {
+        "name": "１７　ものと ひとの かず",
+        "apps": []
+      },
+      {
+        "name": "１８　大きい かず",
+        "apps": [
+          {
+            "id": "100-3_kazuno_kakikata",
+            "title": "かずの かきかた",
+            "path": "1nen/18_ookii_kazu/100-3_kazuno_kakikata.html"
+          },
+          {
+            "id": "103-3_100madeno_kazu",
+            "title": "１００までのかず",
+            "path": "1nen/18_ookii_kazu/103-3_100madeno_kazu.html"
+          }
+        ]
+      },
+      {
+        "name": "１９　なんじなんぷん",
+        "apps": []
+      },
+      {
+        "name": "２０　おなじ かずずつ",
+        "apps": []
+      },
+      {
+        "name": "２１　100までの かずの けいさん",
+        "apps": [
+          {
+            "id": "120_nanjuuno_keisan",
+            "title": "１００までのかずの けいさん",
+            "path": "1nen/21_100made_kazu/120_nanjuuno_keisan.html"
+          },
+          {
+            "id": "121-6,8_nanjuno_keisan",
+            "title": "１００までのかずの けいさん",
+            "path": "1nen/21_100made_kazu/121-6,8_nanjuno_keisan.html"
+          },
+          {
+            "id": "122-10_niketa_tasu_hitoketa_kuriagarinasi",
+            "title": "２１ １００までのかずの けいさん",
+            "path": "1nen/21_100made_kazu/122-10_niketa_tasu_hitoketa_kuriagarinasi.html"
+          },
+          {
+            "id": "123-12_niketa_hiku_hitoketa_kurisagarinasi",
+            "title": "２１ １００までのかずの けいさん",
+            "path": "1nen/21_100made_kazu/123-12_niketa_hiku_hitoketa_kurisagarinasi.html"
+          }
+        ]
+      },
+      {
+        "name": "２２　おおいほう すくないほう",
+        "apps": []
+      },
+      {
+        "name": "２３　大きさくらべ(2)",
+        "apps": []
       }
     ]
   },
   {
     "grade": "2年",
     "units": [
+      {
+        "name": "１　　ひょうと グラフ",
+        "apps": []
+      },
       {
         "name": "２　　たし算とひき算",
         "apps": [
@@ -118,6 +263,10 @@
         ]
       },
       {
+        "name": "４　　長さ",
+        "apps": []
+      },
+      {
         "name": "５　　たし算とひき算の筆算⑴",
         "apps": [
           {
@@ -141,6 +290,22 @@
             "path": "2nen/05_hissan_th1/110_kuriagari_nasi.html"
           }
         ]
+      },
+      {
+        "name": "６　　100をこえる数",
+        "apps": []
+      },
+      {
+        "name": "７　　かさ",
+        "apps": []
+      },
+      {
+        "name": "８　　たし算とひき算の筆算⑵",
+        "apps": []
+      },
+      {
+        "name": "９　　しきと計算",
+        "apps": []
       },
       {
         "name": "１０　かけ算⑴",
@@ -261,6 +426,30 @@
             "path": "2nen/11_kakezan2/130kuku_81mondai.html"
           }
         ]
+      },
+      {
+        "name": "１２　三角形と 四角形",
+        "apps": []
+      },
+      {
+        "name": "１３　かけ算の きまり",
+        "apps": []
+      },
+      {
+        "name": "１４　100cmを こえる 長さ",
+        "apps": []
+      },
+      {
+        "name": "１５　1000をこえる数",
+        "apps": []
+      },
+      {
+        "name": "１６　はこの 形",
+        "apps": []
+      },
+      {
+        "name": "１７　分数",
+        "apps": []
       }
     ]
   },
@@ -282,7 +471,7 @@
           },
           {
             "id": "03_shikaku_kakezan",
-            "title": "□のかけ算",
+            "title": "□にはいる数は？",
             "path": "3nen/1_kuku_hyo_kakezan/03_shikaku_kakezan.html"
           }
         ]
@@ -292,12 +481,12 @@
         "apps": [
           {
             "id": "01_warizan_kuku",
-            "title": "わり算（九九の逆算）",
+            "title": "九九の逆算わり算",
             "path": "3nen/2_warizan/01_warizan_kuku.html"
           },
           {
             "id": "02_warizan_kukunai",
-            "title": "答えが九九にないわり算",
+            "title": "答えが10や0になるわり算",
             "path": "3nen/2_warizan/02_warizan_kukunai.html"
           },
           {
@@ -317,7 +506,7 @@
         "apps": [
           {
             "id": "01_kuriagari_10i",
-            "title": "３桁たし算 くり上がり1回まで",
+            "title": "３桁たし算　くり上がり1回まで",
             "path": "3nen/3_tasizan_hikizan_hissan/01_kuriagari_10i.html"
           },
           {
@@ -327,7 +516,7 @@
           },
           {
             "id": "03_10ninaru-kuriagari",
-            "title": "10になるくりあ上がり",
+            "title": "10になるくり上がり",
             "path": "3nen/3_tasizan_hikizan_hissan/03_10ninaru-kuriagari.html"
           },
           {
@@ -367,10 +556,22 @@
           },
           {
             "id": "11_4keta_tasizan_hissan",
-            "title": "たし算の筆算（4けた）",
+            "title": "たし算の筆算（４けた）",
             "path": "3nen/3_tasizan_hikizan_hissan/11_4keta_tasizan_hissan.html"
           }
         ]
+      },
+      {
+        "name": "４　　時こくと時間",
+        "apps": []
+      },
+      {
+        "name": "５　　一万をこえる数",
+        "apps": []
+      },
+      {
+        "name": "６　　表とグラフ",
+        "apps": []
       },
       {
         "name": "７　　たし算とひき算",
@@ -411,6 +612,257 @@
             "path": "3nen/8_nagasa/2_nagasa_keisan.html"
           }
         ]
+      },
+      {
+        "name": "９　　あまりのあるわり算",
+        "apps": []
+      },
+      {
+        "name": "１０　重さ",
+        "apps": []
+      },
+      {
+        "name": "１１　円と球",
+        "apps": []
+      },
+      {
+        "name": "１２　何倍でしょう",
+        "apps": []
+      },
+      {
+        "name": "１３　計算のじゅんじょ",
+        "apps": []
+      },
+      {
+        "name": "１４　1けたをかけるかけ算の筆算",
+        "apps": []
+      },
+      {
+        "name": "１５　式と計算",
+        "apps": []
+      },
+      {
+        "name": "１６　分数",
+        "apps": []
+      },
+      {
+        "name": "１７　三角形",
+        "apps": []
+      },
+      {
+        "name": "１８　小数",
+        "apps": []
+      },
+      {
+        "name": "１９　2けたをかけるかけ算の筆算",
+        "apps": []
+      },
+      {
+        "name": "２０　□を使った式",
+        "apps": []
+      }
+    ]
+  },
+  {
+    "grade": "4年",
+    "units": [
+      {
+        "name": "１　　一億をこえる数",
+        "apps": []
+      },
+      {
+        "name": "２　　折れ線グラフ",
+        "apps": []
+      },
+      {
+        "name": "３　　1けたでわるわり算の筆算",
+        "apps": []
+      },
+      {
+        "name": "４　　角とその大きさ",
+        "apps": []
+      },
+      {
+        "name": "５　　垂直・平行と四角形",
+        "apps": []
+      },
+      {
+        "name": "６　　小数",
+        "apps": []
+      },
+      {
+        "name": "７　　2けたでわるわり算の筆算",
+        "apps": []
+      },
+      {
+        "name": "８　　式と計算の順じょ",
+        "apps": []
+      },
+      {
+        "name": "９　　概数",
+        "apps": []
+      },
+      {
+        "name": "１０　面積",
+        "apps": []
+      },
+      {
+        "name": "１１　がい数とその計算",
+        "apps": []
+      },
+      {
+        "name": "１２　小数のかけ算とわり算",
+        "apps": []
+      },
+      {
+        "name": "１３　調べ方と整理のしかた",
+        "apps": []
+      },
+      {
+        "name": "１４　分数",
+        "apps": []
+      },
+      {
+        "name": "１５　変わり方",
+        "apps": []
+      },
+      {
+        "name": "１６　直方体と立方体",
+        "apps": []
+      }
+    ]
+  },
+  {
+    "grade": "5年",
+    "units": [
+      {
+        "name": "１　　整数と小数",
+        "apps": []
+      },
+      {
+        "name": "２　　体積",
+        "apps": []
+      },
+      {
+        "name": "３　　比例",
+        "apps": []
+      },
+      {
+        "name": "４　　小数のかけ算",
+        "apps": []
+      },
+      {
+        "name": "５　　小数のわり算",
+        "apps": []
+      },
+      {
+        "name": "６　　割合(1)",
+        "apps": []
+      },
+      {
+        "name": "７　　合同な図形",
+        "apps": []
+      },
+      {
+        "name": "８　　整数",
+        "apps": []
+      },
+      {
+        "name": "９　　分数",
+        "apps": []
+      },
+      {
+        "name": "１０　面積",
+        "apps": []
+      },
+      {
+        "name": "１１　平均とその利用",
+        "apps": []
+      },
+      {
+        "name": "１２　単位量あたりの大きさ",
+        "apps": []
+      },
+      {
+        "name": "１３　割合(2)",
+        "apps": []
+      },
+      {
+        "name": "１４　円と正多角形",
+        "apps": []
+      },
+      {
+        "name": "１５　割合のグラフ",
+        "apps": []
+      },
+      {
+        "name": "１６　角柱と円柱",
+        "apps": []
+      },
+      {
+        "name": "１７　速さ",
+        "apps": []
+      },
+      {
+        "name": "１８　変わり方",
+        "apps": []
+      }
+    ]
+  },
+  {
+    "grade": "6年",
+    "units": [
+      {
+        "name": "１　　対称な図形",
+        "apps": []
+      },
+      {
+        "name": "２　　文字と式",
+        "apps": []
+      },
+      {
+        "name": "３　　分数×整数、分数÷整数",
+        "apps": []
+      },
+      {
+        "name": "４　　分数×分数",
+        "apps": []
+      },
+      {
+        "name": "５　　分数÷分数",
+        "apps": []
+      },
+      {
+        "name": "６　　場合を順序よく整理して",
+        "apps": []
+      },
+      {
+        "name": "７　　円の面積",
+        "apps": []
+      },
+      {
+        "name": "８　　立体の体積",
+        "apps": []
+      },
+      {
+        "name": "９　　データの整理と活用",
+        "apps": []
+      },
+      {
+        "name": "１０　比とその利用",
+        "apps": []
+      },
+      {
+        "name": "１１　図形の拡大と縮小",
+        "apps": []
+      },
+      {
+        "name": "１２　比例と反比例",
+        "apps": []
+      },
+      {
+        "name": "１３　およその形と大きさ",
+        "apps": []
       }
     ]
   }
