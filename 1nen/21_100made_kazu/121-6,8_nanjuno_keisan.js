@@ -15,7 +15,7 @@
   const config = {
     appId: "121-6,8_nanjuno_keisan",
     mainTitle: "１００までのかずの　けいさん",
-    title: "なんじゅうのけいさん",
+    title: "なんじゅうのけいさん⑵",
     themeColors: randomTheme,
     showJudgeIcon: false,   // ○×は出さず、入力欄の色で判定
     pointsPerQuestion: 10,  // 10問×10点=100点
