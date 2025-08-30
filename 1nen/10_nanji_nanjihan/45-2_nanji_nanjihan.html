@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>なんじ・なんじはん（5問＋スコア）</title>
+  <link rel="stylesheet" href="common.css" />
+  <style>
+    /* 時計UI（既存ベース） */
+    #wrap{max-width:1100px;margin:0 auto;background:#fff;border:2px solid #ccc;box-shadow:3px 3px 8px rgba(0,0,0,.2);padding:18px;border-radius:14px}
+    .topRow{display:grid;grid-template-columns:minmax(420px,1fr) 360px;gap:24px;align-items:start}
+    .qbox{border:3px solid #39b0a5;border-radius:12px;padding:18px;line-height:2;font-size:2.2rem;background:#fbfffd}
+    .rightBox{display:flex;flex-direction:column;align-items:center}
+    .label{font-size:2.2rem;margin-bottom:8px}
+
+    /* 時計 */
+    .clock{width:320px;aspect-ratio:1/1;margin:0 auto}
+    .face{fill:#fff;stroke:#58a3d3;stroke-width:10}
+    .tick-min{stroke:#89bedd;stroke-width:2}
+    .tick-hr{stroke:#4a93bf;stroke-width:4}
+    .num{font-size:22px;fill:#222;text-anchor:middle;dominant-baseline:middle}
+    .hand-min{stroke:#ff7f2a;stroke-width:8;stroke-linecap:round;transform-origin:160px 160px}
+    .hand-hr{stroke:#111;stroke-width:10;stroke-linecap:round;transform-origin:160px 160px}
+    .pin{fill:#ed4a38}
+
+    /* 解答欄 */
+    .answerBox{margin-top:18px;text-align:center;font-size:2.2rem}
+    .field{width:120px;font-size:2.8rem;padding:10px 12px;text-align:right;margin:0 8px;border:2px solid #bbb;border-radius:10px;background:#fff}
+    .selectField{min-width:180px;font-size:2.4rem;padding:8px 12px;margin-left:8px;border:2px solid #bbb;border-radius:10px;background:#fff}
+    .field:focus,.selectField:focus{outline:none;border-color:#2cc4ff;box-shadow:0 0 0 3px rgba(44,196,255,.2)}
+    .incorrect{border-color:#d32f2f !important;background:#ffecec}
+    .correct{border-color:#0a7a00 !important;background:#f1fff1}
+    .btns{margin-top:14px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+    /* ネイティブselectの簡易「強制オープン」用 */
+    select[size]{padding:6px 10px;}
+
+    /* 紙吹雪キャンバス */
+    #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none;}
+/* ★追加：問題枠内のスコア行を隠す */
+#scoreLine { display: none !important; }
+
+  </style>
+</head>
+<body>
+  <h1 id="main-title">１０　なんじ　なんじはん</h1>
+  <h2 id="sub-title">とけいの　よみかた</h2>
+
+  <!-- スタート -->
+  <div id="start-area" style="text-align:center; margin:40px 0;">
+    <button id="start-btn" autofocus>スタート！</button>
+  </div>
+
+  <!-- 問題 -->
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper">
+      <div id="wrap">
+        <div class="topRow">
+          <div class="qbox">
+            <div id="qText">とけいは <strong>なんじ？なんじはん？</strong></div>
+            <div id="progress"   style="margin-top:8px;color:#1e88e5;font-weight:bold;"></div>
+            <!-- ★スコア行（ベース点のみ、100点満点） -->
+            <div id="scoreLine" style="margin-top:4px;color:#00695c;font-weight:bold;">
+              スコア：<span id="scoreValue">0</span> / 100
+            </div>
+          </div>
+          <div class="rightBox">
+            <div class="label">とけい</div>
+            <svg class="clock" id="clock"></svg>
+          </div>
+        </div>
+
+        <div class="answerBox" aria-label="解答欄">
+          答え： <input id="ansH" class="field" type="number" inputmode="numeric" min="1" max="12" aria-label="時"> 時
+          <select id="kindSelect" class="selectField" aria-label="じ／じはん">
+            <option value="" selected disabled>えらんでね ▾</option>
+            <option value="just">じ</option>
+            <option value="half">じはん</option>
+          </select>
+          <div class="btns">
+            <button id="checkBtn" class="primary">まるつけ</button>
+            <button id="nextBtn" disabled>次の問題</button>
+          </div>
+          <div id="perQuestionResult" style="margin-top:8px;font-weight:bold;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="button-area">
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+
+  <!-- 結果／カウンタ（共通サンプル準拠のID構成） -->
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん</div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+  </div>
+
+  <!-- 紙吹雪用キャンバス -->
+  <canvas id="confetti-canvas"></canvas>
+
+<script>
+/* ========= ストレージキー（共通サンプルと互換） ========= */
+const APP_ID = "1nen-nanji-nanjihan-v1";
+const KEY_HS             = `${APP_ID}:hs`;
+const KEY_HISTORY        = `${APP_ID}:history`;
+const KEY_CLEAR          = `${APP_ID}:clearCount`;
+const KEY_MONTHLY_PREFIX = `${APP_ID}:monthlyClear-`;
+const KEY_DAILY_PREFIX   = `${APP_ID}:dailyClear-`;
+
+/* ========= カウンタ／スコア関連 ========= */
+let totalClear = 0, monthly = 0, daily = 0, highScore = 0;
+function loadPersistent(){
+  const today = new Date().toISOString().slice(0,10);
+  const month = new Date().toISOString().slice(0,7);
+  highScore   = +(localStorage.getItem(KEY_HS) || 0);
+  totalClear  = +(localStorage.getItem(KEY_CLEAR)||0);
+  monthly     = +(localStorage.getItem(KEY_MONTHLY_PREFIX+month)||0);
+  daily       = +(localStorage.getItem(KEY_DAILY_PREFIX+today)||0);
+}
+function savePersistent(){
+  const today = new Date().toISOString().slice(0,10);
+  const month = new Date().toISOString().slice(0,7);
+  localStorage.setItem(KEY_HS, String(highScore));
+  localStorage.setItem(KEY_CLEAR, String(totalClear));
+  localStorage.setItem(KEY_MONTHLY_PREFIX+month, String(monthly));
+  localStorage.setItem(KEY_DAILY_PREFIX+today, String(daily));
+}
+function saveHistoryScore(score){
+  const h = JSON.parse(localStorage.getItem(KEY_HISTORY)||'[]');
+  h.unshift({ datetime: new Date().toLocaleString(), score });
+  if(h.length>10) h.pop();
+  localStorage.setItem(KEY_HISTORY, JSON.stringify(h));
+}
+function refreshHeaderUI(){
+  document.getElementById('highScoreValue').textContent   = highScore;
+  document.getElementById('clearCountValue').textContent   = totalClear;
+  document.getElementById('monthlyCountValue').textContent = monthly;
+  document.getElementById('dailyCountValue').textContent   = daily;
+  const h = JSON.parse(localStorage.getItem(KEY_HISTORY)||'[]');
+  document.getElementById('history-list').innerHTML = h.map(x=>`<li>${x.datetime}：${x.score}てん</li>`).join('');
+}
+
+/* ========= 問題・UI要素 ========= */
+const qText       = document.getElementById("qText");
+const progressEl  = document.getElementById("progress");
+const scoreValue  = document.getElementById("scoreValue");
+const ansH        = document.getElementById("ansH");
+const kindSelect  = document.getElementById("kindSelect");
+const checkBtn    = document.getElementById("checkBtn");
+const nextBtn     = document.getElementById("nextBtn");
+const perResult   = document.getElementById("perQuestionResult");
+const startBtn    = document.getElementById("start-btn");
+const startArea   = document.getElementById("start-area");
+const problemsSec = document.getElementById("problems-section");
+const retryBtn    = document.getElementById("retry");
+const resultBox   = document.getElementById("result");
+
+const clock = buildClock(document.getElementById("clock"));
+
+/* ========= セッション設定 ========= */
+const TOTAL = 5;
+// 35-2式: 合計 = 100 + (クリアタイム / 設定タイム) × 100
+// 1問あたりの「設定タイム」（秒）を決める。例: 8秒/問 → 全体で 40秒
+const TIME_LIMIT_PER_Q = 8;  // ←お好みで 6〜10 に調整
+
+let idx = 0, problem = null, startTime = 0, wrongTotal = 0;
+let sessionScore = 0, currentMistakes = 0;
+
+function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function createProblem(){
+  const hour = randPick([1,2,3,4,5,6,7,8,9,10,11,12]);
+  const isHalf = Math.random() < 0.5;
+  const m = isHalf ? 30 : 0;
+  return { h: hour, m, isHalf, answerH: hour, answerKind: isHalf ? "half" : "just" };
+}
+
+function renderNew(){
+  problem = createProblem();
+  clock.setTime(problem.h, problem.m);
+  qText.innerHTML = `とけいは <strong>なんじ？なんじはん？</strong>`;
+  progressEl.textContent = `のこり　${TOTAL-idx}もん`;
+
+  currentMistakes = 0;
+  ansH.value=""; kindSelect.value="";
+  ansH.classList.remove("incorrect","correct");
+  kindSelect.classList.remove("incorrect","correct");
+  perResult.textContent=""; nextBtn.disabled=true;
+
+  setTimeout(()=>ansH.focus(),0);
+}
+
+function check(){
+  ansH.classList.remove("incorrect","correct");
+  kindSelect.classList.remove("incorrect","correct");
+  const h = Number(ansH.value.trim());
+  const kind = kindSelect.value;
+  let okForm = true;
+  if(!Number.isInteger(h) || h<1 || h>12){ okForm=false; ansH.classList.add("incorrect"); }
+  if(kind !== "just" && kind !== "half"){ okForm=false; kindSelect.classList.add("incorrect"); }
+  if(!okForm){
+    perResult.textContent="数字を入れて、どちらか選んでね。";
+    perResult.style.color="#b20000"; nextBtn.disabled=true;
+    if(ansH.classList.contains("incorrect")){ ansH.focus(); ansH.select(); } else { kindSelect.focus(); }
+    return;
+  }
+  const ok = (h===problem.answerH) && (kind===problem.answerKind);
+  if(ok){
+    // 得点加算：一発正解20、1ミス15、2ミス10、3ミス以上5
+    //const gained = Math.max(MIN_PER_Q, MAX_PER_Q - PENALTY*currentMistakes);
+    //sessionScore += gained;
+    //scoreValue.textContent = sessionScore;
+
+    perResult.textContent="〇 せいかい！「次の問題」を押してね。";
+    perResult.style.color="#0a7a00";
+    ansH.classList.add("correct"); kindSelect.classList.add("correct");
+    nextBtn.disabled=false; nextBtn.focus();
+  }else{
+    currentMistakes++; wrongTotal++;
+    perResult.textContent="× もういちど考えよう。";
+    perResult.style.color="#b20000";
+    if(h!==problem.answerH) ansH.classList.add("incorrect");
+    if(kind!==problem.answerKind) kindSelect.classList.add("incorrect");
+    nextBtn.disabled=true;
+    if(h!==problem.answerH){ ansH.focus(); ansH.select(); } else { kindSelect.focus(); }
+  }
+}
+
+function next(){
+  if(nextBtn.disabled) return; // 正解しないと進めない
+  idx++;
+  if(idx < TOTAL){ renderNew(); }
+  else { finishSession(); }
+}
+
+function finishSession(){
+const elapsed = (Date.now() - startTime) / 1000;          // クリアタイム(秒)
+const timeLimit = TOTAL * TIME_LIMIT_PER_Q;                // 設定タイム(秒)
+const baseScore = TOTAL * 20;                              // 100点固定
+const timeBonus = Math.floor((elapsed / timeLimit) * 100); // (経過/設定)×100
+const total = baseScore + timeBonus;
+
+const isNewHS = total > highScore;
+if (isNewHS) { highScore = total; }
+  // ★ストレージと変数を確実に+1
+  incrementClearCounters();
+savePersistent();
+saveHistoryScore(total);
+refreshHeaderUI();
+function incrementClearCounters() {
+  const today = new Date().toISOString().slice(0,10);
+  const month = new Date().toISOString().slice(0,7);
+
+  // 現在値をストレージから読み直して +1
+  const total = +(localStorage.getItem(KEY_CLEAR) || 0) + 1;
+  const m     = +(localStorage.getItem(KEY_MONTHLY_PREFIX + month) || 0) + 1;
+  const d     = +(localStorage.getItem(KEY_DAILY_PREFIX   + today) || 0) + 1;
+
+  // 保存
+  localStorage.setItem(KEY_CLEAR, String(total));
+  localStorage.setItem(KEY_MONTHLY_PREFIX + month, String(m));
+  localStorage.setItem(KEY_DAILY_PREFIX   + today, String(d));
+
+  // メモリ上の変数も同期（refreshHeaderUI はこの値を表示に使ってる）
+  totalClear = total;
+  monthly    = m;
+  daily      = d;
+}
+
+
+  // 結果表示（参考ファイルの書式）
+  resultBox.innerHTML =
+    `🎉 全問正解！ おめでとう！ 🎉<br>` +
+    `スコア: <strong>${total}点</strong> (タイム: <strong>${elapsed.toFixed(1)}</strong> 秒)` +
+    (isNewHS ? `<br><span style="color:#e53935;font-weight:bold;">✨ ハイスコア更新！</span>` : ``);
+  // 見た目を近づけたい場合（任意）
+  resultBox.style.color = '#d32f2f';   // 赤系
+  resultBox.style.fontWeight = '700';
+
+  // 紙吹雪
+  celebrate(isNewHS ? 2200 : 1500);
+
+  // 画面戻し
+  startArea.style.display=""; problemsSec.style.display="none";
+}
+
+function start(){
+  idx=0; wrongTotal=0; sessionScore=0; currentMistakes=0;
+  scoreValue.textContent = '0';
+  startTime = Date.now();
+  startArea.style.display="none"; problemsSec.style.display="block";
+  renderNew();
+}
+
+function retry(){ start(); }
+
+/* ========= フォーカス＆ドロップダウン挙動 ========= */
+window.addEventListener('DOMContentLoaded', ()=>{ try{ startBtn.focus(); }catch(e){} });
+startBtn.addEventListener("click", start);
+startBtn.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); start(); } });
+
+ansH.addEventListener("input", ()=>{ ansH.classList.remove("incorrect","correct"); perResult.textContent=""; nextBtn.disabled=true; });
+ansH.addEventListener("keydown", e=>{
+  if(e.key==="ArrowUp"||e.key==="ArrowDown"){ e.preventDefault(); }
+  if(e.key==="Enter"||e.key==="ArrowRight"||e.key==="ArrowDown"){ e.preventDefault(); openSelectDropdown(kindSelect); kindSelect.focus(); }
+});
+
+function openSelectDropdown(sel){
+  if(typeof sel.showPicker === "function"){ try{ sel.showPicker(); return; }catch(e){} }
+  if(!sel.hasAttribute('size')) sel.setAttribute('size', sel.options.length);
+}
+function closeSelectDropdown(sel){ if(sel.hasAttribute('size')) sel.removeAttribute('size'); }
+
+kindSelect.addEventListener("focus", ()=>{
+  openSelectDropdown(kindSelect);
+  if(kindSelect.value===""){ kindSelect.selectedIndex = 1; } // じ
+});
+kindSelect.addEventListener("keydown", e=>{
+  if(e.key==="ArrowDown"){ openSelectDropdown(kindSelect); }
+  else if(e.key==="Escape"){ closeSelectDropdown(kindSelect); e.preventDefault(); }
+  else if(e.key==="Enter"){ closeSelectDropdown(kindSelect); e.preventDefault(); checkBtn.focus(); }
+  else if(e.key==="ArrowLeft"||e.key==="ArrowRight"){
+    if(kindSelect.value==="" || kindSelect.selectedIndex===0){ kindSelect.value="just"; }
+    else if(kindSelect.value==="just"){ kindSelect.value="half"; }
+    else{ kindSelect.value="just"; }
+    e.preventDefault();
+  }
+});
+kindSelect.addEventListener("change", ()=>{ kindSelect.classList.remove("incorrect","correct"); perResult.textContent=""; nextBtn.disabled=true; closeSelectDropdown(kindSelect); });
+kindSelect.addEventListener("blur", ()=> closeSelectDropdown(kindSelect));
+
+/* ========= 時計描画 ========= */
+function buildClock(svg){
+  const NS="http://www.w3.org/2000/svg"; const C=160, R=130;
+  svg.setAttribute("viewBox","0 0 320 320");
+  const face=document.createElementNS(NS,"circle");
+  face.setAttribute("cx",C); face.setAttribute("cy",C); face.setAttribute("r",R); face.setAttribute("class","face"); svg.appendChild(face);
+  for(let i=0;i<60;i++){
+    const ang=(Math.PI*2)*(i/60)-Math.PI/2, r1=i%5===0?R-12:R-8, r2=R-2;
+    const l=document.createElementNS(NS,"line");
+    l.setAttribute("x1",C+r1*Math.cos(ang)); l.setAttribute("y1",C+r1*Math.sin(ang));
+    l.setAttribute("x2",C+r2*Math.cos(ang)); l.setAttribute("y2",C+r2*Math.sin(ang));
+    l.setAttribute("class", i%5===0?"tick-hr":"tick-min"); svg.appendChild(l);
+  }
+  for(let n=1;n<=12;n++){
+    const ang=(Math.PI*2)*(n/12)-Math.PI/2, t=document.createElementNS(NS,"text");
+    t.setAttribute("x",C+(R-34)*Math.cos(ang)); t.setAttribute("y",C+(R-34)*Math.sin(ang));
+    t.setAttribute("class","num"); t.textContent=n; svg.appendChild(t);
+  }
+  const handHr=document.createElementNS(NS,"line");
+  handHr.setAttribute("x1",C); handHr.setAttribute("y1",C); handHr.setAttribute("x2",C); handHr.setAttribute("y2",C-72);
+  handHr.setAttribute("class","hand-hr"); svg.appendChild(handHr);
+  const handMin=document.createElementNS(NS,"line");
+  handMin.setAttribute("x1",C); handMin.setAttribute("y1",C); handMin.setAttribute("x2",C); handMin.setAttribute("y2",C-100);
+  handMin.setAttribute("class","hand-min"); svg.appendChild(handMin);
+  const pin=document.createElementNS(NS,"circle");
+  pin.setAttribute("cx",C); pin.setAttribute("cy",C); pin.setAttribute("r",5); pin.setAttribute("class","pin"); svg.appendChild(pin);
+  return {
+    setTime(h,m){
+      const hrDeg=((h%12)*30)+(m*0.5); const minDeg=m*6;
+      handHr.style.transform=`rotate(${hrDeg}deg)`; handMin.style.transform=`rotate(${minDeg}deg)`;
+    }
+  };
+}
+
+/* ========= 紙吹雪（内蔵・2秒） ========= */
+function celebrate(durationMs=30000){
+  const cvs = document.getElementById('confetti-canvas');
+  const ctx = cvs.getContext('2d');
+  const W = cvs.width = window.innerWidth;
+  const H = cvs.height = window.innerHeight;
+  cvs.style.display = 'block';
+
+  const N = 180, G = 0.15; // 粒数 / 重力
+  const parts = Array.from({length:N}, ()=>({
+    x: Math.random()*W,
+    y: -20 - Math.random()*H*0.3,
+    vx: (Math.random()-0.5)*3,
+    vy: 1 + Math.random()*2,
+    r: 4 + Math.random()*6,
+    rot: Math.random()*Math.PI*2,
+    vr: (Math.random()-0.5)*0.2,
+    s: Math.random()*0.7+0.3 // 落下スピードスケール
+  }));
+  let t0 = performance.now();
+  (function loop(t){
+    const dt = (t - t0)/16.7; t0 = t;
+    ctx.clearRect(0,0,W,H);
+    for(const p of parts){
+      p.vy += G*0.1; p.x += p.vx; p.y += p.vy*p.s; p.rot += p.vr;
+      if(p.y > H+30){ p.y = -20; p.x = Math.random()*W; p.vy = 1 + Math.random()*2; }
+      // 簡易色
+      ctx.save();
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = `hsl(${(p.x/W)*360},90%,60%)`;
+      ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r);
+      ctx.restore();
+    }
+    if(loop.stopAt && performance.now() > loop.stopAt){ cvs.style.display = 'none'; return; }
+    requestAnimationFrame(loop);
+  })(performance.now());
+
+}
+
+/* ========= 起動 ========= */
+loadPersistent(); refreshHeaderUI();
+startBtn.addEventListener("click", start);
+retryBtn.addEventListener("click", start);
+
+/* ★ 追加：まるつけ／次の問題 ボタンの挙動 */
+checkBtn.addEventListener("click", check);
+checkBtn.addEventListener("keydown", (e)=>{ 
+  if(e.key==="Enter"||e.key===" "){ e.preventDefault(); check(); }
+});
+nextBtn.addEventListener("click", next);
+</script>
+</body>
+</html>

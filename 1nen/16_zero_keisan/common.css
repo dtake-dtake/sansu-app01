@@ -1,0 +1,263 @@
+/* ============================================= */
+/* ===== 1. CSS変数（テーマカラー）の定義 ===== */
+/* ============================================= */
+:root {
+  /* 背景色 */
+  --c-bg-main: #e0f2f7;
+  --c-white: #ffffff;
+  --c-result-area-bg: #e3f2fd;
+  --c-problem-row-bg: #f0f8ff;
+  --c-history-bg: #bbdefb;
+
+  /* メインカラー（アクセントカラー） */
+  --c-primary: #1e88e5;
+  --c-primary-dark: #0d47a1;
+  --c-primary-light: #90caf9;
+  
+  /* ボタン色 */
+  --c-button-bg: #42a5f5;
+  --c-button-hover: #2196f3;
+
+  /* 文字色 */
+  --c-text-main: #333;
+  --c-text-on-button: #ffffff;
+  --c-history-text: #1a237e;
+
+  /* 意味を持つ色（成功、危険、フィードバック） */
+  --c-success: #2e7d32;
+  --c-danger: #ef5350;
+  --c-feedback-correct: #388e3c;
+  --c-feedback-wrong: #d32f2f;
+}
+
+
+/* ============================================= */
+/* ===== 2. 各要素のスタイル定義（変数使用） ===== */
+/* ============================================= */
+
+/* ===== 基本レイアウトとテーマ ===== */
+body {
+  font-family: 'HiraMaruProN-W4', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
+  background: var(--c-bg-main);
+  margin: 20px;
+  color: var(--c-text-main);
+  font-size: 2.2rem;
+  line-height: 1.6;
+}
+h1, h2 {
+  text-align: center;
+  margin: 15px 0;
+  color: var(--c-primary);
+  text-shadow: 2px 2px 3px rgba(0,0,0,0.1);
+  white-space: nowrap;
+}
+h1 { font-size: 3.5rem; }
+h2 { font-size: 2.5rem; margin-bottom: 40px; }
+
+
+/* ===== 問題表示エリア ===== */
+#problems-wrapper {
+  max-width: 850px;
+  width: auto;
+  display: inline-block;
+  margin: 0 auto 30px;
+  padding: 30px;
+  border: 4px dashed var(--c-primary-light);
+  background: var(--c-white);
+  box-shadow: 5px 5px 10px rgba(0,0,0,.15);
+  border-radius: 20px;
+}
+.problem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ← ★変更点 */
+  margin-bottom: 25px;
+  background: var(--c-problem-row-bg);
+  padding: 10px 15px;
+  border-radius: 10px;
+  box-shadow: 1px 1px 3px rgba(0,0,0,.08);
+}
+/* ▼▼▼ 新しく追加 ▼▼▼ */
+.problem-content {
+  display: flex;
+  align-items: center;
+}
+.problem-actions {
+  /* 将来的にヒントボタンなどを置くためのスペース */
+}
+/* ▲▲▲ 追加ここまで ▲▲▲ */
+
+.problem-number {
+  width: 70px;
+  text-align: right;
+  margin-right: 25px;
+  font-weight: bold;
+  font-size: 2.5rem;
+  color: var(--c-primary-dark);
+  flex-shrink: 0;
+}
+.problem-equation {
+  /* flex: 1; は削除 */
+  display: flex;
+  align-items: center;
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+.problem-equation span { 
+  margin: 0 18px; /* ← ★変更点: 余白を広げる */
+}
+input[type=number] {
+  -moz-appearance: textfield;
+  width: 80px;
+  font-size: 2.5rem;
+  margin-left: 15px;
+  padding: 8px;
+  border: 2px solid var(--c-primary-light);
+  border-radius: 8px;
+}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#problems-section {
+    text-align: center;
+}
+
+/* ===== ボタン類 ===== */
+.button-area { 
+  text-align: center; 
+  margin-bottom: 30px; 
+}
+button {
+  font-size: 2.5rem;
+  margin: 0 15px;
+  padding: 15px 30px;
+  background: var(--c-button-bg);
+  color: var(--c-text-on-button);
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  box-shadow: 3px 3px 6px rgba(0,0,0,.2);
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+button:hover {
+  background: var(--c-button-hover);
+  transform: translateY(-2px);
+}
+button:disabled {
+  background: #ccc;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+
+
+/* ===== 結果・ステータス表示エリア ===== */
+#result-area {
+  text-align: center;
+  margin-bottom: 25px;
+  background: var(--c-result-area-bg);
+  padding: 20px;
+  border-radius: 15px;
+  border: 2px solid var(--c-primary-light);
+}
+#result {
+  font-size: 2.8rem;
+  font-weight: bold;
+  margin: 15px 0;
+  min-height: 4rem;
+  color: var(--c-primary);
+}
+#highScoreArea, #clearCountArea, #monthlyCountArea, #dailyCountArea, #overallStatusArea {
+  font-size: 2.2rem;
+  margin: 8px 0;
+}
+#overallStatusArea {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#overallStatusText { margin-right: 10px; }
+#highScoreValue, #clearCountValue, #monthlyCountValue, #dailyCountValue {
+  font-weight: bold;
+  margin: 0 12px;
+  color: var(--c-success);
+}
+#reset-highscore {
+  font-size: 1.8rem;
+  margin-left: 15px;
+  padding: 8px 18px;
+  background: var(--c-danger);
+}
+#history-area {
+  font-size: 1.8rem;
+  margin: 20px auto;
+  text-align: left;
+  max-width: 500px;
+  padding: 10px;
+  background: var(--c-history-bg);
+  border-radius: 10px;
+  border: 1px solid var(--c-primary-light);
+}
+#history-list li { 
+  margin: 6px 0; 
+  color: var(--c-history-text);
+}
+
+
+/* ===== 正解・不正解のフィードバック ===== */
+.result-icon {
+  margin-left: 15px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.correct { color: var(--c-feedback-correct); }
+.wrong { color: var(--c-feedback-wrong); }
+
+
+/* ===== 星評価の見た目（色は固定）===== */
+.status-stars {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin: 0 1px;
+  font-size: 2.2rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  line-height: 1;
+}
+.stars-circle   { color: #42a5f5; }
+.stars-bronze   { color: #cd7f32; }
+.stars-silver   { color: #c0c0c0; }
+.stars-gold     { color: #ffd700; }
+.stars-diamond {
+  color: #b9f2ff;
+  text-shadow:
+    0 0 10px #00c6ff, 0 0 20px #00c6ff,
+    1px -1px 1px #fff, -1px 1px 1px #68d8ff;
+}
+.stars-rainbow {
+  background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow-animation 3s ease-in-out infinite;
+}
+
+
+/* ===== アニメーション定義 ===== */
+@keyframes rainbow-animation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes sparkle {
+  0% { filter: brightness(1) drop-shadow(0 0 2px gold); transform: scale(1); }
+  50% { filter: brightness(1.5) drop-shadow(0 0 6px gold); transform: scale(1.1); }
+  100% { filter: brightness(1) drop-shadow(0 0 2px gold); transform: scale(1); }
+}
+.sparkle-animation {
+    animation: sparkle 1.2s ease-in-out infinite;
+}

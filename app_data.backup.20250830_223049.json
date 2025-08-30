@@ -1,0 +1,417 @@
+[
+  {
+    "grade": "1年",
+    "units": [
+      {
+        "name": "６　　たしざん(1)",
+        "apps": [
+          {
+            "id": "1nen-tashizan-10made",
+            "title": "１０までのたしざん",
+            "path": "1nen/06_tashizan1/9-3_tashizan_10made.html"
+          }
+        ]
+      },
+      {
+        "name": "７　　ひきざん(1)",
+        "apps": [
+          {
+            "id": "1nen-hikizan-10made",
+            "title": "１０までのひきざん",
+            "path": "1nen/07_hikizan1/18-6_hikizan_10made.html"
+          }
+        ]
+      },
+      {
+        "name": "９　　10より おおきい かず",
+        "apps": [
+          {
+            "id": "1nen-10toikutsu",
+            "title": "１０といくつ",
+            "path": "1nen/09_10yori_ookii/35-2_10_to_ikutsu.html"
+          },
+          {
+            "id": "35-2_sikaku_ni_hairukazu",
+            "title": "□にはいるかず",
+            "path": "1nen/09_10yori_ookii/35-2_sikaku_ni_hairukazu.html"
+          },
+          {
+            "id": "36-3_kazuha_ikutu",
+            "title": "かずは いくつ？",
+            "path": "1nen/09_10yori_ookii/36-3_kazuha_ikutu.html"
+          },
+          {
+            "id": "38-4_kotaega_10ninaru_hikizan",
+            "title": "こたえが１０になる ひきざん",
+            "path": "1nen/09_10yori_ookii/38-4_kotaega_10ninaru_hikizan.html"
+          },
+          {
+            "id": "39-6_2keta_tasu_1keta",
+            "title": "２けたと１けたの たしざん",
+            "path": "1nen/09_10yori_ookii/39-6_2keta_tasu_1keta.html"
+          },
+          {
+            "id": "39-8_nikita_tasu_1keta",
+            "title": "２けたと１けたの ひきざん",
+            "path": "1nen/09_10yori_ookii/39-8_nikita_hiku_1keta.html"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "grade": "2年",
+    "units": [
+      {
+        "name": "２　　たし算とひき算",
+        "apps": [
+          {
+            "id": "2nen-kurikagari",
+            "title": "くり上がりのあるたし算",
+            "path": "2nen/02_tashizan_hikizan/10_kurikagari.html"
+          },
+          {
+            "id": "2nen-kurikagari-2",
+            "title": "（タイトル未設定）",
+            "path": "2nen/02_tashizan_hikizan/20_kurikagari_2.html"
+          },
+          {
+            "id": "2nen-kurisagari-from-20",
+            "title": "（タイトル未設定）",
+            "path": "2nen/02_tashizan_hikizan/30kurisagari_from_20.html"
+          },
+          {
+            "id": "2nen-kurisagari-nanjuu",
+            "title": "（タイトル未設定）",
+            "path": "2nen/02_tashizan_hikizan/40kurisagari_nanjuu.html"
+          },
+          {
+            "id": "2nen-kurisagari-20s",
+            "title": "（タイトル未設定）",
+            "path": "2nen/02_tashizan_hikizan/50kurisagari_20s.html"
+          },
+          {
+            "id": "2nen-kurisagari-general",
+            "title": "（タイトル未設定）",
+            "path": "2nen/02_tashizan_hikizan/90_kurisagari_general.html"
+          },
+          {
+            "id": "2nen-tashizan-hikizan-matome",
+            "title": "（タイトル未設定）",
+            "path": "2nen/02_tashizan_hikizan/110_tashizan_hikizan_matome.html"
+          }
+        ]
+      },
+      {
+        "name": "３　　時こくと時間",
+        "apps": [
+          {
+            "id": "clock-drill-grade2-final",
+            "title": "とけいの読み方（１分ずつ）",
+            "path": "2nen/03_jikoku_jikan/01_tokeino_yomikata_1min.html"
+          },
+          {
+            "id": "clock-drill-grade2-final",
+            "title": "とけいの読み方（５分ずつ）",
+            "path": "2nen/03_jikoku_jikan/01_tokeino_yomikata_5min.html"
+          }
+        ]
+      },
+      {
+        "name": "５　　たし算とひき算の筆算⑴",
+        "apps": [
+          {
+            "id": "g2_add_nocarry_2digit",
+            "title": "くり上がりのない２けたのひっ算",
+            "path": "2nen/05_hissan_th1/48_kuriagari_nasi.html"
+          },
+          {
+            "id": "g2_add_kuriagari_o1_2digit",
+            "title": "一の位がたして１０をこえるひっ算",
+            "path": "2nen/05_hissan_th1/50_tasu_to_over10_rank1.html"
+          },
+          {
+            "id": "g2_add_kuriagari_o1_2digit",
+            "title": "２けたまでのたし算のひっ算",
+            "path": "2nen/05_hissan_th1/51_2keta_hissan_sum.html"
+          },
+          {
+            "id": "g2_sub_noborrow_2digit",
+            "title": "くり上がりのない２けたのひっ算",
+            "path": "2nen/05_hissan_th1/110_kuriagari_nasi.html"
+          }
+        ]
+      },
+      {
+        "name": "１０　かけ算⑴",
+        "apps": [
+          {
+            "id": "kuku-5dan-junban",
+            "title": "五の段の九九（じゅんばん）",
+            "path": "2nen/10_kakezan1/10kuku_5dan_junban.html"
+          },
+          {
+            "id": "kuku-5dan-barabara",
+            "title": "五の段の九九（ばらばら）",
+            "path": "2nen/10_kakezan1/20kuku_5dan_barabara.html"
+          },
+          {
+            "id": "kuku-2dan-junban",
+            "title": "二の段の九九（じゅんばん）",
+            "path": "2nen/10_kakezan1/30kuku_2dan_junban.html"
+          },
+          {
+            "id": "kuku-2dan-barabara",
+            "title": "二の段の九九（ばらばら）",
+            "path": "2nen/10_kakezan1/40kuku_2dan_barabara.html"
+          },
+          {
+            "id": "kuku-3dan-junban",
+            "title": "三の段の九九（じゅんばん）",
+            "path": "2nen/10_kakezan1/50kuku_3dan_junban.html"
+          },
+          {
+            "id": "kuku-3dan-barabara",
+            "title": "三の段の九九（ばらばら）",
+            "path": "2nen/10_kakezan1/60kuku_3dan_barabara.html"
+          },
+          {
+            "id": "kuku-4dan-junban",
+            "title": "四の段の九九（じゅんばん）",
+            "path": "2nen/10_kakezan1/70kuku_4dan_junban.html"
+          },
+          {
+            "id": "kuku-4dan-barabara",
+            "title": "四の段の九九（ばらばら）",
+            "path": "2nen/10_kakezan1/80kuku_4dan_barabara.html"
+          },
+          {
+            "id": "kuku-5234dan-random",
+            "title": "二、三、四、五の段の九九",
+            "path": "2nen/10_kakezan1/90kuku_5234dan_random.html"
+          }
+        ]
+      },
+      {
+        "name": "１１　かけ算⑵",
+        "apps": [
+          {
+            "id": "kuku-6dan-junban",
+            "title": "六の段の九九（じゅんばん）",
+            "path": "2nen/11_kakezan2/10kuku_6dan_junban.html"
+          },
+          {
+            "id": "kuku-6dan-barabara",
+            "title": "六の段の九九（ばらばら）",
+            "path": "2nen/11_kakezan2/20kuku_6dan_barabara.html"
+          },
+          {
+            "id": "kuku-7dan-junban",
+            "title": "七の段の九九（じゅんばん）",
+            "path": "2nen/11_kakezan2/30kuku_7dan_junban.html"
+          },
+          {
+            "id": "kuku-7dan-barabara",
+            "title": "七の段の九九（ばらばら）",
+            "path": "2nen/11_kakezan2/40kuku_7dan_barabara.html"
+          },
+          {
+            "id": "kuku-8dan-junban",
+            "title": "八の段の九九（じゅんばん）",
+            "path": "2nen/11_kakezan2/50kuku_8dan_junban.html"
+          },
+          {
+            "id": "kuku-8dan-barabara",
+            "title": "八の段の九九（ばらばら）",
+            "path": "2nen/11_kakezan2/60kuku_8dan_barabara.html"
+          },
+          {
+            "id": "kuku-9dan-junban",
+            "title": "九の段の九九（じゅんばん）",
+            "path": "2nen/11_kakezan2/70kuku_9dan_junban.html"
+          },
+          {
+            "id": "kuku-9dan-barabara",
+            "title": "九の段の九九（ばらばら）",
+            "path": "2nen/11_kakezan2/80kuku_9dan_barabara.html"
+          },
+          {
+            "id": "kuku-1dan-junban-v1",
+            "title": "一の段の九九（じゅんばん）",
+            "path": "2nen/11_kakezan2/90kuku_1dan_junban.html"
+          },
+          {
+            "id": "kuku-1dan-barabara-v1",
+            "title": "一の段の九九（ばらばら）",
+            "path": "2nen/11_kakezan2/100kuku_1dan_barabara.html"
+          },
+          {
+            "id": "kuku-16789dan-random-v1",
+            "title": "一、六、七、八、九段の九九",
+            "path": "2nen/11_kakezan2/110kuku_16789dan_random.html"
+          },
+          {
+            "id": "kuku-10mondai-v1",
+            "title": "九九",
+            "path": "2nen/11_kakezan2/120kuku_10mondai.html"
+          },
+          {
+            "id": "130kuku_81mondai",
+            "title": "九九（81問）",
+            "path": "2nen/11_kakezan2/130kuku_81mondai.html"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "grade": "3年",
+    "units": [
+      {
+        "name": "１　　九九の表とかけ算",
+        "apps": [
+          {
+            "id": "kakezan-10-v1",
+            "title": "わくわく算数ドリル",
+            "path": "3nen/1_kuku_hyo_kakezan/01_10nokakezan.html"
+          },
+          {
+            "id": "kakezan-0-v1",
+            "title": "わくわく算数ドリル",
+            "path": "3nen/1_kuku_hyo_kakezan/02_0nokakezan.html"
+          },
+          {
+            "id": "03_shikaku_kakezan",
+            "title": "□のかけ算",
+            "path": "3nen/1_kuku_hyo_kakezan/03_shikaku_kakezan.html"
+          }
+        ]
+      },
+      {
+        "name": "２　　わり算",
+        "apps": [
+          {
+            "id": "01_warizan_kuku",
+            "title": "わり算（九九の逆算）",
+            "path": "3nen/2_warizan/01_warizan_kuku.html"
+          },
+          {
+            "id": "02_warizan_kukunai",
+            "title": "答えが九九にないわり算",
+            "path": "3nen/2_warizan/02_warizan_kukunai.html"
+          },
+          {
+            "id": "03_warizan_10koeru",
+            "title": "答えが10をこえるわり算",
+            "path": "3nen/2_warizan/03_warizan_10koeru.html"
+          },
+          {
+            "id": "04_warizan_matome",
+            "title": "わり算のまとめ",
+            "path": "3nen/2_warizan/04_warizan_matome.html"
+          }
+        ]
+      },
+      {
+        "name": "３　　たし算とひき算の筆算",
+        "apps": [
+          {
+            "id": "01_kuriagari_10i",
+            "title": "３桁たし算 くり上がり1回まで",
+            "path": "3nen/3_tasizan_hikizan_hissan/01_kuriagari_10i.html"
+          },
+          {
+            "id": "02_kuriagari-10i-100i",
+            "title": "十や百の位のくり上がり",
+            "path": "3nen/3_tasizan_hikizan_hissan/02_kuriagari-10i-100i.html"
+          },
+          {
+            "id": "03_10ninaru-kuriagari",
+            "title": "10になるくりあ上がり",
+            "path": "3nen/3_tasizan_hikizan_hissan/03_10ninaru-kuriagari.html"
+          },
+          {
+            "id": "04_over1000_kihon",
+            "title": "１０００をこえるひっ算１",
+            "path": "3nen/3_tasizan_hikizan_hissan/04_over1000_kihon.html"
+          },
+          {
+            "id": "05_over1000_ouyo",
+            "title": "１０００をこえるひっ算２",
+            "path": "3nen/3_tasizan_hikizan_hissan/05_over1000_ouyo.html"
+          },
+          {
+            "id": "06_kurisagari_nasi",
+            "title": "ひき算の筆算（くり下がりなし）",
+            "path": "3nen/3_tasizan_hikizan_hissan/06_kurisagari_nasi.html"
+          },
+          {
+            "id": "07_kurisagari_10ior100i",
+            "title": "ひき算の筆算（くりさがり1回）",
+            "path": "3nen/3_tasizan_hikizan_hissan/07_kurisagari_10ior100i.html"
+          },
+          {
+            "id": "08_kurisagari_nikai",
+            "title": "ひき算の筆算（くり下がり2回）",
+            "path": "3nen/3_tasizan_hikizan_hissan/08_kurisagari_nikai.html"
+          },
+          {
+            "id": "09_10iga0_kurisagari",
+            "title": "ひき算の筆算（十の位が0のくりさがり）",
+            "path": "3nen/3_tasizan_hikizan_hissan/09_10iga0_kurisagari.html"
+          },
+          {
+            "id": "10_x00karano_kurisagari",
+            "title": "ひき算の筆算（00からのくりさがり）",
+            "path": "3nen/3_tasizan_hikizan_hissan/10_x00karano_kurisagari.html"
+          },
+          {
+            "id": "11_4keta_tasizan_hissan",
+            "title": "たし算の筆算（4けた）",
+            "path": "3nen/3_tasizan_hikizan_hissan/11_4keta_tasizan_hissan.html"
+          }
+        ]
+      },
+      {
+        "name": "７　　たし算とひき算",
+        "apps": [
+          {
+            "id": "1_2keta_tasu_2keta_100ika",
+            "title": "２けた＋２けた⑴",
+            "path": "3nen/7_tasizan_hikizan/1_2keta_tasu_2keta_100ika.html"
+          },
+          {
+            "id": "2_2keta_tasu_2keta_100izyou",
+            "title": "２けた＋２けた⑵",
+            "path": "3nen/7_tasizan_hikizan/2_2keta_tasu_2keta_100izyou.html"
+          },
+          {
+            "id": "3_2keta_hiku_2keta",
+            "title": "２けた−２けた",
+            "path": "3nen/7_tasizan_hikizan/3_2keta_hiku_2keta.html"
+          },
+          {
+            "id": "4_100_hiku_2keta",
+            "title": "１００−２けた",
+            "path": "3nen/7_tasizan_hikizan/4_100_hiku_2keta.html"
+          }
+        ]
+      },
+      {
+        "name": "８　　長さ",
+        "apps": [
+          {
+            "id": "1_nagasa_tani_henkan",
+            "title": "長さのへんかん",
+            "path": "3nen/8_nagasa/1_nagasa_tani_henkan.html"
+          },
+          {
+            "id": "2_nagasa_keisan",
+            "title": "長さのたし算とひき算",
+            "path": "3nen/8_nagasa/2_nagasa_keisan.html"
+          }
+        ]
+      }
+    ]
+  }
+]
