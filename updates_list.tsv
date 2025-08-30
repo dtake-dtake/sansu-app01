@@ -22,14 +22,21 @@
 2年	２　　たし算とひき算	2nen/02_tashizan_hikizan
 2年	３　　時こくと時間	2nen/03_jikoku_jikan
 2年	４　　長さ	2nen/04_nagasa
-2年	５　　たし算とひき算の筆算⑴	2nen/05_hissan_th1
+2年 ５　　たし算とひき算の筆算⑴	2nen/05_hissan_th1
+2年 ●  見方・考え方を ふかめよう(1)	2nen/05_mikata_kangae1
 2年	６　　100をこえる数	2nen/06_100_koeru
 2年	７　　かさ	2nen/07_kasa
+2年	●　買えますか？ 買えませんか？	2nen/07_kaemasuka
+2年	●　算数の じゆうけんきゅう	2nen/07_jiyu_kenkyu
 2年	８　　たし算とひき算の筆算⑵	2nen/08_hissan_th2
+2年	●　見方・考え方を ふかめよう(2)	2nen/08_mikata_kangae2
 2年	９　　しきと計算	2nen/09_shiki_keisan
 2年	１０　かけ算⑴	2nen/10_kakezan1
 2年	１１　かけ算⑵	2nen/11_kakezan2
 2年	１２　三角形と 四角形	2nen/12_sankaku_shikaku
+2年	●　見方・考え方を ふかめよう(3)	2nen/12_mikata_kangae3
+2年	●　どんな 計算に なるのかな	2nen/12_donna_keisan
+2年	●　何番目	2nen/12_nanbanme
 2年	１３　かけ算の きまり	2nen/13_kakezan_kimari
 2年	１４　100cmを こえる 長さ	2nen/14_100cm_koeru_nagasa
 2年	１５　1000をこえる数	2nen/15_1000_koeru
@@ -38,11 +45,14 @@
 
 3年	１　　九九の表とかけ算	3nen/1_kuku_hyo_kakezan
 3年	２　　わり算	3nen/2_warizan
+3年	●　見方・考え方を 深めよう	3nen/02_mikata_kangae1
 3年	３　　たし算とひき算の筆算	3nen/3_tasizan_hikizan_hissan
 3年	４　　時こくと時間	3nen/4_jikoku_jikan
 3年	５　　一万をこえる数	3nen/5_ichiman_koeru
 3年	６　　表とグラフ	3nen/6_hyo_graph
 3年	７　　たし算とひき算	3nen/7_tasizan_hikizan
+3年	●　どんな 計算に なるのかな	3nen/07_donna_keisan
+3年	●　算数の 自由研究	3nen/07_jiyu_kenkyu
 3年	８　　長さ	3nen/8_nagasa
 3年	９　　あまりのあるわり算	3nen/9_amari_warizan
 3年	１０　重さ	3nen/10_omosa
@@ -52,6 +62,8 @@
 3年	１４　1けたをかけるかけ算の筆算	3nen/14_kakezan_hissan1
 3年	１５　式と計算	3nen/15_shiki_keisan
 3年	１６　分数	3nen/16_bunsu
+3年	●　間の数	3nen/16_ma_no_suu
+3年	●　わくわくプログラミング	3nen/16_programming
 3年	１７　三角形	3nen/17_sankakkei
 3年	１８　小数	3nen/18_shosu
 3年	１９　2けたをかけるかけ算の筆算	3nen/19_kakezan_hissan2
@@ -63,16 +75,26 @@
 4年	４　　角とその大きさ	4nen/4_kaku_ookisa
 4年	５　　垂直・平行と四角形	4nen/5_suichoku_heikou
 4年	６　　小数	4nen/6_shosu
+4年	●　見積もりを使って	4nen/06_mitsumori
+4年	●　算数の自由研究	4nen/06_jiyu_kenkyu
 4年	７　　2けたでわるわり算の筆算	4nen/7_warizan_hissan2
 4年	８　　式と計算の順じょ	4nen/8_shiki_keisan_junjo
 4年	９　　概数	4nen/9_gaisu1
+4年	●　そろばん	4nen/09_soroban
 4年	１０　面積	4nen/10_menseki
 4年	１１　がい数とその計算	4nen/11_gaisu2
+4年	●　見方・考え方を深めよう(1)	4nen/11_mikata_kangae1
 4年	１２　小数のかけ算とわり算	4nen/12_shosu_kakezan_warizan
+4年	●　どんな計算になるのかな	4nen/12_donna_keisan
+4年	●　だれでしょう	4nen/12_daredesho
 4年	１３　調べ方と整理のしかた	4nen/13_shirabekata_seiri
+4年	●　見方・考え方を深めよう(2)	4nen/13_mikata_kangae2
 4年	１４　分数	4nen/14_bunsu
 4年	１５　変わり方	4nen/15_kawarigata
 4年	１６　直方体と立方体	4nen/16_chokuhotai_rittai
+4年	●　わくわくプログラミング	4nen/16_programming
+4年	●　わくわくSDGs	4nen/16_sdgs
+4年	●　もうすぐ5年生	4nen/16_mousugu5nensei
 
 5年	１　　整数と小数	5nen/1_seisu_shosu
 5年	２　　体積	5nen/2_taiseki
@@ -81,28 +103,50 @@
 5年	５　　小数のわり算	5nen/5_shosu_warizan
 5年	６　　割合(1)	5nen/6_wariai1
 5年	７　　合同な図形	5nen/7_godo_zukei
+5年	●　見方・考え方を深めよう(1)	5nen/07_mikata_kangae1
+5年	●　どんな計算になるのかな	5nen/07_donna_keisan
+5年	●　算数の自由研究	5nen/07_jiyuu_kenkyuu
 5年	８　　整数	5nen/8_seisu
 5年	９　　分数	5nen/9_bunsu
 5年	１０　面積	5nen/10_menseki
 5年	１１　平均とその利用	5nen/11_heikin_riyo
 5年	１２　単位量あたりの大きさ	5nen/12_taniryo_atari
+5年	●　見方・考え方を深めよう(2)	5nen/12_mikata_kangae2
 5年	１３　割合(2)	5nen/13_wariai2
+5年	●　人文字	5nen/13_hito_moji
+5年	●　見積もりを使って	5nen/13_mitsumori
 5年	１４　円と正多角形	5nen/14_en_seitakakukei
 5年	１５　割合のグラフ	5nen/15_wariai_graph
 5年	１６　角柱と円柱	5nen/16_kakuchu_enchu
 5年	１７　速さ	5nen/17_hayasa
 5年	１８　変わり方	5nen/18_kawarigata
+5年	●　見方・考え方を深めよう(3)	5nen/18_mikata_kangae3
+5年	●　わくわくプログラミング	5nen/18_programming
+5年	●　わくわくSDGs	5nen/18_sdgs
+5年	●　もうすぐ6年生	5nen/18_mousugu6nensei
 
 6年	１　　対称な図形	6nen/1_taisho_zukei
 6年	２　　文字と式	6nen/2_moji_shiki
 6年	３　　分数×整数、分数÷整数	6nen/3_bunsu_kakezan_warizan1
 6年	４　　分数×分数	6nen/4_bunsu_kakezan2
 6年	５　　分数÷分数	6nen/5_bunsu_warizan2
+6年	●　場合を順序よく整理して	6nen/05_baai_seiri
+6年	●　どんな計算になるのかな	6nen/05_donna_keisan
+6年	●　算数の自由研究	6nen/05_jiyuu_kenkyuu
 6年	６　　場合を順序よく整理して	6nen/6_baai_junjo
 6年	７　　円の面積	6nen/7_en_menseki
 6年	８　　立体の体積	6nen/8_rittai_taiseki
 6年	９　　データの整理と活用	6nen/9_data_seiri_katsuyo
+6年	●　見方・考え方を深めよう(1)	6nen/09_mikata_kangae1
 6年	１０　比とその利用	6nen/10_hi_riyo
 6年	１１　図形の拡大と縮小	6nen/11_zukei_kakudai_shukusho
 6年	１２　比例と反比例	6nen/12_hirei_hanpirei
+6年	●　見方・考え方を深めよう(2)	6nen/12_mikata_kangae2
+6年	●　見積もりを使って	6nen/12_mitsumori
+6年	●　わくわくプログラミング	6nen/12_programming
 6年	１３　およその形と大きさ	6nen/13_oyoso_katachi_ookisa
+6年	●　見方・考え方を深めよう(3)	6nen/13_mikata_kangae3
+6年	●　すごろく	6nen/13_sugoroku
+6年	●　わくわくSDGs	6nen/13_sdgs
+6年	●　６年のまとめ	6nen/13_matome
+6年	●　未来へのとびら	6nen/13_tobira

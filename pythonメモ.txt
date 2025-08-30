@@ -1,1 +1,7 @@
-python prune_missing_apps.py
+generate_app_data_from_tsv.py
+
+動かす方法
+
+cmdで、
+
+python generate_app_data_from_tsv.py --root "." --tsv "updates_list.tsv"
