@@ -254,6 +254,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+// ページ更新時にスクロール位置を保持する
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';  // ブラウザの自動復元を止める
+}
+
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('scrollY', window.scrollY);
+});
+
+window.addEventListener('load', () => {
+  const y = localStorage.getItem('scrollY');
+  if (y !== null) {
+    window.scrollTo(0, parseInt(y, 10));
+  }
+});
+
   /* ---------- JSON読み込み（キャッシュ回避のためのパラメータ付与） ---------- */
   async function loadAppData(){
     try{
