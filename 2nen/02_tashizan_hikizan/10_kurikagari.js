@@ -6,7 +6,7 @@
 const quizConfig = {
   // 1. アプリの基本情報
   appId: '2nen-kurikagari', 
-  mainTitle: '',
+  mainTitle: 'きりのいい数になるたし算',
   title: 'きりのいい数になるたし算',
 
   // 2. 問題を生成する専門の関数

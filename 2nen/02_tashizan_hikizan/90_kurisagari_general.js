@@ -6,7 +6,7 @@
 const quizConfig = {
   // 1. アプリの基本情報
   appId: '2nen-kurisagari-general',
-  mainTitle: '９０　くり下がりのあるひき算(4)',
+  mainTitle: '二けた ひく 一けたのくりさがり',
   title: '二けた ひく 一けたのくりさがり',
 
   // 2. 問題を生成する専門の関数

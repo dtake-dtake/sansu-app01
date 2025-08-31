@@ -6,7 +6,7 @@
 const quizConfig = {
   // 1. アプリの基本情報
   appId: '2nen-kurisagari-nanjuu',
-  mainTitle: '',
+  mainTitle: '何十 ひく 一けた',
   title: '何十 ひく 一けた',
 
   // 2. 問題を生成する専門の関数

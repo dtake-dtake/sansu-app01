@@ -6,7 +6,7 @@
 const quizConfig = {
   // 1. アプリの基本情報
   appId: '2nen-kurisagari-20s',
-  mainTitle: '８０　くり下がりのあるひき算(3)',
+  mainTitle: '２０いくつのひき算のくり下がり',
   title: '２０いくつのひき算のくり下がり',
 
   // 2. 問題を生成する専門の関数
