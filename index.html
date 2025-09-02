@@ -58,6 +58,9 @@ h1{ text-align:center;color:#1a73e8;margin-bottom:30px;font-size:2.8em;text-shad
 <script>
 // 定数（開閉状態）
 const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
+const ALL_GRADES = ["1","2","3","4","5","6"]; // ← タブは常に1〜6を表示
+let gradeMap = new Map();                     // ← grade => units[] を保持
+
 const OPEN_UNITS_KEY_PREFIX   = 'openUnits:';  // 学年ごとに保存
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -127,31 +130,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ---------- UI初期化（学年タブ生成） ---------- */
-  function initializeUI(appData){
-    let initialGradeIndex = 0;
-    const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
-    if (last){
-      const i = appData.findIndex(g => g.grade === last);
-      if (i !== -1) initialGradeIndex = i;
-    }
+// 置換：学年タブと初期表示を固定配列ベースで描画
+function initializeUI(){
+  const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
+  const active = ALL_GRADES.includes(last) ? last : "1";
+  renderGradeTabs(active);
+  displayGrade(active);
+}
 
-    appData.forEach((gradeData, idx) => {
-      const tab = document.createElement('button');
-      tab.textContent = gradeData.grade;
-      tab.className = 'grade-tab';
-      if (idx === initialGradeIndex){
-        tab.classList.add('active');
-        displayUnits(gradeData.grade, gradeData.units);
-      }
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        localStorage.setItem(LAST_SELECTED_GRADE_KEY, gradeData.grade);
-        displayUnits(gradeData.grade, gradeData.units);
-      });
-      gradeTabsContainer.appendChild(tab);
+function renderGradeTabs(active){
+  const gradeTabsContainer = document.getElementById('grade-tabs');
+  gradeTabsContainer.innerHTML = "";
+  ALL_GRADES.forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'grade-tab' + (g === active ? ' active' : '');
+    btn.textContent = g + '年';
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      localStorage.setItem(LAST_SELECTED_GRADE_KEY, g);
+      displayGrade(g);
     });
+    gradeTabsContainer.appendChild(btn);
+  });
+}
+
+function displayGrade(grade){
+  const units = gradeMap.get(String(grade));
+  const unitsContainer = document.getElementById('units-container');
+
+  if (!units || units.length === 0){
+    // ← データが無い学年は“準備中”表示
+    unitsContainer.innerHTML = `
+      <div style="max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1);">
+        <h3 style="margin:0 0 10px;">${grade}年</h3>
+        <p style="margin:0;">この学年のアプリは準備中です。</p>
+      </div>`;
+    return;
   }
+  // 既存の単元描画関数をそのまま利用
+  displayUnits(String(grade), units);
+}
+
 
   /* ---------- 単元＆アプリ描画（実在チェック付き） ---------- */
   function displayUnits(gradeName, units){
@@ -277,7 +297,8 @@ window.addEventListener('load', () => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data  = await res.json();
       const clean = sanitizeAppData(data);   // .htmlのみ残し、空単元や空学年を除く
-      initializeUI(clean);
+gradeMap = new Map(clean.map(g => [String(g.grade), g.units || []]));
+initializeUI();
     }catch(err){
       console.error(err);
       unitsContainer.innerHTML = "<p style='text-align:center;color:red;'>アプリデータを読み込めませんでした。'app_data.json' を確認してください。</p>";
