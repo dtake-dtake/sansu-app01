@@ -56,26 +56,21 @@ h1{ text-align:center;color:#1a73e8;margin-bottom:30px;font-size:2.8em;text-shad
 <div id="units-container"></div>
 
 <script>
-// 定数（開閉状態）
+// 定数
 const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
-const ALL_GRADES = ["1","2","3","4","5","6"]; // ← タブは常に1〜6を表示
-let gradeMap = new Map();                     // ← grade => units[] を保持
-
 const OPEN_UNITS_KEY_PREFIX   = 'openUnits:';  // 学年ごとに保存
+const ALL_GRADES = ["1","2","3","4","5","6"];  // ★タブは常に 1〜6
+let gradeMap = new Map();                      // grade => units[]
 
+// DOM 準備
 document.addEventListener('DOMContentLoaded', () => {
   const gradeTabsContainer = document.getElementById('grade-tabs');
   const unitsContainer     = document.getElementById('units-container');
 
   /* ---------- スコア/ステータス取得（互換対応） ---------- */
-  function appIdFromItemId(itemId){
-    return String(itemId || '').replace(/^app-/, '');
-  }
+  function appIdFromItemId(itemId){ return String(itemId || '').replace(/^app-/, ''); }
   function firstExisting(keys){
-    for (const k of keys){
-      const v = localStorage.getItem(k);
-      if (v !== null) return v;
-    }
+    for (const k of keys){ const v = localStorage.getItem(k); if (v !== null) return v; }
     return null;
   }
   function getStatsByAppId(appId){
@@ -83,9 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusRaw = firstExisting([`${appId}:status`, `${appId}_overallStatus`, `${appId}:overallStatus`]);
     return { highScore: hsRaw !== null ? parseInt(hsRaw, 10) : null, overallStatus: statusRaw };
   }
-  function getStatsByElement(el){
-    return getStatsByAppId(appIdFromItemId(el.id));
-  }
+  function getStatsByElement(el){ return getStatsByAppId(appIdFromItemId(el.id)); }
 
   /* ---------- 学年ごとの開閉状態保存 ---------- */
   const getOpenUnitsForGrade = (grade) => {
@@ -114,12 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function existsOnServer(path){
     if (!/\.html?$/i.test(path)) return false;
     if (existCache[path] !== undefined) return existCache[path];
-    try {
+    try{
       const res = await fetch(path + (path.includes('?') ? '&' : '?') + 'v=' + Date.now(), { method:'HEAD' });
       existCache[path] = res.ok;
-    } catch {
-      existCache[path] = false;
-    }
+    }catch{ existCache[path] = false; }
     try { sessionStorage.setItem('exist-cache', JSON.stringify(existCache)); } catch {}
     return existCache[path];
   }
@@ -129,63 +120,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return candidates.filter((_, i) => results[i]);
   }
 
-  /* ---------- UI初期化（学年タブ生成） ---------- */
-// 置換：学年タブと初期表示を固定配列ベースで描画
-function initializeUI(){
-  const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
-  const active = ALL_GRADES.includes(last) ? last : "1";
-  renderGradeTabs(active);
-  displayGrade(active);
-}
-
-function renderGradeTabs(active){
-  const gradeTabsContainer = document.getElementById('grade-tabs');
-  gradeTabsContainer.innerHTML = "";
-  ALL_GRADES.forEach(g => {
-    const btn = document.createElement('button');
-    btn.className = 'grade-tab' + (g === active ? ' active' : '');
-    btn.textContent = g + '年';
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      localStorage.setItem(LAST_SELECTED_GRADE_KEY, g);
-      displayGrade(g);
-    });
-    gradeTabsContainer.appendChild(btn);
-  });
-}
-
-function displayGrade(grade){
-  const units = gradeMap.get(String(grade));
-  const unitsContainer = document.getElementById('units-container');
-
-  if (!units || units.length === 0){
-    // ← データが無い学年は“準備中”表示
-    unitsContainer.innerHTML = `
-      <div style="max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1);">
-        <h3 style="margin:0 0 10px;">${grade}年</h3>
-        <p style="margin:0;">この学年のアプリは準備中です。</p>
-      </div>`;
-    return;
-  }
-  // 既存の単元描画関数をそのまま利用
-  displayUnits(String(grade), units);
-}
-
-
   /* ---------- 単元＆アプリ描画（実在チェック付き） ---------- */
-  function displayUnits(gradeName, units){
+  async function displayUnits(gradeName, units){
     unitsContainer.innerHTML = '';
     let openUnits = getOpenUnitsForGrade(gradeName);
 
-    units.forEach(async unit => {
+    for (const unit of units){
       const unitSection = document.createElement('div');
       unitSection.className = 'unit-section';
 
       const appsList = document.createElement('div');
       appsList.className = 'apps-list';
 
-      // sanitizeAppData により .html に絞り込み済。さらに HEAD で実在チェック。
+      // sanitizeAppData 済＋HEADで実在確認
       const implementedApps = await filterExistingApps(unit.apps || []);
       const appsCount = implementedApps.length;
 
@@ -222,7 +169,6 @@ function displayGrade(grade){
           status.appendChild(scoreSpan);
           status.appendChild(starsSpan);
 
-          // localStorage からスコア/★を復元
           const stats = getStatsByElement(a);
           if (stats.highScore !== null) scoreSpan.textContent = `ハイスコア: ${stats.highScore}点`;
           if (stats.overallStatus){
@@ -244,7 +190,7 @@ function displayGrade(grade){
       unitSection.appendChild(appsList);
       unitsContainer.appendChild(unitSection);
 
-      // 開閉状態の適用
+      // 開閉状態
       if (openUnits.includes(unit.name)){
         appsList.style.display = 'flex';
         unitSection.classList.add('expanded');
@@ -271,34 +217,63 @@ function displayGrade(grade){
           setOpenUnitsForGrade(gradeName, openUnits);
         }
       });
-    });
+    }
   }
 
-// ページ更新時にスクロール位置を保持する
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual';  // ブラウザの自動復元を止める
-}
-
-window.addEventListener('beforeunload', () => {
-  localStorage.setItem('scrollY', window.scrollY);
-});
-
-window.addEventListener('load', () => {
-  const y = localStorage.getItem('scrollY');
-  if (y !== null) {
-    window.scrollTo(0, parseInt(y, 10));
+  /* ---------- 学年タブ：固定 1〜6 / 準備中表示 ---------- */
+  function renderGradeTabs(active){
+    gradeTabsContainer.innerHTML = "";
+    for (const g of ALL_GRADES){
+      const btn = document.createElement('button');
+      btn.className = 'grade-tab' + (g === active ? ' active' : '');
+      btn.textContent = g + '年';
+      btn.addEventListener('click', async () => {
+        document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        localStorage.setItem(LAST_SELECTED_GRADE_KEY, g);
+        await displayGrade(g);
+      });
+      gradeTabsContainer.appendChild(btn);
+    }
   }
-});
 
-  /* ---------- JSON読み込み（キャッシュ回避のためのパラメータ付与） ---------- */
+  async function displayGrade(grade){
+    const units = gradeMap.get(String(grade));
+    if (!units || units.length === 0){
+      unitsContainer.innerHTML = `
+        <div style="max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1);">
+          <h3 style="margin:0 0 10px;">${grade}年</h3>
+          <p style="margin:0;">この学年のアプリは準備中です。</p>
+        </div>`;
+      return;
+    }
+    await displayUnits(String(grade), units);
+  }
+
+  function initializeUI(){
+    const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
+    const active = (ALL_GRADES.includes(last) ? last : "1");
+    renderGradeTabs(active);
+    displayGrade(active);
+  }
+
+  // ページ更新時にスクロール位置を保持する
+  if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+  window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
+  window.addEventListener('load', () => {
+    const y = localStorage.getItem('scrollY');
+    if (y !== null) window.scrollTo(0, parseInt(y, 10));
+  });
+
+  /* ---------- JSON読み込み ---------- */
   async function loadAppData(){
     try{
       const res = await fetch('app_data.json?v=' + Date.now());
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data  = await res.json();
       const clean = sanitizeAppData(data);   // .htmlのみ残し、空単元や空学年を除く
-gradeMap = new Map(clean.map(g => [String(g.grade), g.units || []]));
-initializeUI();
+      gradeMap = new Map(clean.map(g => [String(g.grade), g.units || []]));
+      initializeUI();
     }catch(err){
       console.error(err);
       unitsContainer.innerHTML = "<p style='text-align:center;color:red;'>アプリデータを読み込めませんでした。'app_data.json' を確認してください。</p>";
@@ -307,5 +282,6 @@ initializeUI();
   loadAppData();
 });
 </script>
+
 </body>
 </html>
