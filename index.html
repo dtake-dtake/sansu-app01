@@ -63,55 +63,56 @@
   <div id="units-container"></div>
 
 <script>
-// ---------------- 定数 ----------------
+// ============= 定数 =============
 const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
-const OPEN_UNITS_KEY_PREFIX   = 'openUnits:';       // 学年ごとの開閉状態
-const ALL_GRADES = ["1","2","3","4","5","6"];      // タブは常に1〜6
-let gradeMap = new Map();                           // grade => units[]
+const OPEN_UNITS_KEY_PREFIX   = 'openUnits:';
+const ALL_GRADES = ["1","2","3","4","5","6"];
+let gradeMap = new Map();
 
-// ---------------- 星とクリア回数の取得 ----------------
-function appIdFromItemId(itemId){ return String(itemId || '').replace(/^app-/, ''); }
-function firstExisting(keys){
-  for (const k of keys){ const v = localStorage.getItem(k); if (v !== null) return v; }
-  return null;
-}
-function readAsInt(keys){
-  const v = firstExisting(keys); if (v === null) return null;
-  const n = parseInt(v, 10); return Number.isFinite(n) ? n : null;
-}
-function tryParseJSON(str){ try{ return JSON.parse(str); }catch{ return null; } }
-
-function getAppStorage(appId){
-  // 星のHTMLを優先して取り出す
-  const starRaw = firstExisting([
-    `${appId}:overallStatus`, `${appId}_overallStatus`,
-    `${appId}:status`,        `${appId}_status`,
-    `${appId}:stars`,         `${appId}_stars`
-  ]);
-  // クリア回数に対応するキー
-  let clearCount = readAsInt([
-    `${appId}:clear`, `${appId}_clear`,
-    `${appId}:clearCount`, `${appId}_clearCount`,
-    `${appId}:totalClears`, `${appId}_totalClears`
-  ]);
-  // 見つからない場合は history の件数で推定
-  if (clearCount === null){
-    const histRaw = firstExisting([`${appId}:history`, `${appId}_history`]);
-    const hist = histRaw ? tryParseJSON(histRaw) : null;
-    if (Array.isArray(hist)) clearCount = hist.length;
+// ============= 星＆クリア回数取得 =============
+function getStarsAndClears(appId){
+  // starRaw: 複数形式に対応
+  const starRaw = localStorage.getItem(`${appId}:overallStatus`) ||
+                  localStorage.getItem(`${appId}_overallStatus`) ||
+                  localStorage.getItem(`${appId}:status`) ||
+                  localStorage.getItem(`${appId}_status`) ||
+                  localStorage.getItem(`${appId}:stars`) ||
+                  localStorage.getItem(`${appId}_stars`);
+  const clearRaw = localStorage.getItem(`${appId}:clearCount`) ||
+                   localStorage.getItem(`${appId}_clearCount`) ||
+                   localStorage.getItem(`${appId}:clear`) ||
+                   localStorage.getItem(`${appId}_clear`) ||
+                   localStorage.getItem(`${appId}:totalClears`) ||
+                   localStorage.getItem(`${appId}_totalClears`);
+  let starCount = null;
+  if (starRaw){
+    const m = starRaw.match(/★/g);
+    if (m && m.length > 0){ starCount = m.length; }
+    else {
+      const n = starRaw.match(/(\d+)/);
+      if (n) starCount = parseInt(n[1], 10);
+    }
+    if (starCount !== null) starCount = Math.max(0, Math.min(5, starCount));
   }
-  return { starsHTML: starRaw, clearCount: clearCount ?? null };
+  let clearCount = null;
+  if (clearRaw){ clearCount = parseInt(clearRaw, 10); }
+  else {
+    const historyRaw = localStorage.getItem(`${appId}:history`) || localStorage.getItem(`${appId}_history`);
+    if (historyRaw){
+      try {
+        const arr = JSON.parse(historyRaw);
+        if (Array.isArray(arr)) clearCount = arr.length;
+      } catch {}
+    }
+  }
+  return { starCount, clearCount };
 }
 
-// ---------------- 学年ごとの開閉状態 ----------------
-const getOpenUnitsForGrade = (grade) => {
-  try{ return JSON.parse(localStorage.getItem(OPEN_UNITS_KEY_PREFIX + grade)) || []; }
-  catch{ return []; }
-};
-const setOpenUnitsForGrade = (grade, arr) =>
-  localStorage.setItem(OPEN_UNITS_KEY_PREFIX + grade, JSON.stringify(arr));
+// ============= 開閉状態 =============
+const getOpenUnitsForGrade = (g) => { try{ return JSON.parse(localStorage.getItem(OPEN_UNITS_KEY_PREFIX + g)) || []; }catch{ return []; } };
+const setOpenUnitsForGrade = (g, arr) => localStorage.setItem(OPEN_UNITS_KEY_PREFIX + g, JSON.stringify(arr));
 
-// ---------------- .html のみ残し、空単元/空学年除外 ----------------
+// ============= .html のみ残す（空単元・空学年除外） =============
 const isImplementedPath = (p) => typeof p === 'string' && /\.html?$/i.test(p);
 function sanitizeAppData(data){
   return (data || []).map(g => ({
@@ -122,11 +123,8 @@ function sanitizeAppData(data){
   })).filter(g => (g.units || []).length > 0);
 }
 
-// ---------------- 実在チェック（HEAD）＋キャッシュ ----------------
-const existCache = (() => {
-  try { return JSON.parse(sessionStorage.getItem('exist-cache') || '{}'); }
-  catch { return {}; }
-})();
+// ============= 実在チェック（HEAD）＋キャッシュ =============
+const existCache = (() => { try { return JSON.parse(sessionStorage.getItem('exist-cache') || '{}'); } catch { return {}; } })();
 async function existsOnServer(path){
   if (!/\.html?$/i.test(path)) return false;
   if (existCache[path] !== undefined) return existCache[path];
@@ -143,7 +141,7 @@ async function filterExistingApps(apps){
   return candidates.filter((_, i) => results[i]);
 }
 
-// ---------------- 単元＆アプリ描画 ----------------
+// ============= 単元＆アプリ描画 =============
 async function displayUnits(gradeName, units){
   const unitsContainer = document.getElementById('units-container');
   unitsContainer.innerHTML = '';
@@ -163,8 +161,7 @@ async function displayUnits(gradeName, units){
     unitHeader.innerHTML = `
       <span class="unit-title">${unit.name}</span>
       <span class="count-badge" title="この単元のドリル数">${appsCount}</span>
-      <span class="toggle-icon">▼</span>
-    `;
+      <span class="toggle-icon">▼</span>`;
     unitSection.appendChild(unitHeader);
 
     if (appsCount > 0){
@@ -181,24 +178,22 @@ async function displayUnits(gradeName, units){
         const status = document.createElement('div');
         status.className = 'app-status-section';
 
-        // 星表示（最新）
         const starsSpan = document.createElement('span');
         starsSpan.className = 'app-stars no-data';
         starsSpan.textContent = '―';
 
-        // クリア回数表示
         const clearsSpan = document.createElement('span');
         clearsSpan.className = 'app-clears';
         clearsSpan.textContent = 'クリア：0回';
 
-        // ローカルストレージから取得
-        const s = getAppStorage(appIdFromItemId(a.id));
-        if (s.starsHTML){
+        // 読み取り
+        const { starCount, clearCount } = getStarsAndClears(app.id);
+        if (starCount !== null && starCount > 0){
           starsSpan.classList.remove('no-data');
-          starsSpan.innerHTML = s.starsHTML;
+          starsSpan.textContent = '★'.repeat(starCount);
         }
-        if (s.clearCount !== null){
-          clearsSpan.textContent = `クリア：${s.clearCount}回`;
+        if (clearCount !== null){
+          clearsSpan.textContent = `クリア：${clearCount}回`;
         }
 
         status.appendChild(starsSpan);
@@ -216,7 +211,7 @@ async function displayUnits(gradeName, units){
     }
 
     unitSection.appendChild(appsList);
-    document.getElementById('units-container').appendChild(unitSection);
+    unitsContainer.appendChild(unitSection);
 
     // 開閉状態
     if (openUnits.includes(unit.name)){
@@ -237,7 +232,7 @@ async function displayUnits(gradeName, units){
           openUnits.push(unit.name);
           setOpenUnitsForGrade(gradeName, openUnits);
         }
-      }else{
+      } else {
         appsList.style.display = 'none';
         unitSection.classList.remove('expanded');
         unitHeader.querySelector('.toggle-icon').textContent = '▼';
@@ -248,10 +243,10 @@ async function displayUnits(gradeName, units){
   }
 }
 
-// ---------------- 学年タブ（固定1〜6）＋準備中表示 ----------------
+// ============= 学年タブ（固定1〜6）＋準備中表示 =============
 function renderGradeTabs(active){
   const gradeTabsContainer = document.getElementById('grade-tabs');
-  gradeTabsContainer.innerHTML = "";
+  gradeTabsContainer.innerHTML = '';
   for (const g of ALL_GRADES){
     const btn = document.createElement('button');
     btn.className = 'grade-tab' + (g === active ? ' active' : '');
@@ -287,15 +282,15 @@ function initializeUI(){
   displayGrade(active);
 }
 
-// ---------------- スクロール位置復元 ----------------
+// ============= スクロール復元 =============
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
 window.addEventListener('load', () => {
   const y = localStorage.getItem('scrollY');
-  if (y !== null) window.scrollTo(0, parseInt(y, 10));
+  if (y !== null) window.scrollTo(0, parseInt(y,10));
 });
 
-// ---------------- JSON読み込み ----------------
+// ============= JSON読み込み =============
 async function loadAppData(){
   try{
     const res = await fetch('app_data.json?v=' + Date.now());
