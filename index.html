@@ -41,7 +41,7 @@
   .app-status-section{ display:flex; align-items:center; gap:15px; font-size:1.1em; white-space:nowrap; }
   .app-stars{ color:gold; font-weight:bold; font-size:1.3em; text-shadow:1px 1px 2px rgba(0,0,0,.2); }
   .app-stars.no-data{ color:#9e9e9e; font-size:1.1em; text-shadow:none; }
-  .app-clears{ color:#0277bd; font-weight:600; } /* クリア回数表示 */
+  .app-clears{ color:#0277bd; font-weight:600; }
 
   @media (max-width:768px){
     body{padding:10px;}
@@ -82,16 +82,19 @@ function readAsInt(keys){
 function tryParseJSON(str){ try{ return JSON.parse(str); }catch{ return null; } }
 
 function getAppStorage(appId){
+  // 星のHTMLを優先して取り出す
   const starRaw = firstExisting([
     `${appId}:overallStatus`, `${appId}_overallStatus`,
     `${appId}:status`,        `${appId}_status`,
     `${appId}:stars`,         `${appId}_stars`
   ]);
+  // クリア回数に対応するキー
   let clearCount = readAsInt([
     `${appId}:clear`, `${appId}_clear`,
     `${appId}:clearCount`, `${appId}_clearCount`,
     `${appId}:totalClears`, `${appId}_totalClears`
   ]);
+  // 見つからない場合は history の件数で推定
   if (clearCount === null){
     const histRaw = firstExisting([`${appId}:history`, `${appId}_history`]);
     const hist = histRaw ? tryParseJSON(histRaw) : null;
@@ -108,7 +111,7 @@ const getOpenUnitsForGrade = (grade) => {
 const setOpenUnitsForGrade = (grade, arr) =>
   localStorage.setItem(OPEN_UNITS_KEY_PREFIX + grade, JSON.stringify(arr));
 
-// ---------------- .html のみ残す（空単元/空学年は除外） ----------------
+// ---------------- .html のみ残し、空単元/空学年除外 ----------------
 const isImplementedPath = (p) => typeof p === 'string' && /\.html?$/i.test(p);
 function sanitizeAppData(data){
   return (data || []).map(g => ({
@@ -178,7 +181,7 @@ async function displayUnits(gradeName, units){
         const status = document.createElement('div');
         status.className = 'app-status-section';
 
-        // 星（最新）表示
+        // 星表示（最新）
         const starsSpan = document.createElement('span');
         starsSpan.className = 'app-stars no-data';
         starsSpan.textContent = '―';
@@ -188,7 +191,7 @@ async function displayUnits(gradeName, units){
         clearsSpan.className = 'app-clears';
         clearsSpan.textContent = 'クリア：0回';
 
-        // ストレージから読み出し
+        // ローカルストレージから取得
         const s = getAppStorage(appIdFromItemId(a.id));
         if (s.starsHTML){
           starsSpan.classList.remove('no-data');
@@ -284,7 +287,7 @@ function initializeUI(){
   displayGrade(active);
 }
 
-// ---------------- スクロール位置復元（任意） ----------------
+// ---------------- スクロール位置復元 ----------------
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
 window.addEventListener('load', () => {
