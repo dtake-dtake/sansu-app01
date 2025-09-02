@@ -5,283 +5,309 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>わくわく　算数ドリル</title>
 <style>
-body{font-family:'HiraMaruProN-W4','ヒラギノ丸ゴ ProN W4','メイリオ',Meiryo,sans-serif;background:#f0f8ff;margin:0;padding:20px;color:#333;}
-h1{ text-align:center;color:#1a73e8;margin-bottom:30px;font-size:2.8em;text-shadow:1px 1px 2px rgba(0,0,0,.1); }
-#grade-tabs{ display:flex;justify-content:center;margin-bottom:30px;flex-wrap:wrap;gap:10px; }
-.grade-tab{ background:#bbdefb;color:#1a237e;border:none;padding:12px 25px;font-size:1.5em;cursor:pointer;border-radius:25px;transition:.3s;box-shadow:0 4px 6px rgba(0,0,0,.1);white-space:nowrap; }
-.grade-tab:hover{ background:#90caf9; transform:translateY(-2px); }
-.grade-tab.active{ background:#2196f3; color:#fff; box-shadow:0 6px 10px rgba(0,0,0,.2); }
+  body{font-family:'HiraMaruProN-W4','ヒラギノ丸ゴ ProN W4','メイリオ',Meiryo,sans-serif;background:#f0f8ff;margin:0;padding:20px;color:#333;}
+  h1{ text-align:center;color:#1a73e8;margin-bottom:30px;font-size:2.8em;text-shadow:1px 1px 2px rgba(0,0,0,.1); }
 
-#units-container{ max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1); }
-.unit-section{ margin-bottom:25px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden; }
-.unit-section h3{ background:#e3f2fd;color:#3f51b5;padding:15px 25px;margin:0;font-size:1.8em;cursor:pointer;border-bottom:1px solid #dcdcdc;transition:background-color .2s ease;
-  display:grid; grid-template-columns:1fr 4.0rem 2rem; align-items:center; column-gap:12px; }
-.unit-section h3:hover{ background:#c5e1ff; }
-.unit-section h3 .toggle-icon{ font-size:.8em; transition:transform .3s ease; justify-self:end;}
-.unit-section.expanded .toggle-icon{ transform:rotate(180deg); }
-.unit-section h3 .unit-title{ overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
-.unit-section h3 .count-badge{ display:inline-block; justify-self:center; width:100%; padding:2px 0; font-size:.7em; line-height:1.6; text-align:center; color:#0d47a1;
-  background:#e3f2fd; border:1px solid #bbdefb; border-radius:999px; font-weight:700; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+  #grade-tabs{ display:flex;justify-content:center;margin-bottom:30px;flex-wrap:wrap;gap:10px; }
+  .grade-tab{ background:#bbdefb;color:#1a237e;border:none;padding:12px 25px;font-size:1.5em;cursor:pointer;border-radius:25px;transition:.3s;box-shadow:0 4px 6px rgba(0,0,0,.1);white-space:nowrap; }
+  .grade-tab:hover{ background:#90caf9; transform:translateY(-2px); }
+  .grade-tab.active{ background:#2196f3; color:#fff; box-shadow:0 6px 10px rgba(0,0,0,.2); }
 
-.apps-list{ padding:15px 25px;background:#fafafa;border-top:1px solid #f0f0f0; display:none; flex-direction:column; gap:10px; animation:fadeIn .3s ease-out; }
-@keyframes fadeIn{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+  #units-container{ max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1); }
+  .unit-section{ margin-bottom:25px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden; }
+  .unit-section h3{
+    background:#e3f2fd;color:#3f51b5;padding:15px 25px;margin:0;font-size:1.8em;cursor:pointer;
+    border-bottom:1px solid #dcdcdc;transition:background-color .2s ease;
+    display:grid; grid-template-columns:1fr 4.0rem 2rem; align-items:center; column-gap:12px;
+  }
+  .unit-section h3:hover{ background:#c5e1ff; }
+  .unit-section h3 .toggle-icon{ font-size:.8em; transition:transform .3s ease; justify-self:end;}
+  .unit-section.expanded .toggle-icon{ transform:rotate(180deg); }
+  .unit-section h3 .unit-title{ overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
+  .unit-section h3 .count-badge{
+    display:inline-block; justify-self:center; width:100%; padding:2px 0; font-size:.7em; line-height:1.6;
+    text-align:center; color:#0d47a1; background:#e3f2fd; border:1px solid #bbdefb; border-radius:999px;
+    font-weight:700; font-variant-numeric:tabular-nums; font-feature-settings:"tnum";
+  }
 
-.app-item{ display:flex; align-items:center; justify-content:space-between; padding:10px 15px; background:#e8f5e9; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,.1);
-  transition:background-color .2s ease; text-decoration:none; color:#333; }
-.app-item:hover{ background:#c8e6c9; }
-.app-title-section{ display:flex; align-items:center; gap:10px; flex-grow:1; font-size:1.2em; font-weight:bold; }
-.app-status-section{ display:flex; align-items:center; gap:15px; font-size:1.1em; white-space:nowrap; }
-.app-score{ color:#4caf50; font-weight:bold; }
-.app-stars{ color:gold; font-weight:bold; font-size:1.3em; text-shadow:1px 1px 2px rgba(0,0,0,.2); }
-.app-stars.no-data{ color:#9e9e9e; font-size:1.1em; text-shadow:none; }
+  .apps-list{ padding:15px 25px;background:#fafafa;border-top:1px solid #f0f0f0; display:none; flex-direction:column; gap:10px; animation:fadeIn .3s ease-out; }
+  @keyframes fadeIn{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
 
-@media (max-width:768px){
-  body{padding:10px;}
-  h1{font-size:2.2em;}
-  .grade-tab{padding:10px 18px;font-size:1.2em;}
-  #units-container{padding:20px;}
-  .unit-section h3{font-size:1.5em;padding:12px 20px;}
-  .apps-list{padding:10px 20px;}
-  .app-item{flex-direction:column; align-items:flex-start; gap:5px;}
-  .app-title-section{width:100%; margin-bottom:5px;}
-  .app-status-section{width:100%; justify-content:flex-end; font-size:1em;}
-  .app-stars{font-size:1.2em;}
-}
+  .app-item{ display:flex; align-items:center; justify-content:space-between; padding:10px 15px; background:#e8f5e9; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,.1);
+    transition:background-color .2s ease; text-decoration:none; color:#333; }
+  .app-item:hover{ background:#c8e6c9; }
+
+  .app-title-section{ display:flex; align-items:center; gap:10px; flex-grow:1; font-size:1.2em; font-weight:bold; }
+  .app-status-section{ display:flex; align-items:center; gap:15px; font-size:1.1em; white-space:nowrap; }
+  .app-stars{ color:gold; font-weight:bold; font-size:1.3em; text-shadow:1px 1px 2px rgba(0,0,0,.2); }
+  .app-stars.no-data{ color:#9e9e9e; font-size:1.1em; text-shadow:none; }
+  .app-clears{ color:#0277bd; font-weight:600; } /* クリア回数表示 */
+
+  @media (max-width:768px){
+    body{padding:10px;}
+    h1{font-size:2.2em;}
+    .grade-tab{padding:10px 18px;font-size:1.2em;}
+    #units-container{padding:20px;}
+    .unit-section h3{font-size:1.5em;padding:12px 20px;}
+    .apps-list{padding:10px 20px;}
+    .app-item{flex-direction:column; align-items:flex-start; gap:5px;}
+    .app-title-section{width:100%; margin-bottom:5px;}
+    .app-status-section{width:100%; justify-content:flex-end; font-size:1em;}
+    .app-stars{font-size:1.2em;}
+  }
 </style>
 </head>
 <body>
-<h1>わくわく算数 ドリル</h1>
-
-<div id="grade-tabs"></div>
-<div id="units-container"></div>
+  <h1>わくわく算数 ドリル</h1>
+  <div id="grade-tabs"></div>
+  <div id="units-container"></div>
 
 <script>
-// 定数
+// ---------------- 定数 ----------------
 const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
-const OPEN_UNITS_KEY_PREFIX   = 'openUnits:';  // 学年ごとに保存
-const ALL_GRADES = ["1","2","3","4","5","6"];  // ★タブは常に 1〜6
-let gradeMap = new Map();                      // grade => units[]
+const OPEN_UNITS_KEY_PREFIX   = 'openUnits:';       // 学年ごとの開閉状態
+const ALL_GRADES = ["1","2","3","4","5","6"];      // タブは常に1〜6
+let gradeMap = new Map();                           // grade => units[]
 
-// DOM 準備
-document.addEventListener('DOMContentLoaded', () => {
-  const gradeTabsContainer = document.getElementById('grade-tabs');
-  const unitsContainer     = document.getElementById('units-container');
+// ---------------- 星とクリア回数の取得 ----------------
+function appIdFromItemId(itemId){ return String(itemId || '').replace(/^app-/, ''); }
+function firstExisting(keys){
+  for (const k of keys){ const v = localStorage.getItem(k); if (v !== null) return v; }
+  return null;
+}
+function readAsInt(keys){
+  const v = firstExisting(keys); if (v === null) return null;
+  const n = parseInt(v, 10); return Number.isFinite(n) ? n : null;
+}
+function tryParseJSON(str){ try{ return JSON.parse(str); }catch{ return null; } }
 
-  /* ---------- スコア/ステータス取得（互換対応） ---------- */
-  function appIdFromItemId(itemId){ return String(itemId || '').replace(/^app-/, ''); }
-  function firstExisting(keys){
-    for (const k of keys){ const v = localStorage.getItem(k); if (v !== null) return v; }
-    return null;
+function getAppStorage(appId){
+  const starRaw = firstExisting([
+    `${appId}:overallStatus`, `${appId}_overallStatus`,
+    `${appId}:status`,        `${appId}_status`,
+    `${appId}:stars`,         `${appId}_stars`
+  ]);
+  let clearCount = readAsInt([
+    `${appId}:clear`, `${appId}_clear`,
+    `${appId}:clearCount`, `${appId}_clearCount`,
+    `${appId}:totalClears`, `${appId}_totalClears`
+  ]);
+  if (clearCount === null){
+    const histRaw = firstExisting([`${appId}:history`, `${appId}_history`]);
+    const hist = histRaw ? tryParseJSON(histRaw) : null;
+    if (Array.isArray(hist)) clearCount = hist.length;
   }
-  function getStatsByAppId(appId){
-    const hsRaw = firstExisting([`${appId}:hs`, `${appId}_highScore`, `${appId}:highScore`]);
-    const statusRaw = firstExisting([`${appId}:status`, `${appId}_overallStatus`, `${appId}:overallStatus`]);
-    return { highScore: hsRaw !== null ? parseInt(hsRaw, 10) : null, overallStatus: statusRaw };
-  }
-  function getStatsByElement(el){ return getStatsByAppId(appIdFromItemId(el.id)); }
+  return { starsHTML: starRaw, clearCount: clearCount ?? null };
+}
 
-  /* ---------- 学年ごとの開閉状態保存 ---------- */
-  const getOpenUnitsForGrade = (grade) => {
-    try{ return JSON.parse(localStorage.getItem(OPEN_UNITS_KEY_PREFIX + grade)) || []; }
-    catch{ return []; }
-  };
-  const setOpenUnitsForGrade = (grade, arr) =>
-    localStorage.setItem(OPEN_UNITS_KEY_PREFIX + grade, JSON.stringify(arr));
+// ---------------- 学年ごとの開閉状態 ----------------
+const getOpenUnitsForGrade = (grade) => {
+  try{ return JSON.parse(localStorage.getItem(OPEN_UNITS_KEY_PREFIX + grade)) || []; }
+  catch{ return []; }
+};
+const setOpenUnitsForGrade = (grade, arr) =>
+  localStorage.setItem(OPEN_UNITS_KEY_PREFIX + grade, JSON.stringify(arr));
 
-  /* ---------- .htmlのみ抽出、空単元・空学年除去 ---------- */
-  const isImplementedPath = (p) => typeof p === 'string' && /\.html?$/i.test(p);
-  function sanitizeAppData(data){
-    return (data || []).map(g => ({
-      ...g,
-      units: (g.units || [])
-        .map(u => ({ ...u, apps: (u.apps || []).filter(a => isImplementedPath(a?.path)) }))
-        .filter(u => u.apps.length > 0)
-    })).filter(g => (g.units || []).length > 0);
-  }
+// ---------------- .html のみ残す（空単元/空学年は除外） ----------------
+const isImplementedPath = (p) => typeof p === 'string' && /\.html?$/i.test(p);
+function sanitizeAppData(data){
+  return (data || []).map(g => ({
+    ...g,
+    units: (g.units || [])
+      .map(u => ({ ...u, apps: (u.apps || []).filter(a => isImplementedPath(a?.path)) }))
+      .filter(u => u.apps.length > 0)
+  })).filter(g => (g.units || []).length > 0);
+}
 
-  /* ---------- 実在チェック（HEAD）＋キャッシュ ---------- */
-  const existCache = (() => {
-    try { return JSON.parse(sessionStorage.getItem('exist-cache') || '{}'); }
-    catch { return {}; }
-  })();
-  async function existsOnServer(path){
-    if (!/\.html?$/i.test(path)) return false;
-    if (existCache[path] !== undefined) return existCache[path];
-    try{
-      const res = await fetch(path + (path.includes('?') ? '&' : '?') + 'v=' + Date.now(), { method:'HEAD' });
-      existCache[path] = res.ok;
-    }catch{ existCache[path] = false; }
-    try { sessionStorage.setItem('exist-cache', JSON.stringify(existCache)); } catch {}
-    return existCache[path];
-  }
-  async function filterExistingApps(apps){
-    const candidates = (apps || []).filter(a => a && /\.html?$/i.test(a.path));
-    const results = await Promise.all(candidates.map(a => existsOnServer(a.path)));
-    return candidates.filter((_, i) => results[i]);
-  }
+// ---------------- 実在チェック（HEAD）＋キャッシュ ----------------
+const existCache = (() => {
+  try { return JSON.parse(sessionStorage.getItem('exist-cache') || '{}'); }
+  catch { return {}; }
+})();
+async function existsOnServer(path){
+  if (!/\.html?$/i.test(path)) return false;
+  if (existCache[path] !== undefined) return existCache[path];
+  try{
+    const res = await fetch(path + (path.includes('?') ? '&' : '?') + 'v=' + Date.now(), { method:'HEAD' });
+    existCache[path] = res.ok;
+  }catch{ existCache[path] = false; }
+  try { sessionStorage.setItem('exist-cache', JSON.stringify(existCache)); } catch {}
+  return existCache[path];
+}
+async function filterExistingApps(apps){
+  const candidates = (apps || []).filter(a => a && /\.html?$/i.test(a.path));
+  const results = await Promise.all(candidates.map(a => existsOnServer(a.path)));
+  return candidates.filter((_, i) => results[i]);
+}
 
-  /* ---------- 単元＆アプリ描画（実在チェック付き） ---------- */
-  async function displayUnits(gradeName, units){
-    unitsContainer.innerHTML = '';
-    let openUnits = getOpenUnitsForGrade(gradeName);
+// ---------------- 単元＆アプリ描画 ----------------
+async function displayUnits(gradeName, units){
+  const unitsContainer = document.getElementById('units-container');
+  unitsContainer.innerHTML = '';
+  let openUnits = getOpenUnitsForGrade(gradeName);
 
-    for (const unit of units){
-      const unitSection = document.createElement('div');
-      unitSection.className = 'unit-section';
+  for (const unit of units){
+    const unitSection = document.createElement('div');
+    unitSection.className = 'unit-section';
 
-      const appsList = document.createElement('div');
-      appsList.className = 'apps-list';
+    const appsList = document.createElement('div');
+    appsList.className = 'apps-list';
 
-      // sanitizeAppData 済＋HEADで実在確認
-      const implementedApps = await filterExistingApps(unit.apps || []);
-      const appsCount = implementedApps.length;
+    const implementedApps = await filterExistingApps(unit.apps || []);
+    const appsCount = implementedApps.length;
 
-      const unitHeader = document.createElement('h3');
-      unitHeader.innerHTML = `
-        <span class="unit-title">${unit.name}</span>
-        <span class="count-badge" title="この単元のドリル数">${appsCount}</span>
-        <span class="toggle-icon">▼</span>
-      `;
-      unitSection.appendChild(unitHeader);
+    const unitHeader = document.createElement('h3');
+    unitHeader.innerHTML = `
+      <span class="unit-title">${unit.name}</span>
+      <span class="count-badge" title="この単元のドリル数">${appsCount}</span>
+      <span class="toggle-icon">▼</span>
+    `;
+    unitSection.appendChild(unitHeader);
 
-      if (appsCount > 0){
-        implementedApps.forEach(app => {
-          const a = document.createElement('a');
-          a.href  = app.path;
-          a.className = 'app-item';
-          a.id = `app-${app.id}`;
+    if (appsCount > 0){
+      implementedApps.forEach(app => {
+        const a = document.createElement('a');
+        a.href  = app.path;
+        a.className = 'app-item';
+        a.id = `app-${app.id}`;
 
-          const title = document.createElement('div');
-          title.className = 'app-title-section';
-          title.textContent = app.title;
+        const title = document.createElement('div');
+        title.className = 'app-title-section';
+        title.textContent = app.title;
 
-          const status = document.createElement('div');
-          status.className = 'app-status-section';
+        const status = document.createElement('div');
+        status.className = 'app-status-section';
 
-          const scoreSpan = document.createElement('span');
-          scoreSpan.className = 'app-score';
-          scoreSpan.textContent = 'ハイスコア: -';
+        // 星（最新）表示
+        const starsSpan = document.createElement('span');
+        starsSpan.className = 'app-stars no-data';
+        starsSpan.textContent = '―';
 
-          const starsSpan = document.createElement('span');
-          starsSpan.className = 'app-stars no-data';
-          starsSpan.textContent = '―';
+        // クリア回数表示
+        const clearsSpan = document.createElement('span');
+        clearsSpan.className = 'app-clears';
+        clearsSpan.textContent = 'クリア：0回';
 
-          status.appendChild(scoreSpan);
-          status.appendChild(starsSpan);
+        // ストレージから読み出し
+        const s = getAppStorage(appIdFromItemId(a.id));
+        if (s.starsHTML){
+          starsSpan.classList.remove('no-data');
+          starsSpan.innerHTML = s.starsHTML;
+        }
+        if (s.clearCount !== null){
+          clearsSpan.textContent = `クリア：${s.clearCount}回`;
+        }
 
-          const stats = getStatsByElement(a);
-          if (stats.highScore !== null) scoreSpan.textContent = `ハイスコア: ${stats.highScore}点`;
-          if (stats.overallStatus){
-            starsSpan.classList.remove('no-data');
-            starsSpan.innerHTML = stats.overallStatus;
-          }
+        status.appendChild(starsSpan);
+        status.appendChild(clearsSpan);
 
-          a.appendChild(title);
-          a.appendChild(status);
-          appsList.appendChild(a);
-        });
-      } else {
-        const p = document.createElement('p');
-        p.textContent = 'この単元のアプリはまだありません。';
-        p.style.cssText = 'font-size:1.2em;color:#666;padding:10px 0;';
-        appsList.appendChild(p);
-      }
+        a.appendChild(title);
+        a.appendChild(status);
+        appsList.appendChild(a);
+      });
+    } else {
+      const p = document.createElement('p');
+      p.textContent = 'この単元のアプリはまだありません。';
+      p.style.cssText = 'font-size:1.2em;color:#666;padding:10px 0;';
+      appsList.appendChild(p);
+    }
 
-      unitSection.appendChild(appsList);
-      unitsContainer.appendChild(unitSection);
+    unitSection.appendChild(appsList);
+    document.getElementById('units-container').appendChild(unitSection);
 
-      // 開閉状態
-      if (openUnits.includes(unit.name)){
+    // 開閉状態
+    if (openUnits.includes(unit.name)){
+      appsList.style.display = 'flex';
+      unitSection.classList.add('expanded');
+      unitHeader.querySelector('.toggle-icon').textContent = '▲';
+    } else {
+      appsList.style.display = 'none';
+    }
+
+    unitHeader.addEventListener('click', () => {
+      const isClosed = (appsList.style.display === 'none');
+      if (isClosed){
         appsList.style.display = 'flex';
         unitSection.classList.add('expanded');
         unitHeader.querySelector('.toggle-icon').textContent = '▲';
-      } else {
-        appsList.style.display = 'none';
-      }
-
-      unitHeader.addEventListener('click', () => {
-        const isClosed = (appsList.style.display === 'none');
-        if (isClosed){
-          appsList.style.display = 'flex';
-          unitSection.classList.add('expanded');
-          unitHeader.querySelector('.toggle-icon').textContent = '▲';
-          if (!openUnits.includes(unit.name)){
-            openUnits.push(unit.name);
-            setOpenUnitsForGrade(gradeName, openUnits);
-          }
-        }else{
-          appsList.style.display = 'none';
-          unitSection.classList.remove('expanded');
-          unitHeader.querySelector('.toggle-icon').textContent = '▼';
-          openUnits = openUnits.filter(n => n !== unit.name);
+        if (!openUnits.includes(unit.name)){
+          openUnits.push(unit.name);
           setOpenUnitsForGrade(gradeName, openUnits);
         }
-      });
-    }
+      }else{
+        appsList.style.display = 'none';
+        unitSection.classList.remove('expanded');
+        unitHeader.querySelector('.toggle-icon').textContent = '▼';
+        openUnits = openUnits.filter(n => n !== unit.name);
+        setOpenUnitsForGrade(gradeName, openUnits);
+      }
+    });
   }
+}
 
-  /* ---------- 学年タブ：固定 1〜6 / 準備中表示 ---------- */
-  function renderGradeTabs(active){
-    gradeTabsContainer.innerHTML = "";
-    for (const g of ALL_GRADES){
-      const btn = document.createElement('button');
-      btn.className = 'grade-tab' + (g === active ? ' active' : '');
-      btn.textContent = g + '年';
-      btn.addEventListener('click', async () => {
-        document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        localStorage.setItem(LAST_SELECTED_GRADE_KEY, g);
-        await displayGrade(g);
-      });
-      gradeTabsContainer.appendChild(btn);
-    }
+// ---------------- 学年タブ（固定1〜6）＋準備中表示 ----------------
+function renderGradeTabs(active){
+  const gradeTabsContainer = document.getElementById('grade-tabs');
+  gradeTabsContainer.innerHTML = "";
+  for (const g of ALL_GRADES){
+    const btn = document.createElement('button');
+    btn.className = 'grade-tab' + (g === active ? ' active' : '');
+    btn.textContent = g + '年';
+    btn.addEventListener('click', async () => {
+      document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      localStorage.setItem(LAST_SELECTED_GRADE_KEY, g);
+      await displayGrade(g);
+    });
+    gradeTabsContainer.appendChild(btn);
   }
+}
 
-  async function displayGrade(grade){
-    const units = gradeMap.get(String(grade));
-    if (!units || units.length === 0){
-      unitsContainer.innerHTML = `
-        <div style="max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1);">
-          <h3 style="margin:0 0 10px;">${grade}年</h3>
-          <p style="margin:0;">この学年のアプリは準備中です。</p>
-        </div>`;
-      return;
-    }
-    await displayUnits(String(grade), units);
+async function displayGrade(grade){
+  const units = gradeMap.get(String(grade));
+  const unitsContainer = document.getElementById('units-container');
+  if (!units || units.length === 0){
+    unitsContainer.innerHTML = `
+      <div style="max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1);">
+        <h3 style="margin:0 0 10px;">${grade}年</h3>
+        <p style="margin:0;">この学年のアプリは準備中です。</p>
+      </div>`;
+    return;
   }
+  await displayUnits(String(grade), units);
+}
 
-  function initializeUI(){
-    const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
-    const active = (ALL_GRADES.includes(last) ? last : "1");
-    renderGradeTabs(active);
-    displayGrade(active);
-  }
+function initializeUI(){
+  const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
+  const active = (ALL_GRADES.includes(last) ? last : "1");
+  renderGradeTabs(active);
+  displayGrade(active);
+}
 
-  // ページ更新時にスクロール位置を保持する
-  if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-  window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
-  window.addEventListener('load', () => {
-    const y = localStorage.getItem('scrollY');
-    if (y !== null) window.scrollTo(0, parseInt(y, 10));
-  });
-
-  /* ---------- JSON読み込み ---------- */
-  async function loadAppData(){
-    try{
-      const res = await fetch('app_data.json?v=' + Date.now());
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data  = await res.json();
-      const clean = sanitizeAppData(data);   // .htmlのみ残し、空単元や空学年を除く
-      gradeMap = new Map(clean.map(g => [String(g.grade), g.units || []]));
-      initializeUI();
-    }catch(err){
-      console.error(err);
-      unitsContainer.innerHTML = "<p style='text-align:center;color:red;'>アプリデータを読み込めませんでした。'app_data.json' を確認してください。</p>";
-    }
-  }
-  loadAppData();
+// ---------------- スクロール位置復元（任意） ----------------
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
+window.addEventListener('load', () => {
+  const y = localStorage.getItem('scrollY');
+  if (y !== null) window.scrollTo(0, parseInt(y, 10));
 });
-</script>
 
+// ---------------- JSON読み込み ----------------
+async function loadAppData(){
+  try{
+    const res = await fetch('app_data.json?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data  = await res.json();
+    const clean = sanitizeAppData(data);
+    gradeMap = new Map(clean.map(g => [String(g.grade), g.units || []]));
+    initializeUI();
+  }catch(err){
+    console.error(err);
+    document.getElementById('units-container').innerHTML =
+      "<p style='text-align:center;color:red;'>アプリデータを読み込めませんでした。'app_data.json' を確認してください。</p>";
+  }
+}
+loadAppData();
+</script>
 </body>
 </html>
