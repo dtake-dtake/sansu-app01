@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>９　あまりのあるわり算｜九九を使って</title>
+
+  <!-- 共通スタイル -->
+  <link rel="stylesheet" href="./common.css" />
+
+  <!-- テーマ / 共通エンジン -->
+  <script src="./themes.js"></script>
+  <script src="./common.js"></script>
+</head>
+<body>
+
+  <header class="app-header">
+    <h1 id="main-title">９　あまりのあるわり算</h1>
+    <h2 id="sub-title">九九を使って</h2>
+  </header>
+
+  <!-- スタート画面 -->
+  <section id="start-area">
+    <div class="start-card">
+      <p>はじめに、スタートボタンをおしてください。</p>
+      <button id="start-btn" class="btn primary">スタート</button>
+    </div>
+  </section>
+
+  <!-- 本編（問題表示） -->
+  <section id="problems-section" style="display:none;">
+    <div class="status-bar">
+      <div class="status-item">ハイスコア: <span id="highScoreValue">0</span></div>
+      <div class="status-item">合計クリア: <span id="clearCountValue">0</span></div>
+      <div class="status-item">今月: <span id="monthlyCountValue">0</span></div>
+      <div class="status-item">今日: <span id="dailyCountValue">0</span></div>
+      <div class="status-item">ステータス: <span id="overallStars">―</span></div>
+    </div>
+
+    <div id="problems-wrapper" class="problems-wrapper"></div>
+
+    <div class="controls">
+      <button id="check-answers" class="btn success">まるつけ</button>
+      <button id="retry" class="btn">もういちど</button>
+      <button id="reset-highscore" class="btn danger">ハイスコアをリセット</button>
+    </div>
+    <div id="result" class="result"></div>
+
+    <div class="history">
+      <h3>りれき（最新10件）</h3>
+      <ul id="history-list"></ul>
+    </div>
+  </section>
+
+  <!-- このドリル固有ロジック -->
+  <script src="./107-4_kukuwo_tukatte.js"></script>
+</body>
+</html>
