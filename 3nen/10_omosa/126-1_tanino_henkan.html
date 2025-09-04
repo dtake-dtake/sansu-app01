@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>九九を使って</title>
+  <title>単位のへんかん</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
     :root {
-      --c-bg-main: #f3e5f5; --c-white: #ffffff; --c-result-area-bg: #e1bee7;
-      --c-problem-row-bg: #fce4ec; --c-history-bg: #ce93d8; --c-primary: #8e24aa;
-      --c-primary-dark: #4a148c; --c-primary-light: #d1c4e9; --c-button-bg: #ab47bc;
-      --c-button-hover: #9c27b0; --c-text-main: #333; --c-text-on-button: #ffffff;
-      --c-feedback-correct: #388e3c; --c-feedback-wrong: #d32f2f; font-size: 16px;
+      --c-bg-main: #fce4ec; --c-primary: #ec407a; --c-primary-dark: #880e4f;
+      --c-primary-light: #f8bbd0; --c-button-bg: #f06292; --c-button-hover: #ec407a;
+      --c-result-area-bg: #f48fb1; --c-problem-row-bg: #fce4ec; --c-history-bg: #f8bbd0;
+      --c-text-main: #333; --c-text-on-button: #ffffff; --c-feedback-correct: #388e3c;
+      --c-feedback-wrong: #d32f2f; font-size: 16px;
     }
     body {
       font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
@@ -30,7 +30,7 @@
     button:hover { background-color: var(--c-button-hover); }
     button:disabled { background-color: #ccc; cursor: not-allowed; }
     input[type="number"] {
-      font-size: 1.8rem; width: 70px; text-align: center;
+      font-size: 1.8rem; width: 120px; text-align: center;
       border: 2px solid var(--c-primary-light); border-radius: 8px;
       padding: 5px; margin: 0 5px;
     }
@@ -44,7 +44,8 @@
     }
     .problem-number { margin-right: 10px; font-weight: bold; }
     .problem-equation { display: flex; align-items: center; white-space: nowrap; }
-    .result-icon { font-size: 2.5rem; margin-left: 15px; font-weight: bold; }
+    .unit-label { font-size: 1.5rem; margin: 0 5px; }
+    .result-icon { font-size: 2.5rem; margin-left: auto; font-weight: bold; padding-left: 15px;}
     .correct { color: var(--c-feedback-correct); }
     .wrong { color: var(--c-feedback-wrong); }
     .button-area, #start-area { text-align: center; margin: 40px 0; }
@@ -61,9 +62,7 @@
 
   <h1 id="main-title"></h1>
   <h2 id="sub-title"></h2>
-  <div id="start-area">
-    <button id="start-btn">スタート！</button>
-  </div>
+  <div id="start-area"><button id="start-btn">スタート！</button></div>
   <div id="problems-section" style="display:none;">
     <div id="problems-wrapper"></div>
     <div class="button-area">
@@ -79,67 +78,70 @@
     <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
     <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
     <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
-    </div>
+  </div>
 
   <script>
     (function () {
       const config = {
-        appId: "107-4_kukuwo_tukatte",
-        mainTitle: "９　あまりのあるわり算",
-        title: "九九を使って",
+        appId: "126-1_tanino_henkan",
+        mainTitle: "１０　重さ",
+        title: "単位のへんかん",
         baseScore: 100,
-        targetTimePerQuestion: 25,
-        // ▼▼▼ 星の基準点を追加 ▼▼▼
-        starThresholds: {
-          star1: 100, star2: 120, star3: 140, star4: 160, star5: 180
-        },
+        targetTimePerQuestion: 15,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
         problemGenerator() {
-          const part1Probs = new Set();
-          const part2Probs = new Set();
-          while (part1Probs.size < 3) {
-            const b = Math.floor(Math.random() * 8) + 2;
-            const a = Math.floor(Math.random() * 8) + 2;
-            if (a > b && a % b !== 0) part1Probs.add(JSON.stringify({ a, b }));
+          let problemsList = [];
+          
+          // Type 1: t -> kg (3問)
+          for (let i = 0; i < 3; i++) {
+            const t = Math.floor(Math.random() * 9) + 1; // 1 to 9t
+            problemsList.push({
+              displayText: `${t}t = `,
+              answerType: 'single',
+              answers: [t * 1000],
+              unit: 'kg'
+            });
           }
-          while (part2Probs.size < 7) {
-            const b = Math.floor(Math.random() * 8) + 2;
-            const q = Math.floor(Math.random() * 9) + 1;
-            const r = Math.floor(Math.random() * (b - 1)) + 1;
-            const a = b * q + r;
-            if (a >= 10) part2Probs.add(JSON.stringify({ a, b }));
+
+          // Type 2: kg -> g (3問)
+          for (let i = 0; i < 3; i++) {
+            const kg = Math.floor(Math.random() * 9) + 1; // 1 to 9kg
+            problemsList.push({
+              displayText: `${kg}kg = `,
+              answerType: 'single',
+              answers: [kg * 1000],
+              unit: 'g'
+            });
           }
-          const finalProblemsRaw = [...part1Probs, ...part2Probs].map(JSON.parse);
-          for (let i = finalProblemsRaw.length - 1; i > 0; i--) {
+
+          // Type 3: g -> kg g (4問)
+          for (let i = 0; i < 4; i++) {
+            const g = (Math.floor(Math.random() * 89) + 11) * 100; // 1100 to 9900g
+            problemsList.push({
+              displayText: `${g}g = `,
+              answerType: 'kg_g',
+              answers: [Math.floor(g / 1000), g % 1000]
+            });
+          }
+
+          // Shuffle problems
+          for (let i = problemsList.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [finalProblemsRaw[i], finalProblemsRaw[j]] = [finalProblemsRaw[j], finalProblemsRaw[i]];
+            [problemsList[i], problemsList[j]] = [problemsList[j], problemsList[i]];
           }
-          return finalProblemsRaw.map(p => ({
-            displayText: `${p.a} ÷ ${p.b} = <input type="number" id="ans-__INDEX__-1" class="sub-blank"> あまり <input type="number" id="ans-__INDEX__-2" class="sub-blank">`,
-            answers: [Math.floor(p.a / p.b), p.a % p.b]
-          }));
+          return problemsList;
         }
       };
 
-      let problems = [];
-      let startTime = 0;
-      let highScore = 0;
-      // ▼▼▼ State変数を追加 ▼▼▼
+      let problems = [], startTime = 0, highScore = 0;
       let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
-      let overallStatusStars = '―';
-      // ▲▲▲ State変数を追加 ▲▲▲
-      let incorrectIndices = [];
+      let overallStatusStars = '―', incorrectIndices = [];
       const ls = localStorage;
-
-      // ▼▼▼ LocalStorageキーを追加 ▼▼▼
-      const KEY_HS = `${config.appId}:hs`;
-      const KEY_HISTORY = `${config.appId}:history`;
-      const KEY_CLEAR = `${config.appId}:clearCount`;
-      const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`;
-      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`, KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
       const KEY_OVERALL_STATUS = `${config.appId}:status`;
-      // ▲▲▲ LocalStorageキーを追加 ▲▲▲
 
-      // ▼▼▼ ロード処理を更新 ▼▼▼
       function loadData() {
         highScore = +ls.getItem(KEY_HS) || 0;
         const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
@@ -149,9 +151,6 @@
         dailyCount = +ls.getItem(todayKey) || 0;
         overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
       }
-      // ▲▲▲ ロード処理を更新 ▲▲▲
-
-      // ▼▼▼ 保存処理を更新 ▼▼▼
       function saveData() {
         ls.setItem(KEY_HS, String(highScore));
         const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
@@ -161,16 +160,12 @@
         ls.setItem(todayKey, String(dailyCount));
         ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
       }
-      // ▲▲▲ 保存処理を更新 ▲▲▲
-      
       function saveHistoryEntry(score) {
         const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
         history.unshift({ datetime: new Date().toLocaleString(), score });
         if (history.length > 10) history.pop();
         ls.setItem(KEY_HISTORY, JSON.stringify(history));
       }
-      
-      // ▼▼▼ 表示更新処理を更新 ▼▼▼
       function updateDisplay() {
         document.querySelector('#highScoreValue').textContent = highScore;
         document.querySelector('#clearCountValue').textContent = totalClearCount;
@@ -181,7 +176,6 @@
         document.querySelector('#history-list').innerHTML =
           history.map(h => `<li>${h.datetime}：${h.score}てん</li>`).join('');
       }
-      // ▲▲▲ 表示更新処理を更新 ▲▲▲
       
       function attachInputEvents(el) {
         if (!el) return;
@@ -192,7 +186,9 @@
             const [_, probIdxStr, subIdxStr] = el.id.split('-');
             const probIdx = parseInt(probIdxStr, 10);
             const subIdx = parseInt(subIdxStr, 10);
-            if (subIdx === 1) {
+            const currentProblem = problems[probIdx];
+
+            if (subIdx === 1 && currentProblem.answerType === 'kg_g') {
               document.querySelector(`#ans-${probIdx}-2`).focus();
               return;
             }
@@ -201,16 +197,12 @@
               if (currentIndexInErrorList < incorrectIndices.length - 1) {
                 const nextIncorrectProbIdx = incorrectIndices[currentIndexInErrorList + 1];
                 document.querySelector(`#ans-${nextIncorrectProbIdx}-1`).focus();
-              } else {
-                document.querySelector('#check-answers').focus();
-              }
+              } else { document.querySelector('#check-answers').focus(); }
             } else {
               const nextProbIdx = probIdx + 1;
               if (nextProbIdx < problems.length) {
                 document.querySelector(`#ans-${nextProbIdx}-1`).focus();
-              } else {
-                document.querySelector('#check-answers').focus();
-              }
+              } else { document.querySelector('#check-answers').focus(); }
             }
           }
         });
@@ -220,39 +212,58 @@
         const wrap = document.querySelector('#problems-wrapper');
         wrap.innerHTML = '';
         problems.forEach((p, i) => {
+          let inputHtml = '';
+          if (p.answerType === 'kg_g') {
+            inputHtml = `<input type="number" id="ans-${i}-1"><span class="unit-label">kg</span> <input type="number" id="ans-${i}-2"><span class="unit-label">g</span>`;
+          } else {
+            inputHtml = `<input type="number" id="ans-${i}-1"><span class="unit-label">${p.unit}</span>`;
+          }
           const row = document.createElement('div');
           row.className = 'problem';
           row.innerHTML = `
             <div class="problem-number">${i + 1}.</div>
-            <div class="problem-equation">${p.displayText.replace(/__INDEX__/g, i)}</div>
+            <div class="problem-equation">${p.displayText}</div>
+            ${inputHtml}
             <span id="icon-${i}" class="result-icon"></span>
           `;
           wrap.appendChild(row);
+
           attachInputEvents(document.querySelector(`#ans-${i}-1`));
-          attachInputEvents(document.querySelector(`#ans-${i}-2`));
+          if (p.answerType === 'kg_g') {
+            attachInputEvents(document.querySelector(`#ans-${i}-2`));
+          }
         });
       }
 
-      // ▼▼▼ 正解判定処理を更新 ▼▼▼
       function checkAnswers() {
         document.querySelector('#check-answers').disabled = true;
         const newIncorrectIndices = [];
         problems.forEach((p, i) => {
           const icon = document.querySelector(`#icon-${i}`);
           const ans1El = document.querySelector(`#ans-${i}-1`);
-          const ans2El = document.querySelector(`#ans-${i}-2`);
-          const isCorrect = (+ans1El.value === p.answers[0] && +ans2El.value === p.answers[1]);
+          let isCorrect = false;
+
+          if (p.answerType === 'kg_g') {
+            const ans2El = document.querySelector(`#ans-${i}-2`);
+            if (+ans1El.value === p.answers[0] && +ans2El.value === p.answers[1]) {
+              isCorrect = true;
+              ans2El.disabled = true;
+            } else {
+              ans2El.disabled = false; ans2El.value = '';
+            }
+          } else { // type 'single'
+            if (+ans1El.value === p.answers[0]) {
+              isCorrect = true;
+            }
+          }
+          
           if (isCorrect) {
-            icon.textContent = '○';
-            icon.className = 'result-icon correct';
+            icon.textContent = '○'; icon.className = 'result-icon correct';
             ans1El.disabled = true;
-            ans2El.disabled = true;
           } else {
-            icon.textContent = '×';
-            icon.className = 'result-icon wrong';
+            icon.textContent = '×'; icon.className = 'result-icon wrong';
             newIncorrectIndices.push(i);
             ans1El.disabled = false; ans1El.value = '';
-            ans2El.disabled = false; ans2El.value = '';
           }
         });
         incorrectIndices = newIncorrectIndices;
@@ -262,15 +273,10 @@
           const baseScore = config.baseScore || 100;
           const targetTime = problems.length * config.targetTimePerQuestion;
           let bonus = 0;
-          if (elapsed < targetTime) {
-            bonus = Math.floor(100 * (targetTime - elapsed) / targetTime);
-          }
+          if (elapsed < targetTime) bonus = Math.floor(100 * (targetTime - elapsed) / targetTime);
           const score = baseScore + bonus;
-
-          // カウントを増やす
-          totalClearCount++; monthlyCount++; dailyCount++;
           
-          // 星を計算
+          totalClearCount++; monthlyCount++; dailyCount++;
           const s = config.starThresholds;
           let starsHtml = '―';
           if (s) {
@@ -281,14 +287,12 @@
             else if (score >= s.star1) starsHtml = '★☆☆☆☆';
           }
           overallStatusStars = starsHtml;
-
           let msg = '🎉 全問正解！おめでとう！ 🎉';
           if (score > highScore) {
             msg = '🏆 ハイスコア達成！すごい！ 🏆';
             highScore = score;
             if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
           }
-          
           document.querySelector('#result').innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
           saveData();
           saveHistoryEntry(score);
@@ -300,7 +304,6 @@
           document.querySelector(`#ans-${incorrectIndices[0]}-1`).focus();
         }
       }
-      // ▲▲▲ 正解判定処理を更新 ▲▲▲
       
       function retry() {
         startTime = Date.now();
@@ -309,8 +312,7 @@
         incorrectIndices = [];
         problems = config.problemGenerator();
         displayProblems();
-        const firstInput = document.querySelector('#ans-0-1');
-        if (firstInput) firstInput.focus();
+        document.querySelector('#ans-0-1')?.focus();
       }
       
       document.addEventListener('DOMContentLoaded', () => {
@@ -327,7 +329,6 @@
         };
         document.querySelector('#check-answers').onclick = checkAnswers;
         document.querySelector('#retry').onclick = retry;
-        // ▼▼▼ リセット処理を更新 ▼▼▼
         document.querySelector('#reset-highscore').onclick = () => {
           if (confirm('ハイスコアとステータスをリセットしますか？\n（クリア回数はリセットされません）')) {
             highScore = 0;
@@ -336,7 +337,6 @@
             updateDisplay();
           }
         };
-        // ▲▲▲ リセット処理を更新 ▲▲▲
         document.addEventListener('keydown', e => {
             if (e.key === 'Enter' && startArea.style.display !== 'none') {
                 startBtn.click();

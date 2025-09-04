@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>一万の位の読みかた</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --c-bg: #f0f4c3;
+      --c-frame-bg: #fff;
+      --c-frame-border: #aed581;
+      --c-header-text: #558b2f;
+      --c-button-bg: #9ccc65;
+      --c-button-hover: #8bc34a;
+      --c-text-main: #333;
+      --c-text-on-button: #ffffff;
+      --c-correct: #2e7d32;
+      --c-wrong: #c62828;
+      --font-main: 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
+      --font-problem: "Kyokasho", "教科書体", serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-main);
+      background: var(--c-bg);
+      margin: 20px;
+      color: var(--c-text-main);
+      font-size: 1.6rem;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      text-align: center;
+      margin: 15px 0;
+      color: var(--c-header-text);
+      text-shadow: 2px 2px 3px rgba(0,0,0,.1);
+      white-space: nowrap;
+    }
+    h1 { font-size: 3rem; }
+    h2 { font-size: 2.2rem; margin-bottom: 30px; }
+    #problems-wrapper {
+      max-width: 800px;
+      margin: 0 auto 30px;
+      padding: 20px;
+      border: 4px dashed var(--c-frame-border);
+      background: var(--c-frame-bg);
+      box-shadow: 5px 5px 10px rgba(0,0,0,.15);
+      border-radius: 20px;
+    }
+    .problem-block {
+      font-family: var(--font-problem);
+      border-bottom: 2px solid var(--c-frame-border);
+      padding: 25px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .problem-block:last-child { border-bottom: none; }
+    .problem-number { font-size: 2.5rem; font-weight: bold; color: var(--c-header-text); margin-right: 20px;}
+    .problem-content { font-size: 2.8rem; letter-spacing: 2px; }
+    input[type="text"] {
+      font-family: var(--font-problem);
+      font-size: 2rem;
+      width: 400px; /* 長い答えを入力しやすいように幅を広げる */
+      text-align: left;
+      border: none;
+      border-bottom: 2px solid #ccc;
+      background: transparent;
+      margin: 0 15px;
+    }
+    input:focus { outline: none; border-bottom-color: var(--c-primary); }
+    .result-icon { font-size: 3rem; font-weight: bold; }
+    .correct { color: var(--c-correct); }
+    .wrong { color: var(--c-wrong); }
+    .button-area, #start-area { text-align: center; margin: 40px 0; }
+    button {
+      font-family: var(--font-main);
+      font-size: 1.5rem; padding: 12px 30px; border: none;
+      border-radius: 10px; background-color: var(--c-button-bg);
+      color: var(--c-text-on-button); cursor: pointer;
+      transition: background-color 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+    }
+    button:hover { background-color: var(--c-button-hover); }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    #result-area { text-align: center; }
+    #result { font-size: 2rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1 id="main-title"></h1>
+  <h2 id="sub-title"></h2>
+  <div id="start-area"><button id="start-btn">スタート！</button></div>
+
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+  
+  <div id="result-area" style="display:none;">
+    <div id="result"></div>
+  </div>
+
+  <script>
+    (function () {
+      const config = {
+        appId: "58-2_ichimanno_kuraino_yomikata",
+        mainTitle: "５　一万をこえる数",
+        title: "一万の位の読みかた",
+        problemCount: 8,
+        
+        convertToJapaneseReading(num) {
+          const digits = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+          const places = ["", "十", "百", "千"];
+          
+          let result = "";
+
+          const man = Math.floor(num / 10000);
+          if (man > 0) {
+            result += this.convertToJapaneseReading(man) + "万";
+          }
+
+          let rem = num % 10000;
+          if (rem === 0) return result;
+
+          for (let i = 3; i >= 0; i--) {
+            const placeVal = Math.pow(10, i);
+            let digit = Math.floor(rem / placeVal);
+            if (digit > 0) {
+              if (digit > 1 || i === 0) {
+                result += digits[digit];
+              }
+              if (i > 0) {
+                result += places[i];
+              }
+            }
+            rem %= placeVal;
+          }
+          return result;
+        },
+
+        problemGenerator() {
+          const problemsList = [];
+          while (problemsList.length < config.problemCount) {
+            const num = Math.floor(Math.random() * 90000) + 10000; // 10000 to 99999
+            const reading = this.convertToJapaneseReading(num);
+            problemsList.push({
+              displayText: num.toLocaleString(), // 数字をカンマ区切りで見やすくする
+              answer: reading
+            });
+          }
+          return problemsList;
+        }
+      };
+
+      let problems = [], incorrectIndices = [];
+      const startArea = document.getElementById('start-area');
+      const problemsSection = document.getElementById('problems-section');
+      const resultArea = document.getElementById('result-area');
+      const checkBtn = document.getElementById('check-answers');
+      const retryBtn = document.getElementById('retry');
+      const resultEl = document.getElementById('result');
+
+      function attachInputEvents(el) {
+        if (!el) return;
+        el.addEventListener('focus', () => el.scrollIntoView({ behavior: "smooth", block: "center" }));
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const [_, probIdxStr] = el.id.split('-');
+            const probIdx = parseInt(probIdxStr, 10);
+            
+            const nextProbIdx = probIdx + 1;
+            if (nextProbIdx < problems.length) {
+              document.querySelector(`#ans-${nextProbIdx}`)?.focus();
+            } else {
+              checkBtn.focus();
+            }
+          }
+        });
+      }
+      
+      function displayProblems() {
+        const wrap = document.getElementById('problems-wrapper');
+        wrap.innerHTML = '';
+        problems.forEach((p, i) => {
+          const block = document.createElement('div');
+          block.className = 'problem-block';
+          block.innerHTML = `
+            <div class="problem-number">${i + 1}</div>
+            <span class="problem-content">${p.displayText}</span>
+            <input type="text" id="ans-${i}">
+            <div id="icon-${i}" class="result-icon"></div>
+          `;
+          wrap.appendChild(block);
+          attachInputEvents(document.querySelector(`#ans-${i}`));
+        });
+      }
+
+      function checkAnswers() {
+        checkBtn.disabled = true;
+        incorrectIndices = [];
+        problems.forEach((p, i) => {
+          const ansEl = document.querySelector(`#ans-${i}`);
+          const userAnswer = ansEl.value.trim();
+          const isCorrect = (userAnswer === p.answer);
+          
+          const icon = document.querySelector(`#icon-${i}`);
+          if (isCorrect) {
+            icon.textContent = '○'; icon.className = 'result-icon correct';
+            ansEl.disabled = true;
+          } else {
+            icon.textContent = '×'; icon.className = 'result-icon wrong';
+            incorrectIndices.push(i);
+          }
+        });
+
+        if (incorrectIndices.length === 0) {
+          resultEl.innerHTML = '🎉 全問正解！おめでとう！ 🎉';
+          if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
+          retryBtn.focus();
+        } else {
+          resultEl.textContent = 'おしい！まちがいを直そう！';
+          checkBtn.disabled = false;
+          document.querySelector(`#ans-${incorrectIndices[0]}`)?.focus();
+        }
+      }
+      
+      function retry() {
+        resultEl.textContent = '';
+        checkBtn.disabled = false;
+        incorrectIndices = [];
+        problems = config.problemGenerator();
+        displayProblems();
+        document.querySelector('#ans-0')?.focus();
+      }
+      
+      window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('sub-title').textContent = config.title;
+        const startBtn = document.getElementById('start-btn');
+        startBtn.onclick = () => {
+          startArea.style.display = 'none';
+          problemsSection.style.display = 'block';
+          resultArea.style.display = 'block';
+          retry();
+        };
+        checkBtn.onclick = checkAnswers;
+        retryBtn.onclick = retry;
+        startBtn.focus();
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && startArea.style.display !== 'none') {
+            startBtn.click();
+          }
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>
