@@ -513,6 +513,16 @@
         ]
       },
       {
+        "name": "５　　一万をこえる数",
+        "apps": [
+          {
+            "id": "58-2_ichimanno_kuraino_yomikata",
+            "title": "一万の位の読みかた",
+            "path": "3nen/5_ichiman_koeru/58-2_ichimanno_kuraino_yomikata.html"
+          }
+        ]
+      },
+      {
         "name": "７　　たし算とひき算",
         "apps": [
           {
@@ -549,6 +559,41 @@
             "id": "2_nagasa_keisan",
             "title": "長さのたし算とひき算",
             "path": "3nen/8_nagasa/2_nagasa_keisan.html"
+          }
+        ]
+      },
+      {
+        "name": "９　　あまりのあるわり算",
+        "apps": [
+          {
+            "id": "107-4_kukuwo_tukatte",
+            "title": "九九を使って",
+            "path": "3nen/9_amari_warizan/107-4_kukuwo_tukatte.html"
+          },
+          {
+            "id": "108-2_kotaeno_tashikame",
+            "title": "答えのたしかめ",
+            "path": "3nen/9_amari_warizan/108-2_kotaeno_tashikame.html"
+          }
+        ]
+      },
+      {
+        "name": "１０　重さ",
+        "apps": [
+          {
+            "id": "122-2_omosano_keisan",
+            "title": "重さの計算",
+            "path": "3nen/10_omosa/122-2_omosano_keisan.html"
+          },
+          {
+            "id": "126-1_tanino_henkan",
+            "title": "単位のへんかん",
+            "path": "3nen/10_omosa/126-1_tanino_henkan.html"
+          },
+          {
+            "id": "126-3_omosano_taniwo_kakou",
+            "title": "重さの単位をかこう",
+            "path": "3nen/10_omosa/126-3_omosano_taniwo_kakou.html"
           }
         ]
       }
