@@ -88,7 +88,7 @@
         mainTitle: "９　あまりのあるわり算",
         title: "九九を使って",
         baseScore: 100,
-        targetTimePerQuestion: 25,
+        targetTimePerQuestion: 20,
         // ▼▼▼ 星の基準点を追加 ▼▼▼
         starThresholds: {
           star1: 100, star2: 120, star3: 140, star4: 160, star5: 180
@@ -96,12 +96,13 @@
         problemGenerator() {
           const part1Probs = new Set();
           const part2Probs = new Set();
-          while (part1Probs.size < 3) {
+          // 合計5問になるように変更
+          while (part1Probs.size < 2) {
             const b = Math.floor(Math.random() * 8) + 2;
             const a = Math.floor(Math.random() * 8) + 2;
             if (a > b && a % b !== 0) part1Probs.add(JSON.stringify({ a, b }));
           }
-          while (part2Probs.size < 7) {
+          while (part2Probs.size < 3) {
             const b = Math.floor(Math.random() * 8) + 2;
             const q = Math.floor(Math.random() * 9) + 1;
             const r = Math.floor(Math.random() * (b - 1)) + 1;
@@ -123,23 +124,18 @@
       let problems = [];
       let startTime = 0;
       let highScore = 0;
-      // ▼▼▼ State変数を追加 ▼▼▼
       let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
       let overallStatusStars = '―';
-      // ▲▲▲ State変数を追加 ▲▲▲
       let incorrectIndices = [];
       const ls = localStorage;
 
-      // ▼▼▼ LocalStorageキーを追加 ▼▼▼
       const KEY_HS = `${config.appId}:hs`;
       const KEY_HISTORY = `${config.appId}:history`;
       const KEY_CLEAR = `${config.appId}:clearCount`;
       const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`;
       const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
       const KEY_OVERALL_STATUS = `${config.appId}:status`;
-      // ▲▲▲ LocalStorageキーを追加 ▲▲▲
 
-      // ▼▼▼ ロード処理を更新 ▼▼▼
       function loadData() {
         highScore = +ls.getItem(KEY_HS) || 0;
         const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
@@ -149,9 +145,7 @@
         dailyCount = +ls.getItem(todayKey) || 0;
         overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
       }
-      // ▲▲▲ ロード処理を更新 ▲▲▲
 
-      // ▼▼▼ 保存処理を更新 ▼▼▼
       function saveData() {
         ls.setItem(KEY_HS, String(highScore));
         const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
@@ -161,7 +155,6 @@
         ls.setItem(todayKey, String(dailyCount));
         ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
       }
-      // ▲▲▲ 保存処理を更新 ▲▲▲
       
       function saveHistoryEntry(score) {
         const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
@@ -170,7 +163,6 @@
         ls.setItem(KEY_HISTORY, JSON.stringify(history));
       }
       
-      // ▼▼▼ 表示更新処理を更新 ▼▼▼
       function updateDisplay() {
         document.querySelector('#highScoreValue').textContent = highScore;
         document.querySelector('#clearCountValue').textContent = totalClearCount;
@@ -181,7 +173,6 @@
         document.querySelector('#history-list').innerHTML =
           history.map(h => `<li>${h.datetime}：${h.score}てん</li>`).join('');
       }
-      // ▲▲▲ 表示更新処理を更新 ▲▲▲
       
       function attachInputEvents(el) {
         if (!el) return;
@@ -233,7 +224,6 @@
         });
       }
 
-      // ▼▼▼ 正解判定処理を更新 ▼▼▼
       function checkAnswers() {
         document.querySelector('#check-answers').disabled = true;
         const newIncorrectIndices = [];
@@ -267,10 +257,8 @@
           }
           const score = baseScore + bonus;
 
-          // カウントを増やす
           totalClearCount++; monthlyCount++; dailyCount++;
           
-          // 星を計算
           const s = config.starThresholds;
           let starsHtml = '―';
           if (s) {
@@ -300,7 +288,6 @@
           document.querySelector(`#ans-${incorrectIndices[0]}-1`).focus();
         }
       }
-      // ▲▲▲ 正解判定処理を更新 ▲▲▲
       
       function retry() {
         startTime = Date.now();
@@ -327,7 +314,6 @@
         };
         document.querySelector('#check-answers').onclick = checkAnswers;
         document.querySelector('#retry').onclick = retry;
-        // ▼▼▼ リセット処理を更新 ▼▼▼
         document.querySelector('#reset-highscore').onclick = () => {
           if (confirm('ハイスコアとステータスをリセットしますか？\n（クリア回数はリセットされません）')) {
             highScore = 0;
@@ -336,7 +322,6 @@
             updateDisplay();
           }
         };
-        // ▲▲▲ リセット処理を更新 ▲▲▲
         document.addEventListener('keydown', e => {
             if (e.key === 'Enter' && startArea.style.display !== 'none') {
                 startBtn.click();

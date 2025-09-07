@@ -519,6 +519,11 @@
             "id": "58-2_ichimanno_kuraino_yomikata",
             "title": "一万の位の読みかた",
             "path": "3nen/5_ichiman_koeru/58-2_ichimanno_kuraino_yomikata.html"
+          },
+          {
+            "id": "58-3_sujino_kakikata",
+            "title": "数字のかき方",
+            "path": "3nen/5_ichiman_koeru/58-3_sujino_kakikata.html"
           }
         ]
       },
@@ -594,6 +599,56 @@
             "id": "126-3_omosano_taniwo_kakou",
             "title": "重さの単位をかこう",
             "path": "3nen/10_omosa/126-3_omosano_taniwo_kakou.html"
+          }
+        ]
+      },
+      {
+        "name": "１４　1けたをかけるかけ算の筆算",
+        "apps": [
+          {
+            "id": "23-3-4_nanju_nanbyakuno_kakezan",
+            "title": "何十・何百のかけ算",
+            "path": "3nen/14_kakezan_hissan1/23-3,4_nanju_nanbyakuno_kakezan.html"
+          },
+          {
+            "id": "25-4_2keta_kakeru_1keta_kuriagarinasi",
+            "title": "２けた×１けた くりあがりなし",
+            "path": "3nen/14_kakezan_hissan1/25-4_2keta_kakeru_1keta_kuriagarinasi.html"
+          },
+          {
+            "id": "26-6_2keta_kakeru_1keta_kuriagari",
+            "title": "２けた×１けた くり上がり",
+            "path": "3nen/14_kakezan_hissan1/26-6_2keta_kakeru_1keta_kuriagari.html"
+          },
+          {
+            "id": "27-8_hyaku_no_kuraiheno_kuriagari",
+            "title": "２けた×１けた 百の位へのくり上がり",
+            "path": "3nen/14_kakezan_hissan1/27-8_hyaku_no_kuraiheno_kuriagari.html"
+          },
+          {
+            "id": "28-12-13_2kai_kuriagaru_hissan",
+            "title": "２回くり上がるひっ算",
+            "path": "3nen/14_kakezan_hissan1/28-12,13_2kai_kuriagaru_hissan.html"
+          },
+          {
+            "id": "31-5_3keta_kakeru_1keta",
+            "title": "３けた×１けたの筆算",
+            "path": "3nen/14_kakezan_hissan1/31-5_3keta_kakeru_1keta.html"
+          },
+          {
+            "id": "32-3_anzan",
+            "title": "暗算",
+            "path": "3nen/14_kakezan_hissan1/32-3_anzan.html"
+          }
+        ]
+      },
+      {
+        "name": "１６　分数",
+        "apps": [
+          {
+            "id": "45-3_bunsuno_daisyo",
+            "title": "分数の大小",
+            "path": "3nen/16_bunsu/45-3_bunsuno_daisyo.html"
           }
         ]
       }

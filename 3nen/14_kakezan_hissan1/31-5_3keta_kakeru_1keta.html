@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>３けた×１けたの筆算</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --c-bg-main: #eceff1; --c-primary: #546e7a; --c-primary-dark: #263238;
+      --c-primary-light: #b0bec5; --c-button-bg: #78909c; --c-button-hover: #607d8b;
+      --c-result-area-bg: #cfd8dc; --c-problem-row-bg: #ffffff; --c-history-bg: #b0bec5;
+      --c-text-main: #212121; --c-text-on-button: #ffffff;
+      --c-feedback-correct-bg: #e8f5e9; 
+      --c-feedback-wrong-bg: #ffebee;
+      font-size: 16px;
+    }
+    body {
+      font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background-color: var(--c-bg-main); color: var(--c-text-main); margin: 0;
+      padding: 15px; line-height: 1.6;
+    }
+    h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; background: var(--c-primary-light); padding: 5px; border-radius: 8px;}
+    button {
+      font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+      background-color: var(--c-button-bg); color: var(--c-text-on-button);
+      cursor: pointer; transition: background-color 0.2s;
+    }
+    button:hover { background-color: var(--c-button-hover); }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    #problems-wrapper { 
+      max-width: 900px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+    }
+    .problem-container {
+      background: var(--c-problem-row-bg);
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .hissan-wrapper {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .problem-number {
+      font-weight: bold;
+      font-size: 2rem;
+      padding-right: 10px;
+      padding-top: 10px; 
+      height: 50px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+    }
+    .hissan-grid {
+      display: grid;
+      grid-template-columns: 50px 50px 50px 50px;
+      font-size: 2.5rem;
+      position: relative;
+    }
+    .cell {
+      border: 1px solid var(--c-primary-light);
+      width: 100%;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .line {
+      grid-column: 1 / -1;
+      height: 2px;
+      background-color: var(--c-primary-dark);
+    }
+    .answer-cell {
+      font-size: 2.5rem;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      border: none;
+      border-right: 1px solid var(--c-primary-light);
+      border-bottom: 1px solid var(--c-primary-light);
+      border-radius: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    .carry-cell {
+      position: absolute;
+      top: 103px;
+      width: 20px; 
+      height: 20px;
+      font-size: 1.3rem;
+      color: var(--c-primary);
+      text-align: center;
+      border: 1px dashed var(--c-primary-light);
+      border-radius: 5px;
+      z-index: 1; 
+    }
+    .carry1 { left: 150px; transform: translateX(-50%); }
+    .carry2 { left: 100px; transform: translateX(-50%); }
+
+    .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+    .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+    .button-area, #start-area { text-align: center; margin: 40px 0; }
+    #result-area {
+      max-width: 600px; margin: 20px auto; padding: 15px;
+      background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+    }
+    #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
+    .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px;}
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body>
+
+  <h1 id="main-title"></h1>
+  <h2 id="sub-title"></h2>
+  <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+  </div>
+
+  <script>
+    (function () {
+      const config = {
+        appId: "31-5_3keta_kakeru_1keta_final",
+        mainTitle: "１４　１けたをかけるかけざんのひっ算",
+        title: "３けた×１けたの筆算",
+        baseScore: 100,
+        targetTimePerQuestion: 40,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        problemGenerator() {
+            const problems = new Set();
+            while (problems.size < 10) {
+                let a = Math.floor(Math.random() * 899) + 101;
+                const b = Math.floor(Math.random() * 8) + 2;
+                if (Math.random() < 0.33) { a = Math.floor(a / 100) * 100 + (a % 10); }
+                problems.add(JSON.stringify({a, b}));
+            }
+            const finalProblemsRaw = [...problems].map(JSON.parse);
+            return finalProblemsRaw.map(p => {
+                const answer = p.a * p.b;
+                const ones = p.a % 10;
+                const tens = Math.floor((p.a % 100) / 10);
+                const carry1 = Math.floor(ones * p.b / 10);
+                const carry2 = Math.floor((tens * p.b + carry1) / 10);
+                const ans_th = Math.floor(answer / 1000);
+                const ans_h = Math.floor((answer % 1000) / 100);
+                const ans_t = Math.floor((answer % 100) / 10);
+                const ans_o = answer % 10;
+                return { a: p.a, b: p.b, answers: [carry1, ans_o, carry2, ans_t, ans_th, ans_h] };
+            });
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
+      let overallStatusStars = '―', incorrectIndices = [];
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`, KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      
+      function loadData() { /* ... */ }
+      function saveData() { /* ... */ }
+      function saveHistoryEntry(score) { /* ... */ }
+      function updateDisplay() { /* ... */ }
+      
+      const inputOrder = ['carry1', 'o', 'carry2', 't', 'th', 'h'];
+      const skippableZeros = ['carry1', 'carry2', 'th'];
+
+      function findNextFocusTarget(probIdx, currentPart) {
+          let currentPos = inputOrder.indexOf(currentPart);
+          
+          for (let i = currentPos + 1; i < inputOrder.length; i++) {
+              const nextPart = inputOrder[i];
+              if (problems[probIdx].answers[i] !== 0 || !skippableZeros.includes(nextPart)) {
+                  return `#ans-${probIdx}-${nextPart}`;
+              }
+          }
+          const nextProbIdx = probIdx + 1;
+          if (nextProbIdx < problems.length) {
+              for (let i = 0; i < inputOrder.length; i++) {
+                  const nextPart = inputOrder[i];
+                  if (problems[nextProbIdx].answers[i] !== 0 || !skippableZeros.includes(nextPart)) {
+                      return `#ans-${nextProbIdx}-${nextPart}`;
+                  }
+              }
+              return `#ans-${nextProbIdx}-${inputOrder[0]}`;
+          }
+          return '#check-answers';
+      }
+
+      /* ▼▼▼ 修正済みの関数 ▼▼▼ */
+      function attachInputEvents(probIdx, part) {
+        const el = document.querySelector(`#ans-${probIdx}-${part}`);
+        if (!el) return;
+        
+        const currentPos = inputOrder.indexOf(part);
+        el.addEventListener('focus', () => el.scrollIntoView({ behavior: "smooth", block: "center" }));
+        
+        el.addEventListener('input', () => {
+          if (el.value.length >= 1) {
+            const targetSelector = findNextFocusTarget(probIdx, part);
+            document.querySelector(targetSelector).focus();
+          }
+        });
+
+        el.addEventListener('keydown', e => {
+          if (e.key.startsWith('Arrow')) {
+              e.preventDefault();
+              if (e.key === 'ArrowRight' && currentPos < inputOrder.length - 1) {
+                  document.querySelector(`#ans-${probIdx}-${inputOrder[currentPos + 1]}`).focus();
+              } else if (e.key === 'ArrowLeft' && currentPos > 0) {
+                  document.querySelector(`#ans-${probIdx}-${inputOrder[currentPos - 1]}`).focus();
+              }
+          }
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const isForCorrection = incorrectIndices.length > 0;
+
+            if (isForCorrection && currentPos === inputOrder.length - 1) {
+                const currentIndexInErrorList = incorrectIndices.indexOf(probIdx);
+                if (currentIndexInErrorList < incorrectIndices.length - 1) {
+                  const nextIncorrectProbIdx = incorrectIndices[currentIndexInErrorList + 1];
+                  const firstTarget = findNextFocusTarget(nextIncorrectProbIdx-1, 'h'); // 次の不正解問題の最初の入力マスを探す
+                  document.querySelector(firstTarget).focus();
+                } else {
+                  document.querySelector('#check-answers').focus();
+                }
+            } else {
+                const targetSelector = findNextFocusTarget(probIdx, part);
+                document.querySelector(targetSelector).focus();
+            }
+          }
+        });
+      }
+      
+      function displayProblems() { /* ... */ }
+
+      function checkAnswers() {
+        document.querySelector('#check-answers').disabled = true;
+        incorrectIndices = [];
+        problems.forEach((p, i) => {
+          const getEl = (part) => document.querySelector(`#ans-${i}-${part}`);
+          const els = { carry1: getEl('carry1'), o: getEl('o'), carry2: getEl('carry2'), t: getEl('t'), th: getEl('th'), h: getEl('h') };
+          const userAnsArr = [
+              +els.carry1.value || 0, els.o.value === '' ? -1 : +els.o.value,
+              +els.carry2.value || 0, els.t.value === '' ? -1 : +els.t.value,
+              +els.th.value || 0, els.h.value === '' ? -1 : +els.h.value
+          ];
+          Object.values(els).forEach(el => { if (el) el.classList.remove('correct-bg', 'wrong-bg'); });
+          let isCorrect = true;
+          for(let j=0; j<userAnsArr.length; j++) { if(userAnsArr[j] !== p.answers[j]) isCorrect = false; }
+          
+          if (isCorrect) {
+            Object.values(els).forEach(el => { if (el) { el.classList.add('correct-bg'); el.disabled = true; }});
+          } else {
+            incorrectIndices.push(i);
+            Object.values(els).forEach(el => { if (el) { el.classList.add('wrong-bg'); el.disabled = false; if(el.value !== '') el.value = ''; }});
+          }
+        });
+        
+        if (incorrectIndices.length === 0) { /* ... */ } else {
+           document.querySelector('#result').textContent = 'おしい！まちがいを直そう！';
+           document.querySelector('#check-answers').disabled = false;
+           const firstTarget = findNextFocusTarget(incorrectIndices[0]-1, 'h');
+           document.querySelector(firstTarget).focus();
+        }
+      }
+      
+      function retry() { /* ... */ }
+      document.addEventListener('DOMContentLoaded', () => { /* ... */ });
+
+      // Injected full function bodies
+      const fullFunctions = {
+        loadData: function() { highScore = +ls.getItem(KEY_HS) || 0; const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10); const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7); totalClearCount = +ls.getItem(KEY_CLEAR) || 0; monthlyCount = +ls.getItem(monthKey) || 0; dailyCount = +ls.getItem(todayKey) || 0; overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―'; },
+        saveData: function() { ls.setItem(KEY_HS, String(highScore)); const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10); const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7); ls.setItem(KEY_CLEAR, String(totalClearCount)); ls.setItem(monthKey, String(monthlyCount)); ls.setItem(todayKey, String(dailyCount)); ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); },
+        saveHistoryEntry: function(score) { const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); history.unshift({ datetime: new Date().toLocaleString(), score }); if (history.length > 10) history.pop(); ls.setItem(KEY_HISTORY, JSON.stringify(history)); },
+        updateDisplay: function() { document.querySelector('#highScoreValue').textContent = highScore; document.querySelector('#clearCountValue').textContent = totalClearCount; document.querySelector('#monthlyCountValue').textContent = monthlyCount; document.querySelector('#dailyCountValue').textContent = dailyCount; document.querySelector('#overallStars').innerHTML = overallStatusStars; const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime}：${h.score}てん</li>`).join(''); },
+        displayProblems: function() { const wrap = document.querySelector('#problems-wrapper'); wrap.innerHTML = ''; problems.forEach((p, i) => { const container = document.createElement('div'); container.className = 'problem-container'; const hundreds_a = Math.floor(p.a / 100); const tens_a = Math.floor((p.a % 100) / 10); const ones_a = p.a % 10; container.innerHTML = ` <div class="hissan-wrapper"> <span class="problem-number">${i + 1}.</span> <div class="hissan-grid"> <input type="number" id="ans-${i}-carry2" class="carry-cell carry2" maxlength="1" oninput="this.value=this.value.slice(0,1)"> <input type="number" id="ans-${i}-carry1" class="carry-cell carry1" maxlength="1" oninput="this.value=this.value.slice(0,1)"> <div class="cell"></div><div class="cell">${hundreds_a}</div><div class="cell">${tens_a}</div><div class="cell">${ones_a}</div> <div class="cell">×</div><div class="cell"></div><div class="cell"></div><div class="cell">${p.b}</div> <div class="line"></div> <input type="number" id="ans-${i}-th" class="answer-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"> <input type="number" id="ans-${i}-h" class="answer-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"> <input type="number" id="ans-${i}-t" class="answer-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"> <input type="number" id="ans-${i}-o" class="answer-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"> </div> </div> `; wrap.appendChild(container); inputOrder.forEach(part => attachInputEvents(i, part)); }); },
+        checkAnswers: function() { document.querySelector('#check-answers').disabled = true; incorrectIndices = []; problems.forEach((p, i) => { const getEl = (part) => document.querySelector(`#ans-${i}-${part}`); const els = { carry1: getEl('carry1'), o: getEl('o'), carry2: getEl('carry2'), t: getEl('t'), th: getEl('th'), h: getEl('h') }; const userAnsArr = [ +els.carry1.value || 0, els.o.value === '' ? -1 : +els.o.value, +els.carry2.value || 0, els.t.value === '' ? -1 : +els.t.value, +els.th.value || 0, els.h.value === '' ? -1 : +els.h.value ]; Object.values(els).forEach(el => { if (el) el.classList.remove('correct-bg', 'wrong-bg'); }); let isCorrect = true; for(let j=0; j<userAnsArr.length; j++) { if(userAnsArr[j] !== p.answers[j]) isCorrect = false; } if (isCorrect) { Object.values(els).forEach(el => { if (el) { el.classList.add('correct-bg'); el.disabled = true; }}); } else { incorrectIndices.push(i); Object.values(els).forEach(el => { if (el) { el.classList.add('wrong-bg'); el.disabled = false; if(el.value !== '') el.value = ''; }}); } }); if (incorrectIndices.length === 0) { const elapsed = (Date.now() - startTime) / 1000; const baseScore = config.baseScore || 100; const targetTime = problems.length * config.targetTimePerQuestion; let bonus = 0; if (elapsed < targetTime) bonus = Math.floor(100 * (targetTime - elapsed) / targetTime); const score = baseScore + bonus; totalClearCount++; monthlyCount++; dailyCount++; const s = config.starThresholds; let starsHtml = '―'; if (s) { if (score >= s.star5) starsHtml = '★★★★★'; else if (score >= s.star4) starsHtml = '★★★★☆'; else if (score >= s.star3) starsHtml = '★★★☆☆'; else if (score >= s.star2) starsHtml = '★★☆☆☆'; else if (score >= s.star1) starsHtml = '★☆☆☆☆';} overallStatusStars = starsHtml; let msg = '🎉 全問正解！おめでとう！ 🎉'; if (score > highScore) { msg = '🏆 ハイスコア達成！すごい！ 🏆'; highScore = score; if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } }); } document.querySelector('#result').innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`; saveData(); saveHistoryEntry(score); updateDisplay(); document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' }); document.querySelector('#retry').focus(); } else { document.querySelector('#result').textContent = 'おしい！まちがいを直そう！'; document.querySelector('#check-answers').disabled = false; const firstTarget = findNextFocusTarget(incorrectIndices[0]-1, 'h'); document.querySelector(firstTarget).focus(); } },
+        retry: function() { startTime = Date.now(); document.querySelector('#check-answers').disabled = false; document.querySelector('#result').textContent = ''; incorrectIndices = []; problems = config.problemGenerator(); displayProblems(); const firstTarget = findNextFocusTarget(-1, 'h'); document.querySelector(firstTarget)?.focus();},
+        domContentLoaded: function() { const startArea = document.querySelector('#start-area'); const startBtn = document.querySelector('#start-btn'); document.getElementById('main-title').textContent = config.mainTitle; document.getElementById('sub-title').textContent = config.title; loadData(); updateDisplay(); startBtn.onclick = () => { startArea.style.display = 'none'; document.querySelector('#problems-section').style.display = 'block'; retry(); }; document.querySelector('#check-answers').onclick = checkAnswers; document.querySelector('#retry').onclick = retry; document.querySelector('#reset-highscore').onclick = () => { if (confirm('ハイスコアとステータスをリセットしますか？\n（クリア回数はリセットされません）')) { highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); } }; document.addEventListener('keydown', e => { if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } }); }
+      };
+      
+      loadData = fullFunctions.loadData;
+      saveData = fullFunctions.saveData;
+      saveHistoryEntry = fullFunctions.saveHistoryEntry;
+      updateDisplay = fullFunctions.updateDisplay;
+      displayProblems = fullFunctions.displayProblems;
+      checkAnswers = fullFunctions.checkAnswers;
+      retry = fullFunctions.retry;
+      document.addEventListener('DOMContentLoaded', fullFunctions.domContentLoaded);
+    })();
+  </script>
+
+</body>
+</html>

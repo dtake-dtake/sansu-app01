@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>答えのたしかめ</title>
+  <title>何十・何百のかけ算</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
@@ -30,7 +30,7 @@
     button:hover { background-color: var(--c-button-hover); }
     button:disabled { background-color: #ccc; cursor: not-allowed; }
     input[type="number"] {
-      font-size: 1.6rem; width: 60px; text-align: center;
+      font-size: 1.8rem; width: 120px; text-align: center;
       border: 2px solid var(--c-primary-light); border-radius: 8px;
       padding: 5px; margin: 0 5px;
     }
@@ -38,13 +38,13 @@
     input[type=number] { -moz-appearance: textfield; }
     #problems-wrapper { max-width: 800px; margin: 20px auto; }
     .problem {
-      background: var(--c-problem-row-bg); border-radius: 10px; padding: 20px;
-      margin-bottom: 15px; font-size: 1.8rem;
+      background: var(--c-problem-row-bg); border-radius: 10px; padding: 15px;
+      margin-bottom: 15px; font-size: 2rem; display: flex; align-items: center;
+      flex-wrap: wrap; justify-content: flex-start;
     }
-    .problem-number { font-weight: bold; margin-bottom: 10px;}
-    .problem-content { display: flex; align-items: center; flex-wrap: wrap; }
-    .verification-equation { margin-top: 15px; padding-top: 15px; border-top: 2px dashed var(--c-primary-light); }
-    .result-icon { font-size: 2.5rem; margin-left: auto; font-weight: bold; padding-left: 15px;}
+    .problem-number { margin-right: 10px; font-weight: bold; }
+    .problem-equation { display: flex; align-items: center; white-space: nowrap; }
+    .result-icon { font-size: 2.5rem; margin-left: 15px; font-weight: bold; }
     .correct { color: var(--c-feedback-correct); }
     .wrong { color: var(--c-feedback-wrong); }
     .button-area, #start-area { text-align: center; margin: 40px 0; }
@@ -61,7 +61,9 @@
 
   <h1 id="main-title"></h1>
   <h2 id="sub-title"></h2>
-  <div id="start-area"><button id="start-btn">スタート！</button></div>
+  <div id="start-area">
+    <button id="start-btn">スタート！</button>
+  </div>
   <div id="problems-section" style="display:none;">
     <div id="problems-wrapper"></div>
     <div class="button-area">
@@ -82,28 +84,48 @@
   <script>
     (function () {
       const config = {
-        appId: "108-2_kotaeno_tashikame",
-        mainTitle: "９　あまりのあるわり算",
-        title: "答えのたしかめ",
+        appId: "23-3,4_nanju_nanbyakuno_kakezan",
+        mainTitle: "１４　１けたをかけるかけ算の筆算",
+        title: "何十・何百のかけ算",
         baseScore: 100,
-        targetTimePerQuestion: 45, // 1問あたりの目標時間（秒）
+        targetTimePerQuestion: 10,
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         
         problemGenerator() {
-          const problemsList = [];
-          while (problemsList.length < 5) {
-            const b = Math.floor(Math.random() * 8) + 2; // 割る数 (2-9)
-            const q = Math.floor(Math.random() * 9) + 1; // 答え (1-9)
-            const r = Math.floor(Math.random() * (b - 1)) + 1; // あまり (1 ～ b-1)
-            const a = b * q + r; // 割られる数
-            if (a >= 10) { // 割られる数は2桁以上
-              problemsList.push({
-                displayText: `${a} ÷ ${b} = `,
-                answers: [q, r, b, q, r, a] // [答え, あまり, たしかめ式の全要素]
-              });
-            }
+          const noCarryProbs = new Set();
+          const carryProbs = new Set();
+
+          // 前半：くり上がりのない問題
+          const noCarryPairs = [[2,2],[2,3],[2,4],[3,2],[3,3],[4,2]];
+          while(noCarryProbs.size < 5) {
+              const pair = noCarryPairs[Math.floor(Math.random() * noCarryPairs.length)];
+              const a = pair[0] * (Math.random() < 0.5 ? 10 : 100);
+              const b = pair[1];
+              noCarryProbs.add(JSON.stringify({a, b}));
           }
-          return problemsList;
+          
+          // 後半：くり上がりのある問題
+          while(carryProbs.size < 5) {
+              const digit = Math.floor(Math.random() * 8) + 2; // 2-9
+              const multiplier = Math.floor(Math.random() * 8) + 2; // 2-9
+              if (digit * multiplier >= 10) {
+                  const a = digit * (Math.random() < 0.5 ? 10 : 100);
+                  const b = multiplier;
+                  carryProbs.add(JSON.stringify({a, b}));
+              }
+          }
+
+          const finalProblemsRaw = [...noCarryProbs, ...carryProbs].map(JSON.parse);
+          // シャッフル
+          for (let i = finalProblemsRaw.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [finalProblemsRaw[i], finalProblemsRaw[j]] = [finalProblemsRaw[j], finalProblemsRaw[i]];
+          }
+          
+          return finalProblemsRaw.map(p => ({
+            displayText: `${p.a} × ${p.b} = <input type="number" id="ans-__INDEX__">`,
+            answers: [p.a * p.b]
+          }));
         }
       };
 
@@ -111,6 +133,7 @@
       let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
       let overallStatusStars = '―', incorrectIndices = [];
       const ls = localStorage;
+
       const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
       const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`, KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
       const KEY_OVERALL_STATUS = `${config.appId}:status`;
@@ -156,26 +179,16 @@
         el.addEventListener('keydown', e => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            const [_, probIdxStr, subIdxStr] = el.id.split('-');
-            const probIdx = parseInt(probIdxStr, 10);
-            const subIdx = parseInt(subIdxStr, 10);
-
-            if (subIdx < 6) { // 最後の入力欄でなければ、次の入力欄へ
-              document.querySelector(`#ans-${probIdx}-${subIdx + 1}`).focus();
-              return;
-            }
-
-            // 最後の入力欄なら、次の問題へ
+            const probIdx = parseInt(el.id.split('-')[1], 10);
             if (incorrectIndices.length > 0) {
               const currentIndexInErrorList = incorrectIndices.indexOf(probIdx);
               if (currentIndexInErrorList < incorrectIndices.length - 1) {
-                const nextIncorrectProbIdx = incorrectIndices[currentIndexInErrorList + 1];
-                document.querySelector(`#ans-${nextIncorrectProbIdx}-1`).focus();
+                document.querySelector(`#ans-${incorrectIndices[currentIndexInErrorList + 1]}`).focus();
               } else { document.querySelector('#check-answers').focus(); }
             } else {
               const nextProbIdx = probIdx + 1;
               if (nextProbIdx < problems.length) {
-                document.querySelector(`#ans-${nextProbIdx}-1`).focus();
+                document.querySelector(`#ans-${nextProbIdx}`).focus();
               } else { document.querySelector('#check-answers').focus(); }
             }
           }
@@ -190,19 +203,11 @@
           row.className = 'problem';
           row.innerHTML = `
             <div class="problem-number">${i + 1}.</div>
-            <div class="problem-content">
-              ${p.displayText}
-              <input type="number" id="ans-${i}-1"> あまり <input type="number" id="ans-${i}-2">
-              <span id="icon-${i}" class="result-icon"></span>
-            </div>
-            <div class="verification-equation">
-              たしかめ: <input type="number" id="ans-${i}-3"> × <input type="number" id="ans-${i}-4"> + <input type="number" id="ans-${i}-5"> = <input type="number" id="ans-${i}-6">
-            </div>
+            <div class="problem-equation">${p.displayText.replace(/__INDEX__/g, i)}</div>
+            <span id="icon-${i}" class="result-icon"></span>
           `;
           wrap.appendChild(row);
-          for (let k = 1; k <= 6; k++) {
-            attachInputEvents(document.querySelector(`#ans-${i}-${k}`));
-          }
+          attachInputEvents(document.querySelector(`#ans-${i}`));
         });
       }
 
@@ -210,34 +215,18 @@
         document.querySelector('#check-answers').disabled = true;
         const newIncorrectIndices = [];
         problems.forEach((p, i) => {
-          const userAnswers = [];
-          const inputs = [];
-          for (let k = 1; k <= 6; k++) {
-            const el = document.querySelector(`#ans-${i}-${k}`);
-            inputs.push(el);
-            userAnswers.push(+el.value);
-          }
-
-          const correctAnswers = p.answers;
-          
-          const isMultiplicationPartCorrect = 
-            (userAnswers[2] === correctAnswers[2] && userAnswers[3] === correctAnswers[3]) ||
-            (userAnswers[2] === correctAnswers[3] && userAnswers[3] === correctAnswers[2]);
-
-          const isCorrect = 
-            userAnswers[0] === correctAnswers[0] &&
-            userAnswers[1] === correctAnswers[1] &&
-            isMultiplicationPartCorrect &&
-            userAnswers[4] === correctAnswers[4] &&
-            userAnswers[5] === correctAnswers[5];
-          
           const icon = document.querySelector(`#icon-${i}`);
+          const ansEl = document.querySelector(`#ans-${i}`);
+          const isCorrect = (+ansEl.value === p.answers[0]);
           if (isCorrect) {
-            icon.textContent = '○'; icon.className = 'result-icon correct';
-            inputs.forEach(el => el.disabled = true);
+            icon.textContent = '○';
+            icon.className = 'result-icon correct';
+            ansEl.disabled = true;
           } else {
-            icon.textContent = '×'; icon.className = 'result-icon wrong';
+            icon.textContent = '×';
+            icon.className = 'result-icon wrong';
             newIncorrectIndices.push(i);
+            ansEl.disabled = false; ansEl.value = '';
           }
         });
         incorrectIndices = newIncorrectIndices;
@@ -261,12 +250,14 @@
             else if (score >= s.star1) starsHtml = '★☆☆☆☆';
           }
           overallStatusStars = starsHtml;
+
           let msg = '🎉 全問正解！おめでとう！ 🎉';
           if (score > highScore) {
             msg = '🏆 ハイスコア達成！すごい！ 🏆';
             highScore = score;
             if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
           }
+          
           document.querySelector('#result').innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
           saveData();
           saveHistoryEntry(score);
@@ -275,7 +266,7 @@
         } else {
           document.querySelector('#result').textContent = 'おしい！まちがいを直そう！';
           document.querySelector('#check-answers').disabled = false;
-          document.querySelector(`#ans-${incorrectIndices[0]}-1`).focus();
+          document.querySelector(`#ans-${incorrectIndices[0]}`).focus();
         }
       }
       
@@ -286,7 +277,7 @@
         incorrectIndices = [];
         problems = config.problemGenerator();
         displayProblems();
-        document.querySelector('#ans-0-1')?.focus();
+        document.querySelector('#ans-0')?.focus();
       }
       
       document.addEventListener('DOMContentLoaded', () => {
