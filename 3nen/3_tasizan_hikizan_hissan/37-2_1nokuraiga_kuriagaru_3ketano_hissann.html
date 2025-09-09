@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>十の位へくり上がる３けたのひっ算</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --c-bg-main: #f1f8e9; --c-primary: #7cb342; --c-primary-dark: #33691e;
+      --c-primary-light: #dcedc8; --c-button-bg: #9ccc65; --c-button-hover: #8bc34a;
+      --c-result-area-bg: #dcedc8; --c-problem-row-bg: #ffffff; --c-history-bg: #c5e1a5;
+      --c-text-main: #212121; --c-text-on-button: #ffffff;
+      --c-feedback-correct-bg: #e8f5e9; 
+      --c-feedback-wrong-bg: #ffebee;
+      font-size: 16px;
+    }
+    body {
+      font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background-color: var(--c-bg-main); color: var(--c-text-main); margin: 0;
+      padding: 15px; line-height: 1.6;
+    }
+    h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; background: var(--c-primary-light); padding: 5px; border-radius: 8px;}
+    button {
+      font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+      background-color: var(--c-button-bg); color: var(--c-text-on-button);
+      cursor: pointer; transition: background-color 0.2s;
+    }
+    button:hover { background-color: var(--c-button-hover); }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    #problems-wrapper { 
+      max-width: 900px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+    }
+    .problem-container {
+      background: var(--c-problem-row-bg);
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .problem-number {
+      font-weight: bold;
+      font-size: 2rem;
+      padding-right: 10px;
+    }
+    .hissan-grid {
+      display: grid;
+      grid-template-columns: 50px 50px 50px 50px;
+      grid-template-rows: 50px 50px 50px 2px 50px;
+      font-size: 2.5rem;
+      border: 1px solid var(--c-primary-light);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .cell {
+      border-right: 1px solid var(--c-primary-light);
+      border-bottom: 1px solid var(--c-primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .hissan-grid > *:nth-child(4n) { border-right: none; }
+    .hissan-grid > *:nth-last-child(-n+4) { border-bottom: none; }
+
+    .carry-cell {
+      grid-column: 3;
+      grid-row: 1;
+      font-size: 1.5rem;
+      color: var(--c-primary);
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      border: none;
+      background: transparent;
+      padding: 0;
+    }
+    .line {
+      grid-column: 1 / -1;
+      grid-row: 4;
+      background-color: var(--c-primary-dark);
+    }
+    .answer-cell {
+      font-size: 2.5rem;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      border: none;
+      border-right: 1px solid var(--c-primary-light);
+      padding: 0;
+      box-sizing: border-box;
+      grid-row: 5;
+    }
+    .answer-cell:disabled {
+      background-color: transparent;
+    }
+    .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+    .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+    .button-area, #start-area { text-align: center; margin: 40px 0; }
+    #result-area {
+      max-width: 600px; margin: 20px auto; padding: 15px;
+      background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+    }
+    #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
+    .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px;}
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body>
+
+  <h1 id="main-title"></h1>
+  <h2 id="sub-title"></h2>
+  <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+  </div>
+
+  <script>
+    (function () {
+      const config = {
+        appId: "37-2_1nokuraiga_kuriagaru_3ketano_hissann",
+        mainTitle: "３　たし算とひき算の筆算",
+        title: "十の位へくり上がる３けたのひっ算",
+        baseScore: 100,
+        targetTimePerQuestion: 25,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        problemGenerator() {
+            const problems = new Set();
+            while (problems.size < 5) {
+                const a = Math.floor(Math.random() * 899) + 100;
+                let b = Math.floor(Math.random() * 899) + 10;
+                if (a + b >= 1000) continue;
+                if (Math.random() < 0.5) { b = Math.floor(Math.random() * 89) + 10;}
+                
+                const ones_a = a % 10, ones_b = b % 10;
+                const tens_a = Math.floor(a/10)%10, tens_b = Math.floor(b/10)%10;
+                const huns_a = Math.floor(a/100), huns_b = Math.floor(b/100);
+
+                if ((ones_a + ones_b >= 10) && (tens_a + tens_b + 1 < 10) && (huns_a + huns_b < 10)) {
+                    problems.add(JSON.stringify({a, b}));
+                }
+            }
+            const finalProblemsRaw = [...problems].map(JSON.parse);
+            return finalProblemsRaw.map(p => {
+                const answer = p.a + p.b;
+                return { 
+                    a: p.a, b: p.b, 
+                    answers: [
+                        1,
+                        Math.floor(answer/100)%10,
+                        Math.floor(answer/10)%10,
+                        answer%10
+                    ]
+                };
+            });
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
+      let overallStatusStars = '―', incorrectIndices = [];
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`, KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      
+      function loadData() {
+        highScore = +ls.getItem(KEY_HS) || 0;
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
+        monthlyCount = +ls.getItem(monthKey) || 0;
+        dailyCount = +ls.getItem(todayKey) || 0;
+        overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() {
+        ls.setItem(KEY_HS, String(highScore));
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        ls.setItem(KEY_CLEAR, String(totalClearCount));
+        ls.setItem(monthKey, String(monthlyCount));
+        ls.setItem(todayKey, String(dailyCount));
+        ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
+      }
+      function saveHistoryEntry(score) {
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        history.unshift({ datetime: new Date().toLocaleString(), score });
+        if (history.length > 10) history.pop();
+        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+      }
+      function updateDisplay() {
+        document.querySelector('#highScoreValue').textContent = highScore;
+        document.querySelector('#clearCountValue').textContent = totalClearCount;
+        document.querySelector('#monthlyCountValue').textContent = monthlyCount;
+        document.querySelector('#dailyCountValue').textContent = dailyCount;
+        document.querySelector('#overallStars').innerHTML = overallStatusStars;
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        document.querySelector('#history-list').innerHTML =
+          history.map(h => `<li>${h.datetime}：${h.score}てん</li>`).join('');
+      }
+      
+      const inputOrder = ['carry', 'o', 't', 'h'];
+      
+      function attachInputEvents(probIdx, part) {
+        const el = document.querySelector(`#ans-${probIdx}-${part}`);
+        if (!el) return;
+        const currentPos = inputOrder.indexOf(part);
+        const move = (nextPart) => document.querySelector(`#ans-${probIdx}-${nextPart}`).focus();
+
+        el.addEventListener('focus', () => {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.select(); // ▼▼▼ 変更点：フォーカス時に自動選択 ▼▼▼
+        });
+        
+        el.addEventListener('input', () => {
+          if (el.value.length >= 1 && currentPos < inputOrder.length - 1) {
+            move(inputOrder[currentPos + 1]);
+          }
+        });
+
+        /* ▼▼▼ 変更点：矢印キーのロジックを修正 ▼▼▼ */
+        el.addEventListener('keydown', e => {
+          const answerNavOrder = ['h', 't', 'o'];
+          const currentAnswerPos = answerNavOrder.indexOf(part);
+
+          if (e.key === 'ArrowLeft') {
+              if (currentAnswerPos > 0) {
+                e.preventDefault();
+                move(answerNavOrder[currentAnswerPos - 1]);
+              }
+          } else if (e.key === 'ArrowRight') {
+              if (currentAnswerPos !== -1 && currentAnswerPos < answerNavOrder.length - 1) {
+                e.preventDefault();
+                move(answerNavOrder[currentAnswerPos + 1]);
+              }
+          } else if (e.key === 'ArrowUp') {
+              if (part === 't') {
+                e.preventDefault();
+                move('carry');
+              }
+          } else if (e.key === 'ArrowDown') {
+              if (part === 'carry') {
+                e.preventDefault();
+                move('t');
+              }
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const isForCorrection = incorrectIndices.length > 0;
+            if (currentPos < inputOrder.length - 1) {
+              move(inputOrder[currentPos + 1]);
+            } else {
+              if (isForCorrection) {
+                const currentIndexInErrorList = incorrectIndices.indexOf(probIdx);
+                if (currentIndexInErrorList < incorrectIndices.length - 1) {
+                  const nextIncorrectProbIdx = incorrectIndices[currentIndexInErrorList + 1];
+                  document.querySelector(`#ans-${nextIncorrectProbIdx}-carry`).focus();
+                } else { document.querySelector('#check-answers').focus(); }
+              } else {
+                const nextProbIdx = probIdx + 1;
+                if (nextProbIdx < problems.length) {
+                  document.querySelector(`#ans-${nextProbIdx}-carry`).focus();
+                } else { document.querySelector('#check-answers').focus(); }
+              }
+            }
+          }
+        });
+      }
+      
+      function displayProblems() {
+        const wrap = document.querySelector('#problems-wrapper');
+        wrap.innerHTML = '';
+        problems.forEach((p, i) => {
+          const container = document.createElement('div');
+          container.className = 'problem-container';
+          
+          const formatNum = (num, digits) => num.toString().padStart(digits, ' ').split('');
+          const [h_a, t_a, o_a] = formatNum(p.a, 3);
+          const [h_b, t_b, o_b] = formatNum(p.b, 3);
+
+          container.innerHTML = `
+            <div class="hissan-wrapper">
+                <span class="problem-number">${i + 1}.</span>
+                <div class="hissan-grid">
+                    <div class="cell"></div><div class="cell"></div>
+                    <div class="cell"><input type="number" id="ans-${i}-carry" class="carry-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"></div>
+                    <div class="cell"></div>
+                    
+                    <div class="cell"></div><div class="cell">${h_a}</div><div class="cell">${t_a}</div><div class="cell">${o_a}</div>
+                    
+                    <div class="cell">+</div><div class="cell">${h_b}</div><div class="cell">${t_b}</div><div class="cell">${o_b}</div>
+                    
+                    <div class="line"></div>
+                    
+                    <div class="cell"></div>
+                    <div class="cell"><input type="number" id="ans-${i}-h" class="answer-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"></div>
+                    <div class="cell"><input type="number" id="ans-${i}-t" class="answer-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"></div>
+                    <div class="cell"><input type="number" id="ans-${i}-o" class="answer-cell" maxlength="1" oninput="this.value=this.value.slice(0,1)"></div>
+                </div>
+            </div>
+          `;
+          wrap.appendChild(container);
+          inputOrder.forEach(part => attachInputEvents(i, part));
+        });
+      }
+
+      function checkAnswers() {
+        document.querySelector('#check-answers').disabled = true;
+        incorrectIndices = [];
+        problems.forEach((p, i) => {
+          const getEl = (part) => document.querySelector(`#ans-${i}-${part}`);
+          const els = { carry: getEl('carry'), h: getEl('h'), t: getEl('t'), o: getEl('o') };
+          Object.values(els).forEach(el => { if (el) el.classList.remove('correct-bg', 'wrong-bg'); });
+          
+          const userAns = {
+              carry: els.carry.value === '' ? -1 : +els.carry.value,
+              h: els.h.value === '' ? -1 : +els.h.value,
+              t: els.t.value === '' ? -1 : +els.t.value,
+              o: els.o.value === '' ? -1 : +els.o.value
+          };
+          
+          const isCorrect = userAns.carry === p.answers[0] && userAns.h === p.answers[1] &&
+                            userAns.t === p.answers[2] && userAns.o === p.answers[3];
+          
+          if (isCorrect) {
+            Object.values(els).forEach(el => { if (el) { el.classList.add('correct-bg'); el.disabled = true; }});
+          } else {
+            incorrectIndices.push(i);
+            Object.values(els).forEach(el => { 
+                if (el) { 
+                    el.classList.add('wrong-bg'); 
+                    el.disabled = false; 
+                    /* ▼▼▼ 変更点：不正解でも値を消さない ▼▼▼ */
+                    // if(el.value !== '') el.value = ''; 
+                }
+            });
+          }
+        });
+        
+        if (incorrectIndices.length === 0) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseScore = config.baseScore || 100;
+           const targetTime = problems.length * config.targetTimePerQuestion;
+           let bonus = 0;
+           if (elapsed < targetTime) bonus = Math.floor(100 * (targetTime - elapsed) / targetTime);
+           const score = baseScore + bonus;
+           totalClearCount++; monthlyCount++; dailyCount++;
+           const s = config.starThresholds;
+           let starsHtml = '―';
+           if (s) {
+            if (score >= s.star5) starsHtml = '★★★★★';
+            else if (score >= s.star4) starsHtml = '★★★★☆';
+            else if (score >= s.star3) starsHtml = '★★★☆☆';
+            else if (score >= s.star2) starsHtml = '★★☆☆☆';
+            else if (score >= s.star1) starsHtml = '★☆☆☆☆';
+           }
+           overallStatusStars = starsHtml;
+           let msg = '🎉 全問正解！おめでとう！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア達成！すごい！ 🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
+           }
+           document.querySelector('#result').innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData();
+           saveHistoryEntry(score);
+           updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           document.querySelector('#result').textContent = 'おしい！まちがいを直そう！';
+           document.querySelector('#check-answers').disabled = false;
+           document.querySelector(`#ans-${incorrectIndices[0]}-carry`).focus();
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        incorrectIndices = [];
+        problems = config.problemGenerator();
+        displayProblems();
+        document.querySelector('#ans-0-carry')?.focus();
+      }
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('sub-title').textContent = config.title;
+        loadData();
+        updateDisplay();
+        startBtn.onclick = () => {
+          startArea.style.display = 'none';
+          document.querySelector('#problems-section').style.display = 'block';
+          retry();
+        };
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => {
+          if (confirm('ハイスコアとステータスをリセットしますか？\n（クリア回数はリセットされません）')) {
+            highScore = 0; overallStatusStars = '―';
+            saveData(); updateDisplay();
+          }
+        };
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && startArea.style.display !== 'none') {
+                startBtn.click();
+            }
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>

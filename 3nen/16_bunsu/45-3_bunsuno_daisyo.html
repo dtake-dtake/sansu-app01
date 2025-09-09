@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>分数の大小</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMVIARBEGPOdHdb1sgARGtiPjpRO9XGgZEraDAGhdpdslashWI" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCklLPdgeGm4lDADDIECDJAx9WigbM4zi" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURpiCFYSrkI354KTmqchDmAXiZ2b4ifLFXPhrEumAxxrSpXDOKKBVC" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
@@ -59,6 +60,7 @@
     .problem-equation input {
       font-size: 2.5rem;
       width: 60px;
+      margin: 0 10px;
       text-align: center;
       border: 2px solid var(--c-primary-light);
       border-radius: 8px;
@@ -114,21 +116,17 @@
         
         problemGenerator() {
             const problems = [];
-            // (1) 同一分母 (2問)
+            // (1)
             for (let i = 0; i < 2; i++) {
-                const d = Math.floor(Math.random() * 7) + 3; // 3-9
+                const d = Math.floor(Math.random() * 7) + 3;
                 let n1 = Math.floor(Math.random() * (d - 1)) + 1;
                 let n2 = Math.floor(Math.random() * (d - 1)) + 1;
                 while (n1 === n2) { n2 = Math.floor(Math.random() * (d - 1)) + 1; }
-                problems.push({
-                    left: `\\frac{${n1}}{${d}}`, right: `\\frac{${n2}}{${d}}`,
-                    answer: n1 < n2 ? '<' : '>'
-                });
+                problems.push({ left: `\\frac{${n1}}{${d}}`, right: `\\frac{${n2}}{${d}}`, answer: n1 < n2 ? '<' : '>' });
             }
-
-            // (2) 1と分数の比較 (2問)
+            // (2)
             for (let i = 0; i < 2; i++) {
-                const d = Math.floor(Math.random() * 7) + 3; // 3-9
+                const d = Math.floor(Math.random() * 7) + 3;
                 const n = Math.floor(Math.random() * (d - 1)) + 1;
                 const frac = `\\frac{${n}}{${d}}`;
                 if (Math.random() < 0.5) {
@@ -137,9 +135,8 @@
                     problems.push({ left: frac, right: '1', answer: '<' });
                 }
             }
-
-            // (3) 1と10/10の比較 (1問)
-            const d = Math.floor(Math.random() * 8) + 2; // 2-9
+            // (3)
+            const d = Math.floor(Math.random() * 8) + 2;
             const frac = `\\frac{${d}}{${d}}`;
             if (Math.random() < 0.5) {
                 problems.push({ left: '1', right: frac, answer: '=' });
@@ -152,8 +149,9 @@
                 [problems[i], problems[j]] = [problems[j], problems[i]];
             }
 
+            /* ▼▼▼ 変更点2：数式をデリミタで囲む ▼▼▼ */
             return problems.map(p => ({
-                displayText: `<span>${p.left}</span> <input type="text" id="ans-__INDEX__" maxlength="1"> <span>${p.right}</span>`,
+                displayText: `<span>\\(${p.left}\\)</span> <input type="text" id="ans-__INDEX__" maxlength="1"> <span>\\(${p.right}\\)</span>`,
                 answers: [p.answer]
             }));
         }
@@ -208,10 +206,17 @@
           wrap.appendChild(container);
           attachInputEvents(i);
         });
-        // KaTeXで数式をレンダリング
+        
+        /* ▼▼▼ 変更点3：オートレンダの設定を修正 ▼▼▼ */
         if (window.renderMathInElement) {
           renderMathInElement(wrap, {
-            delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}]
+            delimiters: [
+              {left: "\\(", right: "\\)", display: false},
+              {left: "\\[", right: "\\]", display: true},
+              {left: "$$",  right: "$$",  display: true},
+              {left: "$",   right: "$",   display: false}
+            ],
+            throwOnError: false
           });
         }
       }
@@ -247,6 +252,7 @@
       function retry() { /* ... */ }
       document.addEventListener('DOMContentLoaded', () => { /* ... */ });
 
+      // Injected full function bodies to ensure completeness
       const fullFunctions = {
         loadData: function() { highScore = +ls.getItem(KEY_HS) || 0; const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10); const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7); totalClearCount = +ls.getItem(KEY_CLEAR) || 0; monthlyCount = +ls.getItem(monthKey) || 0; dailyCount = +ls.getItem(todayKey) || 0; overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―'; },
         saveData: function() { ls.setItem(KEY_HS, String(highScore)); const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10); const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7); ls.setItem(KEY_CLEAR, String(totalClearCount)); ls.setItem(monthKey, String(monthlyCount)); ls.setItem(todayKey, String(dailyCount)); ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); },
@@ -264,15 +270,7 @@
       const originalCheckAnswers = checkAnswers;
       checkAnswers = function() { originalCheckAnswers(); if (incorrectIndices.length === 0) { fullFunctions.checkAnswersCorrect(); } };
       retry = fullFunctions.retry;
-      document.addEventListener('DOMContentLoaded', () => {
-          fullFunctions.domContentLoaded();
-          // KaTeXのレンダリングもここで行う
-          if (window.renderMathInElement) {
-              renderMathInElement(document.body, {
-                  delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}]
-              });
-          }
-      });
+      document.addEventListener('DOMContentLoaded', fullFunctions.domContentLoaded);
     })();
   </script>
 
