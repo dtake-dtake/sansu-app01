@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>４けたの筆算</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --c-bg-main: #f1f8e9; --c-primary: #8bc34a; --c-primary-dark: #558b2f;
+      --c-primary-light: #dcedc8; --c-button-bg: #8d6e63; --c-button-hover: #a1887f;
+      --c-result-area-bg: #dcedc8; --c-problem-row-bg: #ffffff; --c-history-bg: #c5e1a5;
+      --c-text-main: #4e342e; --c-text-on-button: #ffffff;
+      --c-feedback-correct-bg: #e8f5e9; --c-feedback-wrong-bg: #ffebee;
+      font-size: 16px;
+    }
+    body {
+      font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background-color: var(--c-bg-main); color: var(--c-text-main); margin: 0;
+      padding: 15px; line-height: 1.6;
+    }
+    h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; background: var(--c-primary-light); padding: 5px; border-radius: 8px;}
+    button {
+      font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+      background-color: var(--c-button-bg); color: var(--c-text-on-button);
+      cursor: pointer; transition: background-color 0.2s;
+    }
+    button:hover { background-color: var(--c-button-hover); }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+    #problems-wrapper {
+      max-width: 900px; margin: 20px auto; display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;
+    }
+    .problem-container {
+      background: var(--c-problem-row-bg); border-radius: 10px; padding: 15px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .hissan-grid {
+      display: grid;
+      grid-template-columns: 50px 50px 50px 50px 50px;
+      grid-template-rows: 50px 50px 50px 2px 50px;
+      font-size: 2.5rem; border: 1px solid var(--c-primary-light);
+      border-radius: 8px; overflow: hidden;
+    }
+    .cell {
+      border-right: 1px solid var(--c-primary-light); border-bottom: 1px solid var(--c-primary-light);
+      display: flex; align-items: center; justify-content: center; box-sizing: border-box; position: relative;
+    }
+    .hissan-grid > *:nth-last-child(-n+5) { border-bottom: none; }
+    .hissan-grid > *:nth-child(5n) { border-right: none; }
+
+    .borrow-cell {
+      grid-row: 1; font-size: 1.8rem; color: #d32f2f; width: 100%; height: 100%;
+      text-align: center; border: none; background: transparent; padding: 0;
+    }
+    
+    .strikethrough { position: relative; color: #aaa; }
+    .strikethrough::after {
+      content: '＼'; position: absolute; color: #d32f2f; font-weight: bold;
+      top: 0; left: 0; width: 100%; height: 100%; display: flex;
+      align-items: center; justify-content: center; font-size: 3rem;
+    }
+    
+    .line { grid-column: 1 / -1; grid-row: 4; background-color: var(--c-primary-dark); }
+    .answer-cell {
+      font-size: 2.5rem; width: 100%; height: 100%; text-align: center; border: none;
+      padding: 0; box-sizing: border-box; grid-row: 5; background: transparent; color: var(--c-text-main);
+    }
+    .button-area, #start-area { text-align: center; margin: 40px 0; }
+    #result-area {
+      max-width: 600px; margin: 20px auto; padding: 15px;
+      background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+    }
+    #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; min-height: 1.8rem;}
+    .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+    #history-list li { padding: 5px; border-bottom: 1px solid var(--c-primary-light); }
+    #history-list li:last-child { border-bottom: none; }
+
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+    .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+  </style>
+</head>
+<body>
+
+  <h1>４　けた数の大きい筆算</h1>
+  <h2>４けたの筆算</h2>
+  <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+  
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+  
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="history-area">りれき（さいきん１０件）<ul id="history-list"></ul></div>
+  </div>
+
+  <script>
+    (function () {
+      const config = {
+        appId: "45-2_4ketano_hissan",
+        problemCount: 4,
+        baseScore: 100,
+        targetTimePerQuestion: 30, 
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        problemGenerator() {
+            const staticProblems = [
+                { a: 1386, b: 2459, op: '+', answers: [3, 8, 4, 5] },
+                { a: 9875, b: 57,   op: '+', answers: [9, 9, 3, 2] },
+                { a: 6825, b: 5919, op: '-', answers: [0, 9, 0, 6] },
+                { a: 1250, b: 852,  op: '-', answers: [0, 3, 9, 8] }
+            ];
+            return staticProblems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0, incorrectIndices = [];
+      let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`, KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      
+      function loadData() {
+        highScore = parseInt(ls.getItem(KEY_HS) || '0');
+        totalClearCount = parseInt(ls.getItem(KEY_CLEAR) || '0');
+        overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+        const today = new Date();
+        const yymm = `${today.getFullYear()}-${today.getMonth() + 1}`;
+        const yymmdd = `${yymm}-${today.getDate()}`;
+        monthlyCount = parseInt(ls.getItem(KEY_MONTHLY_PREFIX + yymm) || '0');
+        dailyCount = parseInt(ls.getItem(KEY_DAILY_PREFIX + yymmdd) || '0');
+      }
+      function saveData() {
+        ls.setItem(KEY_HS, highScore);
+        ls.setItem(KEY_CLEAR, totalClearCount);
+        ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
+        const today = new Date();
+        const yymm = `${today.getFullYear()}-${today.getMonth() + 1}`;
+        const yymmdd = `${yymm}-${today.getDate()}`;
+        ls.setItem(KEY_MONTHLY_PREFIX + yymm, monthlyCount);
+        ls.setItem(KEY_DAILY_PREFIX + yymmdd, dailyCount);
+      }
+      function saveHistoryEntry(score, stars) {
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}/${(today.getMonth() + 1).toString().padStart(2,'0')}/${today.getDate().toString().padStart(2,'0')}`;
+        history.unshift({ date: dateStr, score, stars });
+        if (history.length > 10) history.pop();
+        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+      }
+      function updateDisplay() {
+        document.querySelector('#highScoreValue').textContent = highScore;
+        document.querySelector('#clearCountValue').textContent = totalClearCount;
+        document.querySelector('#monthlyCountValue').textContent = monthlyCount;
+        document.querySelector('#dailyCountValue').textContent = dailyCount;
+        document.querySelector('#overallStars').innerHTML = overallStatusStars;
+        const historyList = document.querySelector('#history-list');
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        historyList.innerHTML = history.map(h => `<li>${h.date}: ${h.score}てん (${h.stars})</li>`).join('');
+      }
+
+      function handleNav(event) {
+        const el = event.target;
+        const id = el.id;
+        if (!id.includes('-')) return;
+        const [type, iStr, place] = id.split('-');
+        const i = parseInt(iStr, 10);
+        let nextId = null;
+        if (event.key.startsWith('Arrow')) {
+            event.preventDefault();
+            const navMap = {
+                ans: {
+                    th: { ArrowUp: `borrow-${i}-th`, ArrowRight: `ans-${i}-h` },
+                    h:  { ArrowUp: `borrow-${i}-h`, ArrowLeft: `ans-${i}-th`, ArrowRight: `ans-${i}-t` },
+                    t:  { ArrowUp: `borrow-${i}-t`, ArrowLeft: `ans-${i}-h`, ArrowRight: `ans-${i}-o` },
+                    o:  { ArrowUp: `borrow-${i}-o`, ArrowLeft: `ans-${i}-t` }
+                },
+                borrow: {
+                    th: { ArrowDown: `ans-${i}-th`, ArrowRight: `borrow-${i}-h`},
+                    h:  { ArrowDown: `ans-${i}-h`, ArrowLeft: `borrow-${i}-th`, ArrowRight: `borrow-${i}-t` },
+                    t:  { ArrowDown: `ans-${i}-t`, ArrowLeft: `borrow-${i}-h`, ArrowRight: `borrow-${i}-o` },
+                    o:  { ArrowDown: `ans-${i}-o`, ArrowLeft: `borrow-${i}-t` }
+                }
+            };
+            if (navMap[type]?.[place]?.[event.key]) {
+                nextId = navMap[type][place][event.key];
+            }
+            if (type === 'ans' && place === 'th' && event.key === 'ArrowLeft' && i > 0) { nextId = `ans-${i-1}-o`; }
+            if (type === 'ans' && place === 'o' && event.key === 'ArrowRight') {
+              nextId = (i < config.problemCount-1) ? `ans-${i+1}-th` : null;
+              if (!nextId) document.querySelector('#check-answers').focus();
+            }
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            if (incorrectIndices.length > 0) {
+                const currentIndexInList = incorrectIndices.indexOf(i);
+                if (currentIndexInList !== -1 && currentIndexInList < incorrectIndices.length - 1) {
+                    const nextIncorrectProblemIndex = incorrectIndices[currentIndexInList + 1];
+                    nextId = `ans-${nextIncorrectProblemIndex}-o`;
+                } else { document.querySelector('#check-answers').focus(); return; }
+            } else {
+                if (i < config.problemCount - 1) {
+                    nextId = `ans-${i + 1}-o`;
+                } else { document.querySelector('#check-answers').focus(); return; }
+            }
+        }
+        if (nextId) {
+            const nextEl = document.getElementById(nextId);
+            if (nextEl) { nextEl.focus(); nextEl.select(); }
+        }
+      }
+
+      function displayProblems() {
+        const wrap = document.querySelector('#problems-wrapper');
+        wrap.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④'];
+        problems.forEach((p, i) => {
+          const container = document.createElement('div');
+          container.className = 'problem-container';
+          const a_str = p.a.toString().padStart(4, ' ').split('');
+          const b_str = p.b.toString().padStart(4, ' ').split('');
+          container.innerHTML = `<div class="hissan-wrapper"><div class="hissan-grid"><div class="cell">${circledNumbers[i]}</div><div class="cell"><input type="number" id="borrow-${i}-th" class="borrow-cell" data-target="minuend-${i}-th"></div><div class="cell"><input type="number" id="borrow-${i}-h" class="borrow-cell" data-target="minuend-${i}-h"></div><div class="cell"><input type="number" id="borrow-${i}-t" class="borrow-cell" data-target="minuend-${i}-t"></div><div class="cell"><input type="number" id="borrow-${i}-o" class="borrow-cell" data-target="minuend-${i}-o"></div><div class="cell"></div><div class="cell"><span id="minuend-${i}-th">${a_str[0]}</span></div><div class="cell"><span id="minuend-${i}-h">${a_str[1]}</span></div><div class="cell"><span id="minuend-${i}-t">${a_str[2]}</span></div><div class="cell"><span id="minuend-${i}-o">${a_str[3]}</span></div><div class="cell">${p.op}</div><div class="cell">${b_str[0]}</div><div class="cell">${b_str[1]}</div><div class="cell">${b_str[2]}</div><div class="cell">${b_str[3]}</div><div class="line"></div><div class="cell"></div><div class="cell"><input type="number" id="ans-${i}-th" class="answer-cell" maxlength="1"></div><div class="cell"><input type="number" id="ans-${i}-h" class="answer-cell" maxlength="1"></div><div class="cell"><input type="number" id="ans-${i}-t" class="answer-cell" maxlength="1"></div><div class="cell"><input type="number" id="ans-${i}-o" class="answer-cell" maxlength="1"></div></div></div>`;
+          wrap.appendChild(container);
+          
+          const allInputs = container.querySelectorAll('input[type=number]');
+          allInputs.forEach(input => {
+            input.addEventListener('keydown', handleNav);
+            input.addEventListener('focus', () => {
+                const problemContainer = input.closest('.problem-container');
+                if(problemContainer) { problemContainer.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            });
+
+            // ▼▼▼ ここを修正 ▼▼▼
+            if (input.classList.contains('borrow-cell')) {
+                input.addEventListener('input', () => {
+                  // 問題がひき算の時だけ、取り消し線を引く
+                  if (p.op === '-') {
+                    const targetSpan = document.getElementById(input.dataset.target);
+                    if (targetSpan) {
+                      targetSpan.classList.toggle('strikethrough', !!input.value);
+                    }
+                  }
+                });
+            }
+            // ▲▲▲ 修正ここまで ▲▲▲
+          });
+        });
+      }
+      
+      function checkAnswers() {
+        let correctCount = 0;
+        let firstWrongIndex = -1;
+        incorrectIndices = [];
+        problems.forEach((p, i) => {
+            const userAnsTh = document.querySelector(`#ans-${i}-th`);
+            const userAnsH = document.querySelector(`#ans-${i}-h`);
+            const userAnsT = document.querySelector(`#ans-${i}-t`);
+            const userAnsO = document.querySelector(`#ans-${i}-o`);
+            
+            const getVal = (el) => el.value === '' ? -1 : parseInt(el.value);
+            const uTh = getVal(userAnsTh), uH = getVal(userAnsH), uT = getVal(userAnsT), uO = getVal(userAnsO);
+
+            const isCorrect = 
+                (uTh === p.answers[0] || (p.answers[0] === 0 && uTh === -1)) &&
+                (uH === p.answers[1]) &&
+                (uT === p.answers[2]) &&
+                (uO === p.answers[3]);
+            
+            [userAnsTh, userAnsH, userAnsT, userAnsO].forEach(el => {
+                el.classList.remove('correct-bg', 'wrong-bg');
+                el.classList.add(isCorrect ? 'correct-bg' : 'wrong-bg');
+            });
+            
+            if (isCorrect) { correctCount++; } 
+            else {
+                incorrectIndices.push(i);
+                if (firstWrongIndex === -1) { firstWrongIndex = i; }
+            }
+        });
+
+        const resultEl = document.querySelector('#result');
+        if (correctCount === problems.length) {
+           incorrectIndices = [];
+           document.querySelector('#check-answers').disabled = true;
+           const elapsed = (Date.now() - startTime) / 1000;
+           const score = Math.round(config.baseScore + Math.max(0, 100 * (config.problemCount * config.targetTimePerQuestion - elapsed) / (config.problemCount * config.targetTimePerQuestion)));
+           totalClearCount++; monthlyCount++; dailyCount++;
+           const s = config.starThresholds;
+           let starsHtml = '―';
+           if (s) {
+            if (score >= s.star5) starsHtml = '★★★★★'; else if (score >= s.star4) starsHtml = '★★★★☆';
+            else if (score >= s.star3) starsHtml = '★★★☆☆'; else if (score >= s.star2) starsHtml = '★★☆☆☆';
+            else if (score >= s.star1) starsHtml = '★☆☆☆☆';
+           }
+           overallStatusStars = starsHtml;
+           let msg = '🎉 全問正解！おめでとう！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア達成！すごい！ 🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
+           }
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData(); saveHistoryEntry(score, starsHtml); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           resultEl.textContent = `おしい！正解は ${correctCount} 問です。まちがいを直そう！`;
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+            if (firstWrongIndex !== -1) {
+                const targetInput = document.querySelector(`#ans-${firstWrongIndex}-o`);
+                if (targetInput) {
+                    targetInput.focus();
+                    targetInput.select();
+                }
+            }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        document.querySelector('#check-answers').disabled = false;
+        document.getElementById('result').textContent = '';
+        document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
+        problems = config.problemGenerator();
+        incorrectIndices = [];
+        displayProblems();
+        const firstInput = document.querySelector('#ans-0-o');
+        if(firstInput) firstInput.focus();
+      }
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        updateDisplay();
+        const startBtn = document.getElementById('start-btn');
+        const startArea = document.getElementById('start-area');
+        const problemsSection = document.getElementById('problems-section');
+        startBtn.onclick = () => {
+          startArea.style.display = 'none';
+          problemsSection.style.display = 'block';
+          retry();
+        };
+        document.getElementById('check-answers').onclick = checkAnswers;
+        document.getElementById('retry').onclick = retry;
+        document.addEventListener('keydown', (event) => {
+          if (startArea.style.display !== 'none' && event.key === 'Enter') {
+            startBtn.click();
+          }
+        });
+        document.getElementById('reset-highscore').onclick = () => {
+          if (confirm('ハイスコアとステータスをリセットしますか？\n（クリア回数と履歴はリセットされません）')) {
+            highScore = 0; overallStatusStars = '―';
+            ls.removeItem(KEY_HS); ls.removeItem(KEY_OVERALL_STATUS);
+            updateDisplay();
+          }
+        };
+      });
+    })();
+  </script>
+
+</body>
+</html>

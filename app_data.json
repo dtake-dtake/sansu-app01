@@ -412,17 +412,17 @@
         "apps": [
           {
             "id": "13-2-3_10no_kakezan",
-            "title": "１０のかけざん",
+            "title": "10のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/13-2,3_10no_kakezan.html"
           },
           {
             "id": "14-3_0no_kakezan",
-            "title": "０のかけ算",
+            "title": "0のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/14-3_0no_kakezan.html"
           },
           {
             "id": "15-2_sikakuno_kakezan",
-            "title": "□のかけざん",
+            "title": "□のかけ算",
             "path": "3nen/1_kuku_hyo_kakezan/15-2_sikakuno_kakezan.html"
           }
         ]
@@ -456,59 +456,49 @@
         "name": "３　　たし算とひき算の筆算",
         "apps": [
           {
-            "id": "01_kuriagari_10i",
-            "title": "３桁たし算　くり上がり1回まで",
-            "path": "3nen/3_tasizan_hikizan_hissan/01_kuriagari_10i.html"
+            "id": "37-2_1nokuraiga_kuriagaru_3ketano_hissann",
+            "title": "十の位へくり上がる３けたのひっ算",
+            "path": "3nen/3_tasizan_hikizan_hissan/37-2_1nokuraiga_kuriagaru_3ketano_hissann.html"
           },
           {
-            "id": "02_kuriagari-10i-100i",
-            "title": "十や百の位のくり上がり",
-            "path": "3nen/3_tasizan_hikizan_hissan/02_kuriagari-10i-100i.html"
+            "id": "38-5-6_100nokuraihe_kuriagaru_3ketano_hissan",
+            "title": "百の位へくり上がるひっ算",
+            "path": "3nen/3_tasizan_hikizan_hissan/38-5,6_100nokuraihe_kuriagaru_3ketano_hissan.html"
           },
           {
-            "id": "03_10ninaru-kuriagari",
-            "title": "10になるくり上がり",
-            "path": "3nen/3_tasizan_hikizan_hissan/03_10ninaru-kuriagari.html"
+            "id": "39-9-10_senno_kuraihe_kuriagaru_hissan",
+            "title": "千の位へくり上がるひっ算",
+            "path": "3nen/3_tasizan_hikizan_hissan/39-9,10_senno_kuraihe_kuriagaru_hissan.html"
           },
           {
-            "id": "04_over1000_kihon",
-            "title": "１０００をこえるひっ算１",
-            "path": "3nen/3_tasizan_hikizan_hissan/04_over1000_kihon.html"
+            "id": "41-3_3ketano_hikizanno_hissan",
+            "title": "３けたのひき算の筆算⑴",
+            "path": "3nen/3_tasizan_hikizan_hissan/41-3_3ketano_hikizanno_hissan⑴.html"
           },
           {
-            "id": "05_over1000_ouyo",
-            "title": "１０００をこえるひっ算２",
-            "path": "3nen/3_tasizan_hikizan_hissan/05_over1000_ouyo.html"
+            "id": "41-4_3ketano_hikizanno_hissan",
+            "title": "３けたのひき算の筆算⑵",
+            "path": "3nen/3_tasizan_hikizan_hissan/41-4_3ketano_hikizanno_hissan⑵.html"
           },
           {
-            "id": "06_kurisagari_nasi",
-            "title": "ひき算の筆算（くり下がりなし）",
-            "path": "3nen/3_tasizan_hikizan_hissan/06_kurisagari_nasi.html"
+            "id": "42-6_junni_2kai_kuriorosu_hissan",
+            "title": "じゅんに２回くり下がる筆算",
+            "path": "3nen/3_tasizan_hikizan_hissan/42-6_junni_2kai_kuriorosu_hissan.html"
           },
           {
-            "id": "07_kurisagari_10ior100i",
-            "title": "ひき算の筆算（くりさがり1回）",
-            "path": "3nen/3_tasizan_hikizan_hissan/07_kurisagari_10ior100i.html"
+            "id": "43-10_0ga_tudukukazu_kara_hiku_hissan",
+            "title": "０がつづく数からひく筆算",
+            "path": "3nen/3_tasizan_hikizan_hissan/43-10_0ga_tudukukazu_kara_hiku_hissan.html"
           },
           {
-            "id": "08_kurisagari_nikai",
-            "title": "ひき算の筆算（くり下がり2回）",
-            "path": "3nen/3_tasizan_hikizan_hissan/08_kurisagari_nikai.html"
+            "id": "43-9_junokuraiga_0notokino_kurisagari",
+            "title": "十の位が0のときのくり下がり",
+            "path": "3nen/3_tasizan_hikizan_hissan/43-9_junokuraiga_0notokino_kurisagari.html"
           },
           {
-            "id": "09_10iga0_kurisagari",
-            "title": "ひき算の筆算（十の位が0のくりさがり）",
-            "path": "3nen/3_tasizan_hikizan_hissan/09_10iga0_kurisagari.html"
-          },
-          {
-            "id": "10_x00karano_kurisagari",
-            "title": "ひき算の筆算（00からのくりさがり）",
-            "path": "3nen/3_tasizan_hikizan_hissan/10_x00karano_kurisagari.html"
-          },
-          {
-            "id": "11_4keta_tasizan_hissan",
-            "title": "たし算の筆算（４けた）",
-            "path": "3nen/3_tasizan_hikizan_hissan/11_4keta_tasizan_hissan.html"
+            "id": "45-2_4ketano_hissan",
+            "title": "４けたの筆算",
+            "path": "3nen/3_tasizan_hikizan_hissan/45-2_4ketano_hissan.html"
           }
         ]
       },
