@@ -11,260 +11,156 @@
   #grade-tabs{ display:flex;justify-content:center;margin-bottom:30px;flex-wrap:wrap;gap:10px; }
   .grade-tab{ background:#bbdefb;color:#1a237e;border:none;padding:12px 25px;font-size:1.5em;cursor:pointer;border-radius:25px;transition:.3s;box-shadow:0 4px 6px rgba(0,0,0,.1);white-space:nowrap; }
   .grade-tab:hover{ background:#90caf9; transform:translateY(-2px); }
-  .grade-tab.active{ background:#2196f3; color:#fff; box-shadow:0 6px 10px rgba(0,0,0,.2); }
+  .grade-tab.active{ background:#2196f3; color:#fff; box-shadow:0 6px 10px rgba(0,0,0,.1); transform:translateY(-2px); }
 
-  #units-container{ max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1); }
-  .unit-section{ margin-bottom:25px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden; }
-  .unit-section h3{
-    background:#e3f2fd;color:#3f51b5;padding:15px 25px;margin:0;font-size:1.8em;cursor:pointer;
-    border-bottom:1px solid #dcdcdc;transition:background-color .2s ease;
-    display:grid; grid-template-columns:1fr 4.0rem 2rem; align-items:center; column-gap:12px;
+  #units-container{ max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:25px; }
+  .unit-card{ background:#fff; border-radius:15px; padding:20px; box-shadow:0 8px 15px rgba(0,0,0,.1); transition:.3s; }
+  .unit-card:hover{ transform:translateY(-5px); box-shadow:0 12px 20px rgba(0,0,0,.15); }
+
+  .unit-title{ font-size:1.6em; color:#0d47a1; margin:0 0 20px; padding-bottom:10px; border-bottom:2px solid #e3f2fd; }
+  .apps-list{ display:flex; flex-direction:column; gap:12px; }
+
+  .app-link{ display:flex; justify-content:space-between; align-items:center; background:#e3f2fd; padding:12px 18px; border-radius:10px; text-decoration:none; color:#1e88e5; transition:.3s; box-shadow:0 4px 6px rgba(0,0,0,.1); }
+  .app-link:hover{ background:#cce6ff; transform:translateX(5px); }
+  .app-title{ font-size:1.2em; font-weight:bold; }
+
+  .status-container{ display:flex; align-items:center; gap:10px; font-size:1.1em; }
+  .status-stars{ color:#ffc107; text-shadow:1px 1px 1px rgba(0,0,0,.1); }
+  .clear-count{ background:#fff; color:#555; padding:3px 10px; border-radius:12px; font-weight:bold; white-space:nowrap; }
+
+  /* ▼▼▼ 「準備中」のスタイルを追加 ▼▼▼ */
+  .app-link.preparation {
+    color: #9e9e9e;
+    font-style: italic;
+    cursor: default;
+    background-color: #f5f5f5;
+    justify-content: center;
   }
-  .unit-section h3:hover{ background:#c5e1ff; }
-  .unit-section h3 .toggle-icon{ font-size:.8em; transition:transform .3s ease; justify-self:end;}
-  .unit-section.expanded .toggle-icon{ transform:rotate(180deg); }
-  .unit-section h3 .unit-title{ overflow:hidden;white-space:nowrap;text-overflow:ellipsis; }
-  .unit-section h3 .count-badge{
-    display:inline-block; justify-self:center; width:100%; padding:2px 0; font-size:.7em; line-height:1.6;
-    text-align:center; color:#0d47a1; background:#e3f2fd; border:1px solid #bbdefb; border-radius:999px;
-    font-weight:700; font-variant-numeric:tabular-nums; font-feature-settings:"tnum";
+  .app-link.preparation:hover {
+    transform: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,.1);
   }
+  /* ▲▲▲ ここまで ▲▲▲ */
 
-  .apps-list{ padding:15px 25px;background:#fafafa;border-top:1px solid #f0f0f0; display:none; flex-direction:column; gap:10px; animation:fadeIn .3s ease-out; }
-  @keyframes fadeIn{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-
-  .app-item{ display:flex; align-items:center; justify-content:space-between; padding:10px 15px; background:#e8f5e9; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,.1);
-    transition:background-color .2s ease; text-decoration:none; color:#333; }
-  .app-item:hover{ background:#c8e6c9; }
-
-  .app-title-section{ display:flex; align-items:center; gap:10px; flex-grow:1; font-size:1.2em; font-weight:bold; }
-  .app-status-section{ display:flex; align-items:center; gap:15px; font-size:1.1em; white-space:nowrap; }
-  .app-stars{ color:gold; font-weight:bold; font-size:1.3em; text-shadow:1px 1px 2px rgba(0,0,0,.2); }
-  .app-stars.no-data{ color:#9e9e9e; font-size:1.1em; text-shadow:none; }
-  .app-clears{ color:#0277bd; font-weight:600; }
-
-  @media (max-width:768px){
-    body{padding:10px;}
-    h1{font-size:2.2em;}
-    .grade-tab{padding:10px 18px;font-size:1.2em;}
-    #units-container{padding:20px;}
-    .unit-section h3{font-size:1.5em;padding:12px 20px;}
-    .apps-list{padding:10px 20px;}
-    .app-item{flex-direction:column; align-items:flex-start; gap:5px;}
-    .app-title-section{width:100%; margin-bottom:5px;}
-    .app-status-section{width:100%; justify-content:flex-end; font-size:1em;}
-    .app-stars{font-size:1.2em;}
-  }
 </style>
 </head>
 <body>
-  <h1>わくわく算数 ドリル</h1>
-  <div id="grade-tabs"></div>
-  <div id="units-container"></div>
+
+<h1>わくわく　算数ドリル</h1>
+<div id="grade-tabs"></div>
+<div id="units-container"></div>
 
 <script>
-// ============= 定数 =============
-const LAST_SELECTED_GRADE_KEY = 'lastSelectedGrade';
-const OPEN_UNITS_KEY_PREFIX   = 'openUnits:';
-const ALL_GRADES = ["1","2","3","4","5","6"];
+const LAST_SELECTED_GRADE_KEY = 'sansu-app-last-grade';
+const ALL_GRADES = ["1", "2", "3", "4", "5", "6"];
 let gradeMap = new Map();
 
-// ============= 星＆クリア回数取得 =============
-function getStarsAndClears(appId){
-  // starRaw: 複数形式に対応
-  const starRaw = localStorage.getItem(`${appId}:overallStatus`) ||
-                  localStorage.getItem(`${appId}_overallStatus`) ||
-                  localStorage.getItem(`${appId}:status`) ||
-                  localStorage.getItem(`${appId}_status`) ||
-                  localStorage.getItem(`${appId}:stars`) ||
-                  localStorage.getItem(`${appId}_stars`);
-  const clearRaw = localStorage.getItem(`${appId}:clearCount`) ||
-                   localStorage.getItem(`${appId}_clearCount`) ||
-                   localStorage.getItem(`${appId}:clear`) ||
-                   localStorage.getItem(`${appId}_clear`) ||
-                   localStorage.getItem(`${appId}:totalClears`) ||
-                   localStorage.getItem(`${appId}_totalClears`);
-  let starCount = null;
-  if (starRaw){
-    const m = starRaw.match(/★/g);
-    if (m && m.length > 0){ starCount = m.length; }
-    else {
-      const n = starRaw.match(/(\d+)/);
-      if (n) starCount = parseInt(n[1], 10);
-    }
-    if (starCount !== null) starCount = Math.max(0, Math.min(5, starCount));
-  }
-  let clearCount = null;
-  if (clearRaw){ clearCount = parseInt(clearRaw, 10); }
-  else {
-    const historyRaw = localStorage.getItem(`${appId}:history`) || localStorage.getItem(`${appId}_history`);
-    if (historyRaw){
-      try {
-        const arr = JSON.parse(historyRaw);
-        if (Array.isArray(arr)) clearCount = arr.length;
-      } catch {}
-    }
-  }
-  return { starCount, clearCount };
+function sanitizeAppData(data) {
+  if (!Array.isArray(data)) return [];
+  return data.filter(grade =>
+    grade && typeof grade === 'object' &&
+    typeof grade.grade === 'string' &&
+    Array.isArray(grade.units)
+  ).map(grade => {
+    grade.units = grade.units.filter(unit =>
+      unit && typeof unit === 'object' &&
+      typeof unit.name === 'string' &&
+      Array.isArray(unit.apps)
+    ).map(unit => {
+      unit.apps = unit.apps.filter(app =>
+        app && typeof app === 'object' &&
+        typeof app.id === 'string' &&
+        typeof app.title === 'string' &&
+        typeof app.path === 'string'
+      );
+      return unit;
+    });
+    return grade;
+  });
 }
 
-// ============= 開閉状態 =============
-const getOpenUnitsForGrade = (g) => { try{ return JSON.parse(localStorage.getItem(OPEN_UNITS_KEY_PREFIX + g)) || []; }catch{ return []; } };
-const setOpenUnitsForGrade = (g, arr) => localStorage.setItem(OPEN_UNITS_KEY_PREFIX + g, JSON.stringify(arr));
-
-// ============= .html のみ残す（空単元・空学年除外） =============
-const isImplementedPath = (p) => typeof p === 'string' && /\.html?$/i.test(p);
-function sanitizeAppData(data){
-  return (data || []).map(g => ({
-    ...g,
-    units: (g.units || [])
-      .map(u => ({ ...u, apps: (u.apps || []).filter(a => isImplementedPath(a?.path)) }))
-      .filter(u => u.apps.length > 0)
-  })).filter(g => (g.units || []).length > 0);
+function renderGradeTabs(activeGrade) {
+  const tabsContainer = document.getElementById('grade-tabs');
+  tabsContainer.innerHTML = '';
+  ALL_GRADES.forEach(grade => {
+    const tab = document.createElement('button');
+    tab.className = 'grade-tab' + (grade === activeGrade ? ' active' : '');
+    tab.textContent = `${grade}年`;
+    tab.onclick = () => {
+      localStorage.setItem(LAST_SELECTED_GRADE_KEY, grade);
+      renderGradeTabs(grade);
+      displayGrade(grade);
+    };
+    tabsContainer.appendChild(tab);
+  });
 }
 
-// ============= 実在チェック（HEAD）＋キャッシュ =============
-const existCache = (() => { try { return JSON.parse(sessionStorage.getItem('exist-cache') || '{}'); } catch { return {}; } })();
-async function existsOnServer(path){
-  if (!/\.html?$/i.test(path)) return false;
-  if (existCache[path] !== undefined) return existCache[path];
-  try{
-    const res = await fetch(path + (path.includes('?') ? '&' : '?') + 'v=' + Date.now(), { method:'HEAD' });
-    existCache[path] = res.ok;
-  }catch{ existCache[path] = false; }
-  try { sessionStorage.setItem('exist-cache', JSON.stringify(existCache)); } catch {}
-  return existCache[path];
-}
-async function filterExistingApps(apps){
-  const candidates = (apps || []).filter(a => a && /\.html?$/i.test(a.path));
-  const results = await Promise.all(candidates.map(a => existsOnServer(a.path)));
-  return candidates.filter((_, i) => results[i]);
-}
-
-// ============= 単元＆アプリ描画 =============
-async function displayUnits(gradeName, units){
+async function displayUnits(grade, units) {
   const unitsContainer = document.getElementById('units-container');
   unitsContainer.innerHTML = '';
-  let openUnits = getOpenUnitsForGrade(gradeName);
 
-  for (const unit of units){
-    const unitSection = document.createElement('div');
-    unitSection.className = 'unit-section';
+  for (const unit of units) {
+    const unitDiv = document.createElement('div');
+    unitDiv.className = 'unit-card';
+
+    const unitTitle = document.createElement('h2');
+    unitTitle.className = 'unit-title';
+    unitTitle.textContent = unit.name;
+    unitDiv.appendChild(unitTitle);
 
     const appsList = document.createElement('div');
     appsList.className = 'apps-list';
 
-    const implementedApps = await filterExistingApps(unit.apps || []);
-    const appsCount = implementedApps.length;
-
-    const unitHeader = document.createElement('h3');
-    unitHeader.innerHTML = `
-      <span class="unit-title">${unit.name}</span>
-      <span class="count-badge" title="この単元のドリル数">${appsCount}</span>
-      <span class="toggle-icon">▼</span>`;
-    unitSection.appendChild(unitHeader);
-
-    if (appsCount > 0){
-      implementedApps.forEach(app => {
-        const a = document.createElement('a');
-        a.href  = app.path;
-        a.className = 'app-item';
-        a.id = `app-${app.id}`;
-
-        const title = document.createElement('div');
-        title.className = 'app-title-section';
-        title.textContent = app.title;
-
-        const status = document.createElement('div');
-        status.className = 'app-status-section';
-
-        const starsSpan = document.createElement('span');
-        starsSpan.className = 'app-stars no-data';
-        starsSpan.textContent = '―';
-
-        const clearsSpan = document.createElement('span');
-        clearsSpan.className = 'app-clears';
-        clearsSpan.textContent = 'クリア：0回';
-
-        // 読み取り
-        const { starCount, clearCount } = getStarsAndClears(app.id);
-        if (starCount !== null && starCount > 0){
-          starsSpan.classList.remove('no-data');
-          starsSpan.textContent = '★'.repeat(starCount);
-        }
-        if (clearCount !== null){
-          clearsSpan.textContent = `クリア：${clearCount}回`;
-        }
-
-        status.appendChild(starsSpan);
-        status.appendChild(clearsSpan);
-
-        a.appendChild(title);
-        a.appendChild(status);
-        appsList.appendChild(a);
-      });
+    // ▼▼▼ 「準備中」の処理をここに追加 ▼▼▼
+    if (unit.apps.length === 0) {
+      const preparationText = document.createElement('span');
+      preparationText.className = 'app-link preparation';
+      preparationText.textContent = '（準備中）';
+      appsList.appendChild(preparationText);
     } else {
-      const p = document.createElement('p');
-      p.textContent = 'この単元のアプリはまだありません。';
-      p.style.cssText = 'font-size:1.2em;color:#666;padding:10px 0;';
-      appsList.appendChild(p);
-    }
-
-    unitSection.appendChild(appsList);
-    unitsContainer.appendChild(unitSection);
-
-    // 開閉状態
-    if (openUnits.includes(unit.name)){
-      appsList.style.display = 'flex';
-      unitSection.classList.add('expanded');
-      unitHeader.querySelector('.toggle-icon').textContent = '▲';
-    } else {
-      appsList.style.display = 'none';
-    }
-
-    unitHeader.addEventListener('click', () => {
-      const isClosed = (appsList.style.display === 'none');
-      if (isClosed){
-        appsList.style.display = 'flex';
-        unitSection.classList.add('expanded');
-        unitHeader.querySelector('.toggle-icon').textContent = '▲';
-        if (!openUnits.includes(unit.name)){
-          openUnits.push(unit.name);
-          setOpenUnitsForGrade(gradeName, openUnits);
-        }
-      } else {
-        appsList.style.display = 'none';
-        unitSection.classList.remove('expanded');
-        unitHeader.querySelector('.toggle-icon').textContent = '▼';
-        openUnits = openUnits.filter(n => n !== unit.name);
-        setOpenUnitsForGrade(gradeName, openUnits);
+      for (const app of unit.apps) {
+        const appId = app.id;
+        const link = document.createElement('a');
+        link.href = app.path;
+        link.className = 'app-link';
+        link.innerHTML = `
+          <span class="app-title">${app.title}</span>
+          <div class="status-container">
+            <span class="status-stars" id="stars-${appId}">―</span>
+            <span class="clear-count" id="count-${appId}">0回</span>
+          </div>
+        `;
+        appsList.appendChild(link);
       }
-    });
+    }
+    // ▲▲▲ 修正ここまで ▲▲▲
+
+    unitDiv.appendChild(appsList);
+    unitsContainer.appendChild(unitDiv);
   }
+
+  const allAppIds = units.flatMap(unit => unit.apps.map(app => app.id));
+  updateStatus(allAppIds);
 }
 
-// ============= 学年タブ（固定1〜6）＋準備中表示 =============
-function renderGradeTabs(active){
-  const gradeTabsContainer = document.getElementById('grade-tabs');
-  gradeTabsContainer.innerHTML = '';
-  for (const g of ALL_GRADES){
-    const btn = document.createElement('button');
-    btn.className = 'grade-tab' + (g === active ? ' active' : '');
-    btn.textContent = g + '年';
-    btn.addEventListener('click', async () => {
-      document.querySelectorAll('.grade-tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      localStorage.setItem(LAST_SELECTED_GRADE_KEY, g);
-      await displayGrade(g);
-    });
-    gradeTabsContainer.appendChild(btn);
-  }
+function updateStatus(appIds) {
+  appIds.forEach(appId => {
+    const stars = localStorage.getItem(`${appId}:status`) || '―';
+    const count = localStorage.getItem(`${appId}:clearCount`) || '0';
+    
+    const starsEl = document.getElementById(`stars-${appId}`);
+    const countEl = document.getElementById(`count-${appId}`);
+    
+    if (starsEl) starsEl.innerHTML = stars;
+    if (countEl) countEl.textContent = `${count}回`;
+  });
 }
 
-async function displayGrade(grade){
-  const units = gradeMap.get(String(grade));
+async function displayGrade(grade) {
+  const units = gradeMap.get(`${grade}年`)?.units || [];
   const unitsContainer = document.getElementById('units-container');
-  if (!units || units.length === 0){
+
+  if (units.length === 0) {
     unitsContainer.innerHTML = `
       <div style="max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1);">
         <h3 style="margin:0 0 10px;">${grade}年</h3>
@@ -282,7 +178,6 @@ function initializeUI(){
   displayGrade(active);
 }
 
-// ============= スクロール復元 =============
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
 window.addEventListener('load', () => {
@@ -290,22 +185,22 @@ window.addEventListener('load', () => {
   if (y !== null) window.scrollTo(0, parseInt(y,10));
 });
 
-// ============= JSON読み込み =============
 async function loadAppData(){
   try{
     const res = await fetch('app_data.json?v=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data  = await res.json();
     const clean = sanitizeAppData(data);
-    gradeMap = new Map(clean.map(g => [String(g.grade), g.units || []]));
+    gradeMap = new Map(clean.map(g => [g.grade, g]));
     initializeUI();
-  }catch(err){
-    console.error(err);
-    document.getElementById('units-container').innerHTML =
-      "<p style='text-align:center;color:red;'>アプリデータを読み込めませんでした。'app_data.json' を確認してください。</p>";
+  } catch(e) {
+    console.error('Failed to load app data:', e);
+    document.getElementById('units-container').innerHTML = '<p style="text-align:center;color:red;">データの読み込みに失敗しました。</p>';
   }
 }
+
 loadAppData();
+
 </script>
 </body>
 </html>
