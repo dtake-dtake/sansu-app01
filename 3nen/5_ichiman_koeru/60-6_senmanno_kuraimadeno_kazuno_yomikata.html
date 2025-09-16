@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>千万の位までの数のよみ方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --c-bg: #f3e5f5; --c-frame-bg: #fff; --c-frame-border: #ce93d8;
+      --c-header-text: #6a1b9a; --c-button-bg: #ba68c8; --c-button-hover: #ab47bc;
+      --c-text-main: #333; --c-text-on-button: #ffffff; --c-correct: #2e7d32;
+      --c-wrong: #c62828; --font-main: 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
+      --font-problem: "Kyokasho", "教科書体", serif;
+      --input-button-bg: #e1bee7; --input-button-hover: #ce93d8;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-main); background: var(--c-bg); margin: 0;
+      color: var(--c-text-main); font-size: 1.6rem; line-height: 1.6;
+      padding: 20px 20px 120px 20px;
+    }
+    h1, h2 {
+      text-align: center; margin: 15px 0; color: var(--c-header-text);
+      text-shadow: 2px 2px 3px rgba(0,0,0,.1); white-space: nowrap;
+    }
+    h1 { font-size: 3rem; }
+    h2 { font-size: 2.2rem; margin-bottom: 30px; }
+    #problems-wrapper {
+      max-width: 800px; margin: 0 auto 30px; padding: 20px;
+      border: 4px dashed var(--c-frame-border); background: var(--c-frame-bg);
+      box-shadow: 5px 5px 10px rgba(0,0,0,.15); border-radius: 20px;
+    }
+    .problem-block {
+      font-family: var(--font-problem); border-bottom: 2px solid var(--c-frame-border);
+      padding: 20px 10px; display: flex; align-items: center;
+      flex-wrap: nowrap; gap: 20px;
+    }
+    .problem-block:last-child { border-bottom: none; }
+    .problem-number { font-size: 2.5rem; font-weight: bold; color: var(--c-header-text);}
+    .problem-content { font-size: 2.8rem; letter-spacing: 2px; flex-shrink: 0; }
+    input[type="text"] {
+      font-family: var(--font-problem); font-size: 2rem;
+      flex-grow: 1; width: 40%;
+      text-align: left; border: none; border-bottom: 2px solid #ccc;
+      background: transparent; margin: 0; touch-action: manipulation;
+    }
+    input:focus { outline: none; border-bottom-color: var(--c-button-hover); }
+    .result-icon { font-size: 3rem; font-weight: bold; margin-left: 10px; }
+    .correct { color: var(--c-correct); }
+    .wrong { color: var(--c-wrong); }
+    .button-area, #start-area { text-align: center; margin: 40px 0; }
+    button {
+      font-family: var(--font-main); font-size: 1.5rem; padding: 12px 30px; border: none;
+      border-radius: 10px; background-color: var(--c-button-bg);
+      color: var(--c-text-on-button); cursor: pointer;
+      transition: background-color 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+    }
+    button:hover { background-color: var(--c-button-hover); }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    #result-area {
+      max-width: 600px; margin: 20px auto; padding: 15px;
+      background: var(--c-frame-bg); border: 2px solid var(--c-frame-border);
+      border-radius: 10px; text-align: center;
+    }
+    #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
+    .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+    #history-list { list-style: none; padding: 0; background: var(--c-bg); border-radius: 8px; margin-top:10px;}
+    #input-buttons {
+      position: fixed; bottom: 0; left: 0; right: 0; display: flex;
+      flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 5px;
+      padding: 10px; background-color: var(--c-bg);
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 100;
+    }
+    .input-btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+    .input-btn {
+      font-family: var(--font-main); font-size: 1.5rem;
+      width: 55px; height: 45px; border: 1px solid var(--c-frame-border);
+      border-radius: 8px; background-color: var(--input-button-bg);
+      color: var(--c-text-main); cursor: pointer; transition: background-color 0.2s;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .input-btn:hover { background-color: var(--input-button-hover); }
+    .spacer { width: 15px; }
+    .action-btn { background-color: #e8eaf6; width: 120px; }
+    .action-btn:hover { background-color: #c5cae9; }
+    .delete-btn { background-color: #ffcdd2; color: var(--c-wrong); width: 120px; }
+    .delete-btn:hover { background-color: #ef9a9a; }
+  </style>
+</head>
+<body>
+
+  <h1 id="main-title"></h1>
+  <h2 id="sub-title"></h2>
+  
+  <div id="start-area"><button id="start-btn">スタート！</button></div>
+
+  <div id="problems-section" style="display:none;">
+    <div id="problems-wrapper"></div>
+    <div class="button-area">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry">もういちど</button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div id="result"></div>
+    <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+    <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+    <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+    <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+    <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+    <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+  </div>
+  
+  <div id="input-buttons" style="display: none;">
+    <div class="input-btn-group">
+      <button class="input-btn" data-value="一">一</button> <button class="input-btn" data-value="二">二</button>
+      <button class="input-btn" data-value="三">三</button> <button class="input-btn" data-value="四">四</button>
+      <button class="input-btn" data-value="五">五</button> <button class="input-btn" data-value="六">六</button>
+      <button class="input-btn" data-value="七">七</button> <button class="input-btn" data-value="八">八</button>
+      <button class="input-btn" data-value="九">九</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="input-btn-group">
+      <button class="input-btn" data-value="十">十</button> <button class="input-btn" data-value="百">百</button>
+      <button class="input-btn" data-value="千">千</button> <button class="input-btn" data-value="万">万</button>
+      <button class="input-btn" data-value="億">億</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="input-btn-group">
+      <button class="input-btn delete-btn" data-value="del">けす</button>
+      <button class="input-btn action-btn" data-value="next">次へ</button>
+    </div>
+  </div> 
+  <script>
+    (function () {
+      const config = {
+        appId: "60-6_senmanno_kuraimadeno_kazuno_yomikata",
+        mainTitle: "一万をこえる数",
+        title: "千万の位までの数のよみ方",
+        problemCount: 5,
+        baseScore: 100,
+        targetTimePerQuestion: 25,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        convertToJapaneseReading(num) {
+            if (num === 0) return "〇";
+            let result = "";
+
+            const oku = Math.floor(num / 100000000);
+            if (oku > 0) {
+                result += this._convertToSmallReading(oku) + "億";
+            }
+            const man = Math.floor((num % 100000000) / 10000);
+            if (man > 0) {
+                result += this._convertToSmallReading(man) + "万";
+            }
+            const rem = num % 10000;
+            if (rem > 0) {
+                result += this._convertToSmallReading(rem);
+            }
+            return result;
+        },
+        _convertToSmallReading(num) {
+            const digits = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+            const places = ["", "十", "百", "千"];
+            let smallResult = "";
+            let n = num;
+            for (let i = 3; i >= 0; i--) {
+                const placeVal = Math.pow(10, i);
+                let digit = Math.floor(n / placeVal);
+                if (digit > 0) {
+                    if (!(digit === 1 && i > 0)) {
+                        smallResult += digits[digit];
+                    }
+                    smallResult += places[i];
+                }
+                n %= placeVal;
+            }
+            return smallResult;
+        },
+        problemGenerator() {
+          const problemsList = [];
+          while (problemsList.length < config.problemCount) {
+            const num = Math.floor(Math.random() * 99900000) + 100000;
+            const reading = this.convertToJapaneseReading(num).replace(/〇/g, '零');
+            if (!problemsList.some(p => p.answer === reading)) {
+              problemsList.push({ displayText: String(num), answer: reading });
+            }
+          }
+          return problemsList;
+        }
+      };
+
+      // ...以降のJavaScriptは変更ありません...
+      let problems = [], incorrectIndices = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let activeInput = null;
+
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`, KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+
+      const startArea = document.getElementById('start-area');
+      const problemsSection = document.getElementById('problems-section');
+      const resultArea = document.getElementById('result-area');
+      const checkBtn = document.getElementById('check-answers');
+      const retryBtn = document.getElementById('retry');
+      const resultEl = document.getElementById('result');
+      const inputButtonsDiv = document.getElementById('input-buttons');
+
+      function loadData() {
+        highScore = +ls.getItem(KEY_HS) || 0;
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        totalClearCount = +ls.getItem(KEY_CLEAR) || 0;
+        monthlyCount = +ls.getItem(monthKey) || 0;
+        dailyCount = +ls.getItem(todayKey) || 0;
+        overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() {
+        ls.setItem(KEY_HS, String(highScore));
+        const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+        const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
+        ls.setItem(KEY_CLEAR, String(totalClearCount));
+        ls.setItem(monthKey, String(monthlyCount));
+        ls.setItem(todayKey, String(dailyCount));
+        ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
+      }
+      function saveHistoryEntry(score) {
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        history.unshift({ datetime: new Date().toLocaleString(), score });
+        if (history.length > 10) history.pop();
+        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+      }
+      function updateDisplay() {
+        document.querySelector('#highScoreValue').textContent = highScore;
+        document.querySelector('#clearCountValue').textContent = totalClearCount;
+        document.querySelector('#monthlyCountValue').textContent = monthlyCount;
+        document.querySelector('#dailyCountValue').textContent = dailyCount;
+        document.querySelector('#overallStars').innerHTML = overallStatusStars;
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        document.querySelector('#history-list').innerHTML =
+          history.map(h => `<li>${h.datetime}：${h.score}てん</li>`).join('');
+      }
+      
+      function attachInputEvents(el) {
+        if (!el) return;
+        el.addEventListener('focus', (e) => {
+            activeInput = e.target;
+            e.target.closest('.problem-block')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const [_, probIdxStr] = e.target.id.split('-');
+            const probIdx = parseInt(probIdxStr, 10);
+            if (incorrectIndices.length > 0) {
+              const currentIndexInErrorList = incorrectIndices.indexOf(probIdx);
+              if (currentIndexInErrorList < incorrectIndices.length - 1) {
+                const nextIncorrectProbIdx = incorrectIndices[currentIndexInErrorList + 1];
+                document.querySelector(`#ans-${nextIncorrectProbIdx}`)?.focus();
+              } else {
+                checkBtn.focus();
+              }
+            } else {
+              const nextProbIdx = probIdx + 1;
+              if (nextProbIdx < problems.length) {
+                document.querySelector(`#ans-${nextProbIdx}`)?.focus();
+              } else {
+                checkBtn.focus();
+              }
+            }
+          }
+        });
+      }
+
+      function handleInputButtonClick(event) {
+        if (!activeInput) return;
+        const value = event.target.dataset.value;
+        if (value === 'del') {
+          activeInput.value = activeInput.value.slice(0, -1);
+        } else if (value === 'next') {
+          const [_, probIdxStr] = activeInput.id.split('-');
+          const probIdx = parseInt(probIdxStr, 10);
+          const nextProbIdx = probIdx + 1;
+          if (nextProbIdx < problems.length) document.querySelector(`#ans-${nextProbIdx}`)?.focus();
+          else checkBtn.focus();
+        } else {
+          activeInput.value += value;
+        }
+        activeInput.focus();
+      }
+      
+      function displayProblems() {
+        const wrap = document.getElementById('problems-wrapper');
+        wrap.innerHTML = '';
+        problems.forEach((p, i) => {
+          const block = document.createElement('div');
+          block.className = 'problem-block';
+          block.innerHTML = `
+            <div class="problem-number">${i + 1}.</div>
+            <span class="problem-content">${p.displayText}</span>
+            <input type="text" id="ans-${i}" inputmode="none" autocomplete="off">
+            <div id="icon-${i}" class="result-icon"></div>
+          `;
+          wrap.appendChild(block);
+          attachInputEvents(document.querySelector(`#ans-${i}`));
+        });
+      }
+      
+      function normalizeAnswer(input) {
+        return input.trim().replace(/壱/g, '一').replace(/弐/g, '二').replace(/参/g, '三').replace(/〇/g, '零');
+      }
+
+      function checkAnswers() {
+        checkBtn.disabled = true;
+        let newIncorrectIndices = [];
+        problems.forEach((p, i) => {
+          const ansEl = document.querySelector(`#ans-${i}`);
+          const userAnswer = normalizeAnswer(ansEl.value);
+          const isCorrect = (userAnswer === p.answer);
+          const icon = document.querySelector(`#icon-${i}`);
+          if (isCorrect) {
+            icon.textContent = '○'; icon.className = 'result-icon correct';
+            ansEl.disabled = true;
+          } else {
+            icon.textContent = '×'; icon.className = 'result-icon wrong';
+            newIncorrectIndices.push(i);
+          }
+        });
+        incorrectIndices = newIncorrectIndices;
+
+        if (incorrectIndices.length === 0) {
+          totalClearCount++; monthlyCount++; dailyCount++;
+          const elapsed = (Date.now() - startTime) / 1000;
+          const baseScore = config.baseScore || 100;
+          const targetTime = problems.length * config.targetTimePerQuestion;
+          let bonus = Math.max(0, Math.floor(100 * (targetTime - elapsed) / targetTime));
+          const score = baseScore + bonus;
+          
+          const s = config.starThresholds;
+          let starsHtml = '―';
+          if (s) {
+            if (score >= s.star5) starsHtml = '★★★★★';
+            else if (score >= s.star4) starsHtml = '★★★★☆';
+            else if (score >= s.star3) starsHtml = '★★★☆☆';
+            else if (score >= s.star2) starsHtml = '★★☆☆☆';
+            else if (score >= s.star1) starsHtml = '★☆☆☆☆';
+          }
+          overallStatusStars = starsHtml;
+          
+          let msg = '🎉 全問正解！おめでとう！ 🎉';
+          if (score > highScore) {
+            msg = '🏆 ハイスコア達成！すごい！ 🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
+          }
+          resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+          saveData(); saveHistoryEntry(score); updateDisplay();
+          resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          retryBtn.focus();
+        } else {
+          resultEl.innerHTML = 'おしい！まちがいを直そう！';
+          checkBtn.disabled = false;
+          document.querySelector(`#ans-${incorrectIndices[0]}`)?.focus();
+        }
+      }
+      
+      function retry() {
+        resultEl.textContent = ''; checkBtn.disabled = false;
+        startTime = Date.now();
+        incorrectIndices = [];
+        problems = config.problemGenerator();
+        displayProblems();
+        document.querySelector('#ans-0')?.focus();
+      }
+      
+      window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('sub-title').textContent = config.title;
+        const startBtn = document.getElementById('start-btn');
+        const resetHighScoreBtn = document.getElementById('reset-highscore');
+
+        inputButtonsDiv.querySelectorAll('.input-btn').forEach(button => {
+          button.addEventListener('click', handleInputButtonClick);
+        });
+
+        startBtn.onclick = () => {
+          startArea.style.display = 'none';
+          problemsSection.style.display = 'block';
+          resultArea.style.display = 'block';
+          inputButtonsDiv.style.display = 'flex';
+          retry();
+        };
+
+        checkBtn.onclick = checkAnswers;
+
+        retryBtn.onclick = () => {
+            retry();
+            problemsSection.scrollIntoView({ behavior: 'smooth' });
+        };
+        
+        resetHighScoreBtn.onclick = () => {
+          if (confirm('ハイスコアとステータスをリセットしますか？')) {
+            highScore = 0; overallStatusStars = '―';
+            saveData(); updateDisplay();
+          }
+        };
+        
+        problemsSection.style.display = 'none';
+        inputButtonsDiv.style.display = 'none';
+        loadData(); updateDisplay(); startBtn.focus();
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && startArea.style.display !== 'none') startBtn.click();
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>

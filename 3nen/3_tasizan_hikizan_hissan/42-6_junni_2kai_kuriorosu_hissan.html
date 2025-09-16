@@ -7,14 +7,23 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
-    :root {
-      --c-bg-main: #f1f8e9; --c-primary: #689f38; --c-primary-dark: #33691e;
-      --c-primary-light: #dcedc8; --c-button-bg: #ff9800; --c-button-hover: #ffb74d;
-      --c-result-area-bg: #dcedc8; --c-problem-row-bg: #ffffff; --c-history-bg: #c5e1a5;
-      --c-text-main: #212121; --c-text-on-button: #ffffff;
-      --c-feedback-correct-bg: #e8f5e9; --c-feedback-wrong-bg: #ffebee;
-      font-size: 16px;
-    }
+:root {
+  /* 茶色系の配色 */
+  --c-bg-main: #f5f5f5;          /* 背景: とても薄いグレー */
+  --c-primary: #8d6e63;          /* メインカラー: ブラウン */
+  --c-primary-dark: #4e342e;      /* アクセント(文字など): ダークブラウン */
+  --c-primary-light: #d7ccc8;     /* 明るい部分(見出し背景など): ライトブラウン */
+  --c-button-bg: #a1887f;         /* ボタン: ブラウン */
+  --c-button-hover: #bcaaa4;      /* ボタン(マウスオーバー): 明るいブラウン */
+  --c-result-area-bg: #d7ccc8;     /* 結果エリアの背景 */
+  --c-problem-row-bg: #ffffff;   /* 問題の背景: 白 */
+  --c-history-bg: #bcaaa4;        /* 履歴の背景 */
+  --c-text-main: #212121;         /* 基本の文字色: 黒 */
+  --c-text-on-button: #ffffff;   /* ボタンの文字色: 白 */
+  --c-feedback-correct-bg: #f5f5f5; /* 正解した時の背景: ごく薄いグレー */
+  --c-feedback-wrong-bg: #ffebee;   /* 間違えた時の背景: 薄い赤 */
+  font-size: 16px;
+}
     body {
       font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
       background-color: var(--c-bg-main); color: var(--c-text-main); margin: 0;
@@ -122,15 +131,117 @@
         targetTimePerQuestion: 30, 
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         problemGenerator() {
-            // △6の意図を汲んだ固定問題
-            const staticProblems = [
-                { a: 321, b: 164, answers: [1, 5, 7] }, // 問1: 基本の2回くり下がり
-                { a: 630, b: 242, answers: [3, 8, 8] }, // 問2: 0からのくり下がり
-                { a: 541, b: 48,  answers: [4, 9, 3] }, // 問3: 3けた-2けた
-                { a: 714, b: 618, answers: [0, 9, 6] }, // 問4: 答えが2けた
-                { a: 411, b: 222, answers: [1, 8, 9] }  // 問5: 1からのくり下がり
+            // 便利なヘルパー関数
+            const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+            const calculateAndFormatAnswers = (a, b) => {
+                const answer = a - b;
+                const ansH = Math.floor(answer / 100);
+                const ansT = Math.floor((answer % 100) / 10);
+                const ansO = answer % 10;
+                return [ansH, ansT, ansO];
+            };
+
+            // 【パターン1】基本的な2回くり下がり
+            const createDoubleBorrowProblem = () => {
+                let a, b;
+                do {
+                    const h_b = getRandomInt(1, 7);
+                    const t_b = getRandomInt(1, 9);
+                    const o_b = getRandomInt(1, 9);
+                    
+                    const h_a = getRandomInt(h_b + 1, 9); // 必ず引けるように
+                    const t_a = getRandomInt(0, t_b);     // 十の位でくり下がりを誘発
+                    const o_a = getRandomInt(0, o_b - 1); // 一の位でくり下がりを確定
+                    
+                    a = h_a * 100 + t_a * 10 + o_a;
+                    b = h_b * 100 + t_b * 10 + o_b;
+                } while (a <= b);
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            // 【パターン2】一の位が0からのくり下がり
+            const createBorrowFromZeroProblem = () => {
+                let a, b;
+                do {
+                    const h_b = getRandomInt(1, 7);
+                    const t_b = getRandomInt(1, 9);
+                    const o_b = getRandomInt(1, 9);
+
+                    const h_a = getRandomInt(h_b + 1, 9);
+                    const t_a = getRandomInt(1, t_b); // 00 にならないように1以上
+                    const o_a = 0; // 一の位を0に固定
+
+                    a = h_a * 100 + t_a * 10 + o_a;
+                    b = h_b * 100 + t_b * 10 + o_b;
+                } while (a <= b);
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            // 【パターン3】答えが2けたになる2回くり下がり
+            const createResultUnder100Problem = () => {
+                let a, b, o_a, t_a, o_b, t_b;
+                do {
+                    const h_b = getRandomInt(1, 8);
+                    const h_a = h_b + 1; // 百の位の差を1に
+                    
+                    const b_tens_ones = getRandomInt(21, 98);
+                    const a_tens_ones = getRandomInt(10, b_tens_ones - 1); // aの下2けた < bの下2けた
+                    
+                    t_b = Math.floor(b_tens_ones / 10);
+                    o_b = b_tens_ones % 10;
+                    t_a = Math.floor(a_tens_ones / 10);
+                    o_a = a_tens_ones % 10;
+                    
+                    a = h_a * 100 + a_tens_ones;
+                    b = h_b * 100 + b_tens_ones;
+                // o_a < o_bで一回目のくり下がりを確定させる
+                } while (a <= b || o_a >= o_b);
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            // 【パターン4】3けた - 2けたの2回くり下がり
+            const create3minus2DigitProblem = () => {
+                let a, b;
+                do {
+                    const t_b = getRandomInt(2, 9);
+                    const o_b = getRandomInt(1, 9);
+                    b = t_b * 10 + o_b;
+                    
+                    const h_a = getRandomInt(1, 9);
+                    const t_a = getRandomInt(0, t_b);
+                    const o_a = getRandomInt(0, o_b - 1);
+                    a = h_a * 100 + t_a * 10 + o_a;
+                } while (a <= b);
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            // 【パターン5】1から借りるくり下がり
+            const createBorrowFromOneProblem = () => {
+                let p;
+                do {
+                    p = createDoubleBorrowProblem();
+                // 十の位が1の問題ができるまで再生成
+                } while (Math.floor((p.a % 100) / 10) !== 1);
+                return p;
+            };
+
+            // --- メインロジック ---
+            const problemCreators = [
+                createDoubleBorrowProblem,
+                createBorrowFromZeroProblem,
+                createResultUnder100Problem,
+                create3minus2DigitProblem,
+                createBorrowFromOneProblem
             ];
-            return staticProblems;
+            
+            // 関数リストの順番をシャッフル
+            for (let i = problemCreators.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [problemCreators[i], problemCreators[j]] = [problemCreators[j], problemCreators[i]];
+            }
+
+            // 各パターンの問題を1問ずつ生成
+            return problemCreators.map(creator => creator());
         }
         // ▲▲▲ ここまで ▲▲▲
       };

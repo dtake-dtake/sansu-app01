@@ -126,14 +126,45 @@
         targetTimePerQuestion: 40, 
         starThresholds: { star1: 100, star2: 115, star3: 130, star4: 145, star5: 160 },
         problemGenerator() {
-            const staticProblems = [
-                { a: 400, b: 152, answers: [2, 4, 8] },
-                { a: 700, b: 48,  answers: [6, 5, 2] },
-                { a: 200, b: 7,   answers: [1, 9, 3] },
-                { a: 1000, b: 257,answers: [7, 4, 3] },
-                { a: 1000, b: 43, answers: [9, 5, 7] }
-            ];
-            return staticProblems;
+            // 便利なヘルパー関数 (変更なし)
+            const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+            const calculateAndFormatAnswers = (a, b) => {
+                const answer = a - b;
+                const ansH = Math.floor(answer / 100);
+                const ansT = Math.floor((answer % 100) / 10);
+                const ansO = answer % 10;
+                return [ansH, ansT, ansO];
+            };
+
+            // パターン1: X00の形から引く問題 (変更なし)
+            const createX00MinusProblem = () => {
+                const h_a = getRandomInt(2, 9); // 200〜900
+                const a = h_a * 100;
+                const b = getRandomInt(11, a - 101); 
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            // パターン2: 1000から引く問題 (変更なし)
+            const create1000MinusProblem = () => {
+                const a = 1000;
+                const b = getRandomInt(11, 999);
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            // --- メインロジック ---
+            const problems = [];
+            
+            // X00から引く問題を先に4問追加
+            for (let i = 0; i < 4; i++) {
+                problems.push(createX00MinusProblem());
+            }
+
+            // 1000から引く問題を最後に1問追加
+            problems.push(create1000MinusProblem());
+            
+            // ★★★ シャッフルの処理を削除 ★★★
+
+            return problems;
         }
       };
 

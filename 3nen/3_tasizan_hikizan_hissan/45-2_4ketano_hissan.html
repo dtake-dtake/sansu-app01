@@ -121,13 +121,60 @@
         targetTimePerQuestion: 30, 
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         problemGenerator() {
-            const staticProblems = [
-                { a: 1386, b: 2459, op: '+', answers: [3, 8, 4, 5] },
-                { a: 9875, b: 57,   op: '+', answers: [9, 9, 3, 2] },
-                { a: 6825, b: 5919, op: '-', answers: [0, 9, 0, 6] },
-                { a: 1250, b: 852,  op: '-', answers: [0, 3, 9, 8] }
+            // 便利なヘルパー関数
+            const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+            const calculateAndFormatAnswers = (result) => {
+                const ansTh = Math.floor(result / 1000);
+                const ansH = Math.floor((result % 1000) / 100);
+                const ansT = Math.floor((result % 100) / 10);
+                const ansO = result % 10;
+                return [ansTh, ansH, ansT, ansO];
+            };
+
+            // 【パターン1】 4けた + 4けた のたし算
+            const create4x4Addition = () => {
+                const a = getRandomInt(1000, 8999);
+                const b = getRandomInt(1000, 9999 - a); // 答えが4けたに収まるように
+                return { a, b, op: '+', answers: calculateAndFormatAnswers(a + b) };
+            };
+
+            // 【パターン2】 4けた + 2/3けた のたし算
+            const create4x23Addition = () => {
+                const a = getRandomInt(1000, 9899);
+                const b = getRandomInt(11, 999);
+                return { a, b, op: '+', answers: calculateAndFormatAnswers(a + b) };
+            };
+
+            // 【パターン3】 4けた - 4けた のひき算
+            const create4x4Subtraction = () => {
+                const b = getRandomInt(1000, 8999);
+                const a = getRandomInt(b + 1, 9999); // 必ず a > b となるように
+                return { a, b, op: '-', answers: calculateAndFormatAnswers(a - b) };
+            };
+
+            // 【パターン4】 4けた - 2/3けた のひき算
+            const create4x23Subtraction = () => {
+                const a = getRandomInt(1000, 9999);
+                const b = getRandomInt(11, 999);
+                return { a, b, op: '-', answers: calculateAndFormatAnswers(a - b) };
+            };
+
+            // --- メインロジック ---
+            // 各パターンの問題を1問ずつ生成する
+            const problems = [
+                create4x4Addition(),
+                create4x23Addition(),
+                create4x4Subtraction(),
+                create4x23Subtraction()
             ];
-            return staticProblems;
+
+            // 問題の順番をシャッフルする
+            for (let i = problems.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [problems[i], problems[j]] = [problems[j], problems[i]];
+            }
+
+            return problems;
         }
       };
 

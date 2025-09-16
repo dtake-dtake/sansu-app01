@@ -7,14 +7,23 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
   <style>
-    :root {
-      --c-bg-main: #f1f8e9; --c-primary: #689f38; --c-primary-dark: #33691e;
-      --c-primary-light: #dcedc8; --c-button-bg: #ff9800; --c-button-hover: #ffb74d;
-      --c-result-area-bg: #dcedc8; --c-problem-row-bg: #ffffff; --c-history-bg: #c5e1a5;
-      --c-text-main: #212121; --c-text-on-button: #ffffff;
-      --c-feedback-correct-bg: #e8f5e9; --c-feedback-wrong-bg: #ffebee;
-      font-size: 16px;
-    }
+:root {
+  /* イチゴの配色 */
+  --c-bg-main: #fff0f3;          /* 背景: とても薄いピンク */
+  --c-primary: #e53935;          /* メインカラー: イチゴの赤 */
+  --c-primary-dark: #b71c1c;      /* アクセント(文字など): 濃い赤 */
+  --c-primary-light: #ffcdd2;     /* 明るい部分(見出し背景など): 薄いピンク */
+  --c-button-bg: #ef5350;         /* ボタン: 明るい赤 */
+  --c-button-hover: #e57373;      /* ボタン(マウスオーバー): さらに明るい赤 */
+  --c-result-area-bg: #ffcdd2;     /* 結果エリアの背景 */
+  --c-problem-row-bg: #ffffff;   /* 問題の背景: 白 */
+  --c-history-bg: #a5d6a7;        /* 履歴の背景: ヘタの緑 */
+  --c-text-main: #212121;         /* 基本の文字色: 黒 */
+  --c-text-on-button: #ffffff;   /* ボタンの文字色: 白 */
+  --c-feedback-correct-bg: #e8f5e9; /* 正解した時の背景: ごく薄い緑 */
+  --c-feedback-wrong-bg: #ffebee;   /* 間違えた時の背景: 薄い赤 */
+  font-size: 16px;
+}
     body {
       font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
       background-color: var(--c-bg-main); color: var(--c-text-main); margin: 0;
@@ -122,15 +131,74 @@
         targetTimePerQuestion: 35, // 少し難しいため時間を延長
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         problemGenerator() {
-            // △9の意図を汲んだ固定問題
-            const staticProblems = [
-                { a: 302, b: 164, answers: [1, 3, 8] }, // 問1: 基本形
-                { a: 401, b: 275, answers: [1, 2, 6] }, // 問2: 反復
-                { a: 604, b: 236, answers: [3, 6, 8] }, // 問3: 反復
-                { a: 601, b: 579, answers: [0, 2, 2] }, // 問4: 応用(答えが小さい)
-                { a: 300, b: 126, answers: [1, 7, 4] }  // 問5: 最難関(0が続く)
-            ];
-            return staticProblems;
+  // 便利なヘルパー関数
+            const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+            const calculateAndFormatAnswers = (a, b) => {
+                const answer = a - b;
+                const ansH = Math.floor(answer / 100);
+                const ansT = Math.floor((answer % 100) / 10);
+                const ansO = answer % 10;
+                return [ansH, ansT, ansO];
+            };
+
+            /**
+             * 【基本形】十の位が0のくり下がり問題
+             */
+            const createBorrowAcrossZeroProblem = () => {
+                let a, b;
+                // a > b になるまでループ
+                do {
+                    // 1. 引かれる数(a)を作る
+                    const h_a = getRandomInt(3, 9); // くり下がり後の計算のため3以上
+                    const o_a = getRandomInt(1, 8); // くり下がりのため9以外
+                    a = h_a * 100 + o_a; // 十の位は0
+
+                    // 2. 引く数(b)を作る
+                    const h_b = getRandomInt(1, h_a - 2); // 答えが小さくなりすぎないように調整
+                    const t_b = getRandomInt(0, 9);
+                    const o_b = getRandomInt(o_a + 1, 9); // 必ず一の位でくり下がるように
+                    b = h_b * 100 + t_b * 10 + o_b;
+                } while (a <= b);
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            /**
+             * 【応用形】答えが2けたになる、十の位が0のくり下がり問題
+             */
+            const createResultUnder100Problem = () => {
+                // 1. 百の位の差が1になるように a と b を設定
+                const h_b = getRandomInt(1, 8);
+                const h_a = h_b + 1;
+
+                // 2. 引かれる数(a)の一の位を決める
+                const o_a = getRandomInt(1, 8);
+                const a = h_a * 100 + o_a;
+
+                // 3. 引く数(b)を作り、必ずくり下がりを発生させる
+                const t_b = getRandomInt(0, 9);
+                const o_b = getRandomInt(o_a + 1, 9);
+                const b = h_b * 100 + t_b * 10 + o_b;
+
+                // この作り方だと必ず a > b になる
+                return { a, b, answers: calculateAndFormatAnswers(a, b) };
+            };
+
+            // --- メインロジック ---
+            const problems = [];
+            
+            // 基本形を4問、応用形を1問生成する
+            for (let i = 0; i < 4; i++) {
+                problems.push(createBorrowAcrossZeroProblem());
+            }
+            problems.push(createResultUnder100Problem());
+
+            // 問題の順番をシャッフルする
+            for (let i = problems.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [problems[i], problems[j]] = [problems[j], problems[i]];
+            }
+
+            return problems;
         }
         // ▲▲▲ ここまで ▲▲▲
       };
