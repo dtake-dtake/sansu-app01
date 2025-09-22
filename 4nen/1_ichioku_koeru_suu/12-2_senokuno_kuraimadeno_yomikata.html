@@ -2,16 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>一万の位の読みかた</title>
+  <title>千億の位までの読み方</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --c-bg: #f0f4c3; --c-frame-bg: #fff; --c-frame-border: #aed581;
-      --c-header-text: #558b2f; --c-button-bg: #9ccc65; --c-button-hover: #8bc34a;
-      --c-text-main: #333; --c-text-on-button: #ffffff; --c-correct: #2e7d32;
-      --c-wrong: #c62828; --font-main: 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
+      /* Corn Theme by Gemini */
+      --c-bg: #fffde7; /* Light cream yellow (background) */
+      --c-frame-bg: #ffffff;
+      --c-frame-border: #689f38; /* Corn husk green */
+      --c-header-text: #33691e; /* Dark green */
+      --c-button-bg: #ffeb3b; /* Corn kernel yellow */
+      --c-button-hover: #fdd835; /* Darker yellow */
+      --c-text-main: #3e2723; /* Dark brown for text */
+      --c-text-on-button: #3e2723; /* Dark text on yellow button */
+      --c-correct: #2e7d32;
+      --c-wrong: #c62828;
+      --font-main: 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
       --font-problem: "Kyokasho", "教科書体", serif;
-      --input-button-bg: #f1f8e9; --input-button-hover: #e6ee9c;
+      --input-button-bg: #f1f8e9; /* Very light green */
+      --input-button-hover: #dcedc8;
     }
     html { scroll-behavior: smooth; }
     body {
@@ -26,25 +35,66 @@
     h1 { font-size: 3rem; }
     h2 { font-size: 2.2rem; margin-bottom: 30px; }
     #problems-wrapper {
-      max-width: 800px; margin: 0 auto 30px; padding: 20px;
+      max-width: 900px; margin: 0 auto 30px; padding: 20px;
       border: 4px dashed var(--c-frame-border); background: var(--c-frame-bg);
       box-shadow: 5px 5px 10px rgba(0,0,0,.15); border-radius: 20px;
     }
+    
     .problem-block {
-      font-family: var(--font-problem); border-bottom: 2px solid var(--c-frame-border);
-      padding: 25px 10px; display: flex; align-items: center;
-      justify-content: space-between; flex-wrap: wrap;
+      font-family: var(--font-problem);
+      border-bottom: 2px solid var(--c-frame-border);
+      padding: 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
     }
     .problem-block:last-child { border-bottom: none; }
-    .problem-number { font-size: 2.5rem; font-weight: bold; color: var(--c-header-text); margin-right: 20px;}
-    .problem-content { font-size: 2.8rem; letter-spacing: 2px; }
-    input[type="text"] {
-      font-family: var(--font-problem); font-size: 2rem; width: 400px;
-      text-align: left; border: none; border-bottom: 2px solid #ccc;
-      background: transparent; margin: 0 15px; touch-action: manipulation;
+
+    .problem-question-area {
+      display: flex;
+      align-items: baseline;
+      gap: 15px;
+      flex-shrink: 0;
     }
+    
+    .problem-answer-area {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .problem-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--c-header-text);
+    }
+    
+    .problem-content {
+      font-size: 2.6rem;
+      letter-spacing: 2px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      font-family: var(--font-problem);
+      font-size: 2rem;
+      text-align: left;
+      border: none;
+      border-bottom: 2px solid #ccc;
+      background: transparent;
+      margin: 0;
+      touch-action: manipulation;
+    }
+
     input:focus { outline: none; border-bottom-color: var(--c-button-hover); }
-    .result-icon { font-size: 3rem; font-weight: bold; }
+
+    .result-icon {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-left: 10px;
+    }
     .correct { color: var(--c-correct); }
     .wrong { color: var(--c-wrong); }
     .button-area, #start-area { text-align: center; margin: 40px 0; }
@@ -63,7 +113,7 @@
     }
     #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
     .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-    #history-list { list-style: none; padding: 0; background: #f1f8e9; border-radius: 8px; margin-top:10px;}
+    #history-list { list-style: none; padding: 0; background: #f9fbe7; border-radius: 8px; margin-top:10px;}
     #input-buttons {
       position: fixed; bottom: 0; left: 0; right: 0; display: flex;
       justify-content: center; align-items: stretch; gap: 5px;
@@ -123,6 +173,7 @@
     <div class="input-btn-group">
       <button class="input-btn" data-value="十">十</button> <button class="input-btn" data-value="百">百</button>
       <button class="input-btn" data-value="千">千</button> <button class="input-btn" data-value="万">万</button>
+      <button class="input-btn" data-value="億">億</button>
     </div>
     <div class="spacer"></div>
     <div class="input-btn-group">
@@ -134,22 +185,29 @@
 <script>
     (function () {
       const config = {
-        appId: "58-2_ichimanno_kuraino_yomikata_final",
-        mainTitle: "５　一万をこえる数",
-        title: "一万の位までの数の読みかた",
+        appId: "12-2_senokuno_kuraimadeno_yomikata",
+        mainTitle: "１　一億をこえる数",
+        title: "千億の位までの読み方",
         problemCount: 5,
         baseScore: 100,
-        targetTimePerQuestion: 20,
+        targetTimePerQuestion: 40,
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         
         convertToJapaneseReading(num) {
-          if (num === 0) return "零";
-          let result = "";
-          const man = Math.floor(num / 10000);
-          if (man > 0) result += this._convertToSmallReading(man) + "万";
-          let rem = num % 10000;
-          if (rem > 0) result += this._convertToSmallReading(rem);
-          return result;
+            if (num === 0) return "零";
+            const units = ["", "万", "億", "兆"];
+            let result = "";
+            let unitIndex = 0;
+            let n = BigInt(num);
+            while (n > 0) {
+                const chunk = Number(n % 10000n);
+                if (chunk > 0) {
+                    result = this._convertToSmallReading(chunk) + units[unitIndex] + result;
+                }
+                n = n / 10000n;
+                unitIndex++;
+            }
+            return result;
         },
         _convertToSmallReading(num) {
             const digits = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
@@ -166,15 +224,72 @@
             }
             return smallResult;
         },
+        // --- ▼▼▼ ここから問題生成ロジックを修正 ▼▼▼ ---
         problemGenerator() {
           const problemsList = [];
-          while (problemsList.length < config.problemCount) {
-            const num = Math.floor(Math.random() * 90000) + 10000;
-            const reading = this.convertToJapaneseReading(num);
-            problemsList.push({ displayText: num.toLocaleString(), answer: reading });
+          
+          // --- 3種類の「キリのいい数」を1問ずつ生成 ---
+
+          // タイプ1: 億の位がランダムで、千万以下が0
+          const okuPart = BigInt(Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000);
+          const num1 = okuPart * 100000000n; // 1億を掛ける
+          problemsList.push({ num: num1 });
+
+          // タイプ2: 下7桁のどこか1つが0でない
+          // ベースの数を10億以上になるように調整し、単純すぎる問題を避ける
+          const higherPart2 = BigInt(Math.floor(Math.random() * (9999 - 100 + 1)) + 100);
+          const baseNum2 = higherPart2 * 10000000n;
+          const randomPlace1 = BigInt(10 ** Math.floor(Math.random() * 7));
+          const randomDigit1 = BigInt(Math.floor(Math.random() * 9) + 1);
+          const num2 = baseNum2 + (randomDigit1 * randomPlace1);
+          problemsList.push({ num: num2 });
+
+          // タイプ3: 下7桁のどこか2つが0でない
+          const higherPart3 = BigInt(Math.floor(Math.random() * (9999 - 100 + 1)) + 100);
+          const baseNum3 = higherPart3 * 10000000n;
+          const places = [0, 1, 2, 3, 4, 5, 6];
+          for (let i = places.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [places[i], places[j]] = [places[j], places[i]];
           }
+          const randomPlaceA = BigInt(10 ** places[0]);
+          const randomPlaceB = BigInt(10 ** places[1]);
+          const randomDigitA = BigInt(Math.floor(Math.random() * 9) + 1);
+          const randomDigitB = BigInt(Math.floor(Math.random() * 9) + 1);
+          const num3 = baseNum3 + (randomDigitA * randomPlaceA) + (randomDigitB * randomPlaceB);
+          problemsList.push({ num: num3 });
+
+          // --- 通常のランダムな数を2問生成 ---
+          const regularProblemCount = config.problemCount - problemsList.length;
+          const min = 100000000n;
+          const max = 999999999999n;
+          for (let i = 0; i < regularProblemCount; i++) {
+            const range = max - min;
+            // BigInt乱数生成の簡易的な方法
+            const randomChunk1 = BigInt(Math.floor(Math.random() * 1000000));
+            const randomChunk2 = BigInt(Math.floor(Math.random() * 1000000));
+            const randomBigInt = min + (randomChunk1 * 1000000n + randomChunk2) % (range + 1n);
+            problemsList.push({ num: randomBigInt });
+          }
+          
+          // --- 全問題の読みと表示テキストを生成 ---
+          problemsList.forEach(p => {
+              p.answer = this.convertToJapaneseReading(p.num);
+              p.displayText = this.formatWith4DigitSpaces(p.num);
+          });
+
+          // --- 問題の順番をシャッフル ---
+          for (let i = problemsList.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [problemsList[i], problemsList[j]] = [problemsList[j], problemsList[i]];
+          }
+
           return problemsList;
+        },
+        formatWith4DigitSpaces(num) {
+          return String(num).replace(/\B(?=(\d{4})+(?!\d))/g, " ");
         }
+        // --- ▲▲▲ ここまで問題生成ロジックを修正 ▲▲▲ ---
       };
 
       let problems = [], incorrectIndices = [], startTime = 0, highScore = 0;
@@ -261,22 +376,19 @@
         });
       }
 
-function handleInputButtonClick(event) {
+    function handleInputButtonClick(event) {
         if (!activeInput) return;
         const value = event.target.dataset.value;
-        const start = activeInput.selectionStart; // カーソルの開始位置を取得
-        const end = activeInput.selectionEnd;     // カーソルの終了位置を取得
+        const start = activeInput.selectionStart;
+        const end = activeInput.selectionEnd;
 
         if (value === 'del') {
-          // カーソルが選択範囲でない場合（通常の文字削除）
           if (start === end && start > 0) {
-            // カーソルの前の1文字を削除
             activeInput.value = activeInput.value.substring(0, start - 1) + activeInput.value.substring(end);
-            activeInput.selectionStart = activeInput.selectionEnd = start - 1; // カーソル位置を更新
+            activeInput.selectionStart = activeInput.selectionEnd = start - 1;
           } else {
-            // 文字が範囲選択されている場合は、その部分を削除
             activeInput.value = activeInput.value.substring(0, start) + activeInput.value.substring(end);
-            activeInput.selectionStart = activeInput.selectionEnd = start; // カーソル位置を更新
+            activeInput.selectionStart = activeInput.selectionEnd = start;
           }
         } else if (value === 'next') {
           const [_, probIdxStr] = activeInput.id.split('-');
@@ -285,31 +397,34 @@ function handleInputButtonClick(event) {
           if (nextProbIdx < problems.length) document.querySelector(`#ans-${nextProbIdx}`)?.focus();
           else checkBtn.focus();
         } else {
-          // カーソル位置に文字を挿入
           activeInput.value = activeInput.value.substring(0, start) + value + activeInput.value.substring(end);
-          activeInput.selectionStart = activeInput.selectionEnd = start + value.length; // カーソル位置を更新
+          activeInput.selectionStart = activeInput.selectionEnd = start + value.length;
         }
         activeInput.focus();
-      }
+    }
       
-      function displayProblems() {
+    function displayProblems() {
         const wrap = document.getElementById('problems-wrapper');
         wrap.innerHTML = '';
         problems.forEach((p, i) => {
           const block = document.createElement('div');
           block.className = 'problem-block';
           block.innerHTML = `
-            <div class="problem-number">${i + 1}.</div>
-            <span class="problem-content">${p.displayText}</span>
-            <input type="text" id="ans-${i}" inputmode="none">
-            <div id="icon-${i}" class="result-icon"></div>
+            <div class="problem-question-area">
+              <div class="problem-number">${i + 1}.</div>
+              <span class="problem-content">${p.displayText}</span>
+            </div>
+            <div class="problem-answer-area">
+              <input type="text" id="ans-${i}" inputmode="none">
+              <div id="icon-${i}" class="result-icon"></div>
+            </div>
           `;
           wrap.appendChild(block);
           attachInputEvents(document.querySelector(`#ans-${i}`));
         });
-      }
+    }
 
-      function checkAnswers() {
+    function checkAnswers() {
         checkBtn.disabled = true;
         let newIncorrectIndices = [];
         problems.forEach((p, i) => {
@@ -354,25 +469,25 @@ function handleInputButtonClick(event) {
           }
           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
           saveData(); saveHistoryEntry(score); updateDisplay();
-          resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' }); // 全問正解時のみ結果へ
+          resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
           retryBtn.focus();
         } else {
           resultEl.innerHTML = 'おしい！まちがいを直そう！';
           checkBtn.disabled = false;
           document.querySelector(`#ans-${incorrectIndices[0]}`)?.focus();
         }
-      }
+    }
       
-      function retry() {
+    function retry() {
         resultEl.textContent = ''; checkBtn.disabled = false;
         startTime = Date.now();
         incorrectIndices = [];
         problems = config.problemGenerator();
         displayProblems();
         document.querySelector('#ans-0')?.focus();
-      }
+    }
       
-      window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('main-title').textContent = config.mainTitle;
         document.getElementById('sub-title').textContent = config.title;
         const startBtn = document.getElementById('start-btn');
@@ -410,9 +525,9 @@ function handleInputButtonClick(event) {
         document.addEventListener('keydown', e => {
           if (e.key === 'Enter' && startArea.style.display !== 'none') startBtn.click();
         });
-      });
+    });
     })();
-  </script>
+</script>
 
 </body>
 </html>
