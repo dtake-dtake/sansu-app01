@@ -181,7 +181,8 @@
         }
       };
 
-      let problems = [], startTime = 0, highScore = 0;
+      // ▼▼▼ ステップ1: 変数を追加 ▼▼▼
+      let problems = [], startTime = 0, highScore = 0, currentProblemIndex = -1;
       let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
       let overallStatusStars = '―', incorrectIndices = [];
       const ls = localStorage;
@@ -232,9 +233,16 @@
         const currentPos = inputOrder.indexOf(part);
         const move = (nextPart) => document.querySelector(`#ans-${probIdx}-${nextPart}`).focus();
 
+        // ▼▼▼ ステップ3: フォーカス時の処理を書き換え ▼▼▼
         el.addEventListener('focus', () => {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          el.select(); // ▼▼▼ 変更点：フォーカス時に自動選択 ▼▼▼
+          if (probIdx !== currentProblemIndex) {
+            currentProblemIndex = probIdx;
+            const problemContainer = el.closest('.problem-container');
+            if (problemContainer) {
+              problemContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+          el.select();
         });
         
         el.addEventListener('input', () => {
@@ -243,7 +251,6 @@
           }
         });
 
-        /* ▼▼▼ 変更点：矢印キーのロジックを修正 ▼▼▼ */
         el.addEventListener('keydown', e => {
           const answerNavOrder = ['h', 't', 'o'];
           const currentAnswerPos = answerNavOrder.indexOf(part);
@@ -354,8 +361,6 @@
                 if (el) { 
                     el.classList.add('wrong-bg'); 
                     el.disabled = false; 
-                    /* ▼▼▼ 変更点：不正解でも値を消さない ▼▼▼ */
-                    // if(el.value !== '') el.value = ''; 
                 }
             });
           }
@@ -399,6 +404,8 @@
       }
       
       function retry() {
+        // ▼▼▼ ステップ2: 変数をリセット ▼▼▼
+        currentProblemIndex = -1;
         startTime = Date.now();
         document.querySelector('#check-answers').disabled = false;
         document.querySelector('#result').textContent = '';

@@ -2,16 +2,30 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>数字のかき方</title>
+  <title>千兆までのかき方</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
     :root {
-      --c-bg: #e0f7fa; --c-frame-bg: #fff; --c-frame-border: #4dd0e1;
-      --c-header-text: #006064; --c-button-bg: #26c6da; --c-button-hover: #00bcd4;
-      --c-text-main: #333; --c-text-on-button: #ffffff; --c-correct: #2e7d32;
-      --c-wrong: #c62828; --font-main: 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
+      /* Theme: 宇宙船のコックピット (Spaceship Cockpit) */
+      --c-bg: #00001a; /* 宇宙空間の深い青黒 */
+      --c-frame-bg: #0a0a2a; /* コントロールパネルの背景 */
+      --c-frame-border: #00ffff; /* 未来的なインターフェースの枠線（シアン） */
+      --c-header-text: #00ffff; /* ヘッダーの文字色（シアン） */
+      --c-button-bg: #0077ff; /* 操作ボタンの青 */
+      --c-button-hover: #3399ff; /* ボタンのホバー色 */
+      --c-text-main: #e0e0e0; /* パネルの基本文字色（ライトグレー） */
+      --c-text-on-button: #ffffff;
+      --c-correct: #00ff7f; /* 正解表示（ライムグリーン） */
+      --c-wrong: #ff4444; /* 不正解表示（ブライトレッド） */
+      --font-main: 'Share Tech Mono', 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
       --font-problem: "Kyokasho", "教科書体", serif;
-      --input-button-bg: #b2ebf2; --input-button-hover: #80deea;
+      --input-button-bg: #1a1a3a; /* 入力キーの色 */
+      --input-button-hover: #2a2a4a;
     }
     html { scroll-behavior: smooth; }
     body {
@@ -21,48 +35,36 @@
     }
     h1, h2 {
       text-align: center; margin: 15px 0; color: var(--c-header-text);
-      text-shadow: 2px 2px 3px rgba(0,0,0,.1); white-space: nowrap;
+      text-shadow: 0 0 5px var(--c-header-text); white-space: nowrap;
     }
     h1 { font-size: 3rem; }
     h2 { font-size: 2.2rem; margin-bottom: 30px; }
     #problems-wrapper {
       max-width: 900px; margin: 0 auto 30px; padding: 20px;
       border: 4px dashed var(--c-frame-border); background: var(--c-frame-bg);
-      box-shadow: 5px 5px 10px rgba(0,0,0,.15); border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); border-radius: 20px;
     }
-
-    /* --- ▼▼▼ ここからレイアウト修正 ▼▼▼ --- */
     .problem-block {
       font-family: var(--font-problem);
       border-bottom: 2px solid var(--c-frame-border);
-      padding: 15px 10px;
-      display: flex;
-      flex-direction: column; /* 要素を縦に並べる */
-      align-items: stretch;    /* 子要素を横幅いっぱいに広げる */
-      gap: 10px;             /* 問題と回答欄の間の隙間 */
+      padding: 15px 10px; display: flex;
+      flex-direction: column; align-items: stretch; gap: 10px;
     }
     .problem-block:last-child { border-bottom: none; }
     
-    .problem-question-area {
-        display: flex;
-        align-items: baseline;
-        gap: 15px;
-    }
-    .problem-answer-area {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end; /* 中身を右に寄せる */
-    }
-    /* --- ▲▲▲ ここまでレイアウト修正 ▲▲▲ --- */
+    .problem-question-area { display: flex; align-items: baseline; gap: 15px; }
+    .problem-answer-area { display: flex; align-items: center; justify-content: flex-end; }
 
     .problem-number { font-size: 2.5rem; font-weight: bold; color: var(--c-header-text); }
-    .problem-content { font-size: 2.4rem; letter-spacing: 1px; }
+    .problem-content { font-size: 2.4rem; letter-spacing: 1px; color: #ffffff; }
 
     input[type="text"] {
-      font-family: var(--font-problem); font-size: 2.2rem; width: 300px;
+      font-family: var(--font-main); font-size: 2.2rem; width: 400px;
       text-align: right; border: none; border-bottom: 2px solid #ccc;
-      background: transparent; margin: 0 15px; touch-action: manipulation;
+      background: transparent; margin: 0 15px; color: #00ff7f;
+      touch-action: manipulation;
     }
+    input::placeholder { color: #555; }
     input:focus { outline: none; border-bottom-color: var(--c-button-hover); }
 
     .result-icon { font-size: 3rem; font-weight: bold; }
@@ -70,13 +72,13 @@
     .wrong { color: var(--c-wrong); }
     .button-area, #start-area { text-align: center; margin: 40px 0; }
     button {
-      font-family: var(--font-main); font-size: 1.5rem; padding: 12px 30px; border: none;
+      font-family: var(--font-main); font-size: 1.5rem; padding: 12px 30px; border: 1px solid var(--c-button-hover);
       border-radius: 10px; background-color: var(--c-button-bg);
       color: var(--c-text-on-button); cursor: pointer;
-      transition: background-color 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+      transition: all 0.2s; box-shadow: 0 0 10px rgba(0, 119, 255, 0.5);
     }
-    button:hover { background-color: var(--c-button-hover); }
-    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    button:hover { background-color: var(--c-button-hover); box-shadow: 0 0 15px rgba(51, 153, 255, 0.8); }
+    button:disabled { background-color: #333; color: #777; border-color: #555; box-shadow: none; cursor: not-allowed; }
     #result-area {
       max-width: 600px; margin: 20px auto; padding: 15px;
       background: var(--c-frame-bg); border: 2px solid var(--c-frame-border);
@@ -84,13 +86,13 @@
     }
     #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
     .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-    #history-list { list-style: none; padding: 0; background: #e0f7fa; border-radius: 8px; margin-top:10px;}
+    #history-list { list-style: none; padding: 0; background: #00001a; border-radius: 8px; margin-top:10px;}
     
     #input-buttons {
       position: fixed; bottom: 0; left: 0; right: 0; display: flex;
       justify-content: center; align-items: stretch; gap: 5px;
       padding: 10px; background-color: var(--c-bg);
-      box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 100;
+      border-top: 1px solid var(--c-frame-border);
     }
     .input-btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
     .input-btn {
@@ -101,10 +103,10 @@
       display: flex; justify-content: center; align-items: center;
     }
     .input-btn:hover { background-color: var(--input-button-hover); }
-    .action-btn { background-color: #c5cae9; width: 125px; }
-    .action-btn:hover { background-color: #9fa8da; }
-    .delete-btn { background-color: #ffcdd2; color: var(--c-wrong); width: 125px; }
-    .delete-btn:hover { background-color: #ef9a9a; }
+    .action-btn { background-color: #3f51b5; color: #fff; width: 125px; }
+    .action-btn:hover { background-color: #5c6bc0; }
+    .delete-btn { background-color: #c62828; color: #fff; width: 125px; }
+    .delete-btn:hover { background-color: #e53935; }
   </style>
 </head>
 <body>
@@ -149,17 +151,17 @@
 <script>
     (function () {
       const config = {
-        appId: "12-3_suujino_kakikata_v4", // version up
+        appId: "14-3_senchomadeno_kakikata",
         mainTitle: "１　一億をこえる数",
-        title: "数字のかき方",
-        problemCount: 5,
+        title: "千兆までのかき方",
+        problemCount: 1, // 問題数は1問
         baseScore: 100,
-        targetTimePerQuestion: 25,
+        targetTimePerQuestion: 60,
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         
         convertToJapaneseReading(num) {
             if (num === 0) return "零";
-            const units = ["", "万", "億", "兆"];
+            const units = ["", "万", "億", "兆", "京"];
             let result = "";
             let unitIndex = 0;
             let n = BigInt(num);
@@ -191,41 +193,19 @@
         problemGenerator() {
           const problemsList = [];
           
-          const okuPart1 = BigInt(Math.floor(Math.random() * (9999 - 1 + 1)) + 1);
-          const num1 = okuPart1 * 100000000n;
-          problemsList.push({ num: num1 });
-
-          const okuPart2 = BigInt(Math.floor(Math.random() * (9999 - 1 + 1)) + 1);
-          const baseNum2 = okuPart2 * 100000000n;
-          const randomPlace1 = BigInt(10 ** Math.floor(Math.random() * 8));
-          const randomDigit1 = BigInt(Math.floor(Math.random() * 9) + 1);
-          const num2 = baseNum2 + (randomDigit1 * randomPlace1);
-          problemsList.push({ num: num2 });
-
-          const okuPart3 = BigInt(Math.floor(Math.random() * (9999 - 1 + 1)) + 1);
-          const baseNum3 = okuPart3 * 100000000n;
-          const places = [0, 1, 2, 3, 4, 5, 6, 7];
-          for (let i = places.length - 1; i > 0; i--) {
-              const j = Math.floor(Math.random() * (i + 1));
-              [places[i], places[j]] = [places[j], places[i]];
-          }
-          const randomPlaceA = BigInt(10 ** places[0]);
-          const randomPlaceB = BigInt(10 ** places[1]);
-          const randomDigitA = BigInt(Math.floor(Math.random() * 9) + 1);
-          const randomDigitB = BigInt(Math.floor(Math.random() * 9) + 1);
-          const num3 = baseNum3 + (randomDigitA * randomPlaceA) + (randomDigitB * randomPlaceB);
-          problemsList.push({ num: num3 });
-
-          const manPart = BigInt(Math.floor(Math.random() * (99999999 - 10000 + 1)) + 10000);
-          const num4 = manPart * 10000n;
-          problemsList.push({ num: num4 });
-
-          const min = 100000000n;
-          const max = 999999999999n;
+          // 1億から9999兆までの完全ランダムな数を1問生成
+          const min = 100000000n; // 1億
+          const max = 9999999999999999n; // 約9999兆
           const range = max - min;
-          const randomChunk1 = BigInt(Math.floor(Math.random() * 1000000));
-          const randomChunk2 = BigInt(Math.floor(Math.random() * 1000000));
-          const randomBigInt = min + (randomChunk1 * 1000000n + randomChunk2) % (range + 1n);
+          const bits = range.toString(2).length;
+          let randomBigInt;
+          do {
+            let r = 0n;
+            for (let j = 0; j < bits; j++) {
+              if (Math.random() < 0.5) r |= 1n << BigInt(j);
+            }
+            randomBigInt = min + (r % (range + 1n));
+          } while (randomBigInt > max);
           problemsList.push({ num: randomBigInt });
 
           const self = this;
@@ -233,11 +213,7 @@
               p.displayText = self.convertToJapaneseReading(p.num);
               p.answer = Number(p.num);
           });
-
-          for (let i = problemsList.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [problemsList[i], problemsList[j]] = [problemsList[j], problemsList[i]];
-          }
+          
           return problemsList;
         }
       };
@@ -260,7 +236,18 @@
       const resultEl = document.getElementById('result');
       const inputButtonsDiv = document.getElementById('input-buttons');
 
-      function loadData() {
+      function loadData() { /* ... */ }
+      function saveData() { /* ... */ }
+      function saveHistoryEntry(score) { /* ... */ }
+      function updateDisplay() { /* ... */ }
+      function attachInputEvents(el) { /* ... */ }
+      function handleInputButtonClick(event) { /* ... */ }
+      function displayProblems() { /* ... */ }
+      function checkAnswers() { /* ... */ }
+      function retry() { /* ... */ }
+      
+      // Copying the full implementation of helper functions from the previous correct version
+      loadData = function() {
         highScore = +ls.getItem(KEY_HS) || 0;
         const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
         const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
@@ -269,7 +256,7 @@
         dailyCount = +ls.getItem(todayKey) || 0;
         overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
       }
-      function saveData() {
+      saveData = function() {
         ls.setItem(KEY_HS, String(highScore));
         const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
         const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7);
@@ -278,13 +265,13 @@
         ls.setItem(todayKey, String(dailyCount));
         ls.setItem(KEY_OVERALL_STATUS, overallStatusStars);
       }
-      function saveHistoryEntry(score) {
+      saveHistoryEntry = function(score) {
         const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
         history.unshift({ datetime: new Date().toLocaleString(), score });
         if (history.length > 10) history.pop();
         ls.setItem(KEY_HISTORY, JSON.stringify(history));
       }
-      function updateDisplay() {
+      updateDisplay = function() {
         document.querySelector('#highScoreValue').textContent = highScore;
         document.querySelector('#clearCountValue').textContent = totalClearCount;
         document.querySelector('#monthlyCountValue').textContent = monthlyCount;
@@ -295,7 +282,7 @@
           history.map(h => `<li>${h.datetime}：${h.score}てん</li>`).join('');
       }
       
-      function attachInputEvents(el) {
+      attachInputEvents = function(el) {
         if (!el) return;
 
         el.addEventListener('focus', (e) => {
@@ -306,20 +293,7 @@
         el.addEventListener('keydown', e => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            const [_, probIdxStr] = e.target.id.split('-');
-            const probIdx = parseInt(probIdxStr, 10);
-            if (incorrectIndices.length > 0) {
-              const currentIndexInErrorList = incorrectIndices.indexOf(probIdx);
-              if (currentIndexInErrorList < incorrectIndices.length - 1) {
-                const nextIncorrectProbIdx = incorrectIndices[currentIndexInErrorList + 1];
-                document.querySelector(`#ans-${nextIncorrectProbIdx}`)?.focus();
-              } else { checkBtn.focus(); }
-            } else {
-              const nextProbIdx = probIdx + 1;
-              if (nextProbIdx < problems.length) {
-                document.querySelector(`#ans-${nextProbIdx}`)?.focus();
-              } else { checkBtn.focus(); }
-            }
+            checkBtn.click();
           }
         });
 
@@ -330,7 +304,6 @@
             const digitsBeforeCursor = (originalValue.substring(0, originalPos).match(/\d/g) || []).length;
             
             let rawValue = originalValue.replace(/[^\d]/g, '');
-
             const formattedValue = rawValue.replace(/\B(?=(\d{4})+(?!\d))/g, ' ');
             
             if (input.value !== formattedValue) {
@@ -340,34 +313,21 @@
             let newPos = 0;
             let digitsCounted = 0;
             for (const char of formattedValue) {
-                if (digitsCounted === digitsBeforeCursor) {
-                    break;
-                }
+                if (digitsCounted === digitsBeforeCursor) break;
                 newPos++;
-                if (/\d/.test(char)) {
-                    digitsCounted++;
-                }
+                if (/\d/.test(char)) digitsCounted++;
             }
-            if (digitsBeforeCursor > 0 && newPos === formattedValue.length && digitsCounted < digitsBeforeCursor) {
-            } else if (digitsCounted < digitsBeforeCursor) {
-              newPos = formattedValue.length;
-            }
-            
             input.setSelectionRange(newPos, newPos);
         });
       }
 
-      function handleInputButtonClick(event) {
+      handleInputButtonClick = function(event) {
         if (!activeInput) return;
         const value = event.target.dataset.value;
         const start = activeInput.selectionStart;
 
         if (value === 'next') {
-          const [_, probIdxStr] = activeInput.id.split('-');
-          const probIdx = parseInt(probIdxStr, 10);
-          const nextProbIdx = probIdx + 1;
-          if (nextProbIdx < problems.length) document.querySelector(`#ans-${nextProbIdx}`)?.focus();
-          else checkBtn.focus();
+          checkBtn.click();
           return;
         }
 
@@ -389,7 +349,6 @@
         const inputEvent = new Event('input', { bubbles: true });
         activeInput.dispatchEvent(inputEvent);
         
-        // カーソル位置を再計算
         let newPos = 0;
         let digitsCounted = 0;
         for (const char of activeInput.value) {
@@ -398,11 +357,10 @@
             if (/\d/.test(char)) digitsCounted++;
         }
         activeInput.setSelectionRange(newPos, newPos);
-
         activeInput.focus();
       }
       
-      function displayProblems() {
+      displayProblems = function() {
         const wrap = document.getElementById('problems-wrapper');
         wrap.innerHTML = '';
         problems.forEach((p, i) => {
@@ -423,7 +381,7 @@
         });
       }
 
-      function checkAnswers() {
+      checkAnswers = function() {
         checkBtn.disabled = true;
         let newIncorrectIndices = [];
         problems.forEach((p, i) => {
@@ -478,7 +436,7 @@
         }
       }
       
-      function retry() {
+      retry = function() {
         resultEl.textContent = ''; checkBtn.disabled = false;
         startTime = Date.now();
         incorrectIndices = [];

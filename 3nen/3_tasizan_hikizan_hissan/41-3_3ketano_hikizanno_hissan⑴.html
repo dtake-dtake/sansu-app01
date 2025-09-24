@@ -121,10 +121,7 @@
         targetTimePerQuestion: 25, 
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         problemGenerator() {
-            // 便利なヘルパー関数：指定した範囲のランダムな整数を返す
             const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-            // 解答を計算してフォーマットする関数
             const calculateAndFormatAnswers = (a, b) => {
                 const answer = a - b;
                 const ansH = Math.floor(answer / 100);
@@ -132,110 +129,73 @@
                 const ansO = answer % 10;
                 return [ansH, ansT, ansO];
             };
-
-            // 【パターン1】くり下がりがない問題
             const createNoBorrowProblem = () => {
                 const o_b = getRandomInt(0, 8);
                 const t_b = getRandomInt(0, 8);
                 const h_b = getRandomInt(1, 8);
-                
-                const o_a = getRandomInt(o_b, 9); // 引く数より大きい
-                const t_a = getRandomInt(t_b, 9); // 引く数より大きい
-                const h_a = getRandomInt(h_b + 1, 9); // 必ず正の数にするため+1
-                
+                const o_a = getRandomInt(o_b, 9);
+                const t_a = getRandomInt(t_b, 9);
+                const h_a = getRandomInt(h_b + 1, 9);
                 const a = h_a * 100 + t_a * 10 + o_a;
                 const b = h_b * 100 + t_b * 10 + o_b;
                 return { a, b, answers: calculateAndFormatAnswers(a, b) };
             };
-
-            // 【パターン2】一の位でくり下がり
             const createBorrowOnesProblem = () => {
                 const t_b = getRandomInt(0, 7);
                 const h_b = getRandomInt(1, 8);
-                const o_b = getRandomInt(1, 9); // 0だとくり下がらないため
-
-                const o_a = getRandomInt(0, o_b - 1); // 引く数より小さい
-                const t_a = getRandomInt(t_b + 1, 9); // 貸した後、引く数より大きくなるように
+                const o_b = getRandomInt(1, 9);
+                const o_a = getRandomInt(0, o_b - 1);
+                const t_a = getRandomInt(t_b + 1, 9);
                 const h_a = getRandomInt(h_b, 9);
-
                 const a = h_a * 100 + t_a * 10 + o_a;
                 const b = h_b * 100 + t_b * 10 + o_b;
-                if (a <= b) return createBorrowOnesProblem(); // a > b を確実にする再帰呼び出し
+                if (a <= b) return createBorrowOnesProblem();
                 return { a, b, answers: calculateAndFormatAnswers(a, b) };
             };
-
-            // 【パターン3】十の位でくり下がり
             const createBorrowTensProblem = () => {
                 const o_b = getRandomInt(0, 9);
                 const h_b = getRandomInt(1, 7);
                 const t_b = getRandomInt(1, 9);
-
-                const o_a = getRandomInt(o_b, 9); // ここはくり下がらない
-                const t_a = getRandomInt(0, t_b - 1); // 引く数より小さい
-                const h_a = getRandomInt(h_b + 1, 9); // 貸した後、引く数より大きくなるように
-
+                const o_a = getRandomInt(o_b, 9);
+                const t_a = getRandomInt(0, t_b - 1);
+                const h_a = getRandomInt(h_b + 1, 9);
                 const a = h_a * 100 + t_a * 10 + o_a;
                 const b = h_b * 100 + t_b * 10 + o_b;
                 if (a <= b) return createBorrowTensProblem();
                 return { a, b, answers: calculateAndFormatAnswers(a, b) };
             };
-            
-            // 【パターン4】3けた - 2けた（くり下がりあり）
             const create3minus2DigitProblem = () => {
-                const b = getRandomInt(11, 99); // 2けたの引く数
+                const b = getRandomInt(11, 99);
                 const t_b = Math.floor(b / 10);
-                
-                // 十の位でくり下がるように作る
                 const o_a = getRandomInt(0, 9);
                 const t_a = getRandomInt(0, t_b -1 < 0 ? 0 : t_b -1);
                 const h_a = getRandomInt(1, 9);
-
                 const a = h_a * 100 + t_a * 10 + o_a;
                 if (a <= b) return create3minus2DigitProblem();
                 return { a, b, answers: calculateAndFormatAnswers(a, b) };
             };
-
-            // 【パターン5】2回のくり下がり
             const createDoubleBorrowProblem = () => {
                 const h_b = getRandomInt(1, 6);
                 const t_b = getRandomInt(1, 9);
                 const o_b = getRandomInt(1, 9);
-
-                const h_a = getRandomInt(h_b + 1, 9); // 貸せるように
-                const t_a = getRandomInt(0, t_b -1 < 0 ? 0 : t_b-1); // 十の位でくり下がる
-                const o_a = getRandomInt(0, o_b - 1); // 一の位でくり下がる
-                
+                const h_a = getRandomInt(h_b + 1, 9);
+                const t_a = getRandomInt(0, t_b -1 < 0 ? 0 : t_b-1);
+                const o_a = getRandomInt(0, o_b - 1);
                 const a = h_a * 100 + t_a * 10 + o_a;
                 const b = h_b * 100 + t_b * 10 + o_b;
-
                 if (a <= b) return createDoubleBorrowProblem();
                 return { a, b, answers: calculateAndFormatAnswers(a, b) };
             };
-
-            // --- メインロジック ---
-            // 各パターンの問題を作る関数のリスト
-            const problemCreators = [
-                createNoBorrowProblem,
-                createBorrowOnesProblem,
-                createBorrowTensProblem,
-                create3minus2DigitProblem,
-                createDoubleBorrowProblem
-            ];
-            
-            // 関数リストの順番をシャッフルする (Fisher-Yates shuffle)
+            const problemCreators = [ createNoBorrowProblem, createBorrowOnesProblem, createBorrowTensProblem, create3minus2DigitProblem, createDoubleBorrowProblem ];
             for (let i = problemCreators.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [problemCreators[i], problemCreators[j]] = [problemCreators[j], problemCreators[i]];
             }
-
-            // シャッフルされた順番で各関数を呼び出し、問題の配列を生成
             return problemCreators.map(creator => creator());
         }
       };
 
-      // ▼▼▼ 変更点1: 間違った問題の番号を保存するリストを追加 ▼▼▼
       let problems = [], startTime = 0, highScore = 0, incorrectIndices = [];
-      // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
       let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
       let overallStatusStars = '―';
 
@@ -314,21 +274,16 @@
             }
         } else if (event.key === 'Enter') {
             event.preventDefault();
-            // ▼▼▼ 変更点2: Enterキーの挙動を修正 ▼▼▼
             if (incorrectIndices.length > 0) {
-                // 間違いがある場合(修正モード)
                 const currentIndexInList = incorrectIndices.indexOf(i);
                 if (currentIndexInList !== -1 && currentIndexInList < incorrectIndices.length - 1) {
-                    // 次の間違いがリストにある場合
                     const nextIncorrectProblemIndex = incorrectIndices[currentIndexInList + 1];
                     nextId = `ans-${nextIncorrectProblemIndex}-o`;
                 } else {
-                    // これが最後の間違い、またはリストにない場合、「まるつけ」ボタンに移動
                     document.querySelector('#check-answers').focus();
                     return;
                 }
             } else {
-                // 間違いがない場合(初回入力モード)
                 if (i < config.problemCount - 1) {
                     nextId = `ans-${i + 1}-o`;
                 } else {
@@ -336,7 +291,6 @@
                     return;
                 }
             }
-            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
         }
         if (nextId) {
             const nextEl = document.getElementById(nextId);
@@ -399,17 +353,24 @@
       function checkAnswers() {
         let correctCount = 0;
         let firstWrongIndex = -1;
-        // ▼▼▼ 変更点3: 間違いリストを初期化 ▼▼▼
         incorrectIndices = [];
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
         problems.forEach((p, i) => {
             const userAnsH = document.querySelector(`#ans-${i}-h`);
             const userAnsT = document.querySelector(`#ans-${i}-t`);
             const userAnsO = document.querySelector(`#ans-${i}-o`);
-            const isCorrect = 
-                parseInt(userAnsH.value || -1) === p.answers[0] &&
-                parseInt(userAnsT.value || -1) === p.answers[1] &&
-                parseInt(userAnsO.value || -1) === p.answers[2];
+            
+            // ▼▼▼ ここからが修正箇所です ▼▼▼
+            const userValH = parseInt(userAnsH.value || -1);
+            const userValT = parseInt(userAnsT.value || -1);
+            const userValO = parseInt(userAnsO.value || -1);
+
+            const isHCorrect = (userValH === p.answers[0]) || (userAnsH.value === '' && p.answers[0] === 0);
+            const isTCorrect = (userValT === p.answers[1]) || (userAnsT.value === '' && p.answers[1] === 0);
+            
+            const isCorrect = isHCorrect && 
+                              isTCorrect && 
+                              (userValO === p.answers[2]);
+            // ▲▲▲ ここまでが修正箇所です ▲▲▲
             
             [userAnsH, userAnsT, userAnsO].forEach(el => {
                 el.classList.remove('correct-bg', 'wrong-bg');
@@ -419,9 +380,7 @@
             if (isCorrect) {
                 correctCount++;
             } else {
-                // ▼▼▼ 変更点3: 間違った問題の番号をリストに追加 ▼▼▼
                 incorrectIndices.push(i);
-                // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
                 if (firstWrongIndex === -1) {
                     firstWrongIndex = i;
                 }
@@ -430,7 +389,7 @@
 
         const resultEl = document.querySelector('#result');
         if (correctCount === problems.length) {
-           incorrectIndices = []; // 全問正解したらリストを空にする
+           incorrectIndices = [];
            document.querySelector('#check-answers').disabled = true;
            const elapsed = (Date.now() - startTime) / 1000;
            const score = Math.round(config.baseScore + Math.max(0, 100 * (config.problemCount * config.targetTimePerQuestion - elapsed) / (config.problemCount * config.targetTimePerQuestion)));
@@ -470,9 +429,7 @@
         document.querySelector('#check-answers').disabled = false;
         document.getElementById('result').textContent = '';
         problems = config.problemGenerator();
-        // ▼▼▼ 変更点4: 「もういちど」で間違いリストをリセット ▼▼▼
         incorrectIndices = [];
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
         displayProblems();
         const firstInput = document.querySelector('#ans-0-o');
         if(firstInput) firstInput.focus();
@@ -508,3 +465,4 @@
 
 </body>
 </html>
+}

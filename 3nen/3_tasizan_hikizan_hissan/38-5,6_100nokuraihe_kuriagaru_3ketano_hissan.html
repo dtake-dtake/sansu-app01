@@ -186,8 +186,9 @@
             });
         }
       };
-
-      let problems = [], startTime = 0, highScore = 0;
+      
+      // ▼▼▼ ステップ1: 変数を追加 ▼▼▼
+      let problems = [], startTime = 0, highScore = 0, currentProblemIndex = -1;
       let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
       let overallStatusStars = '―', incorrectIndices = [];
       const ls = localStorage;
@@ -238,8 +239,15 @@
         const currentPos = inputOrder.indexOf(part);
         const move = (nextPart) => document.querySelector(`#ans-${probIdx}-${nextPart}`)?.focus();
 
+        // ▼▼▼ ステップ3: フォーカス時の処理を書き換え ▼▼▼
         el.addEventListener('focus', () => {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (probIdx !== currentProblemIndex) {
+            currentProblemIndex = probIdx;
+            const problemContainer = el.closest('.problem-container');
+            if (problemContainer) {
+              problemContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
           el.select();
         });
         
@@ -397,6 +405,8 @@
       }
       
       function retry() {
+        // ▼▼▼ ステップ2: 変数をリセット ▼▼▼
+        currentProblemIndex = -1;
         startTime = Date.now();
         document.querySelector('#check-answers').disabled = false;
         document.querySelector('#result').textContent = '';
@@ -406,7 +416,6 @@
         document.querySelector('#ans-0-carry-t')?.focus();
       }
       
-      // ▼▼▼ 前回のコードにあった記述ミスを修正しました ▼▼▼
       document.addEventListener('DOMContentLoaded', () => {
         const startArea = document.querySelector('#start-area');
         const startBtn = document.querySelector('#start-btn');

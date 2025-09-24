@@ -195,6 +195,11 @@
           const [h_a, t_a, o_a] = p.topNum;
           const [h_b, t_b, o_b] = p.bottomNum;
           const [h_r, t_r, o_r] = p.resultNum;
+          // ▼▼▼▼▼ 変更点 ▼▼▼▼▼
+          const resultValue = parseInt(p.resultNum.join(''));
+          const display_h_r = resultValue < 100 ? '' : h_r;
+          const display_t_r = resultValue < 10 ? '' : t_r;
+          // ▲▲▲▲▲ 変更点 ▲▲▲▲▲
           let blankCounter = 0;
 
           const createCell = (content, isInput = false) => {
@@ -224,9 +229,7 @@
               <div class="line"></div>
               
               ${createCell('')}
-              ${createCell(h_r)}
-              ${createCell(t_r)}
-              ${createCell(o_r)}
+              ${createCell(display_h_r)} ${createCell(display_t_r)} ${createCell(o_r)}
             </div>
           `;
           wrap.appendChild(container);

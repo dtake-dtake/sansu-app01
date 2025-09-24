@@ -574,9 +574,19 @@
             "path": "3nen/3_tasizan_hikizan_hissan/39-9,10_senno_kuraihe_kuriagaru_hissan.html"
           },
           {
+            "id": "48_kazuate_geme",
+            "title": "数あてゲーム",
+            "path": "3nen/3_tasizan_hikizan_hissan/48_kazuate_geme.html"
+          },
+          {
             "id": "38-5,6_hyakuno_kuraihe_kuriagaru_hissan",
             "title": "百の位へくり上がるひっ算",
             "path": "3nen/3_tasizan_hikizan_hissan/38-5,6_100nokuraihe_kuriagaru_3ketano_hissan.html"
+          },
+          {
+            "id": "46-2_3tunokazuno_tasizan",
+            "title": "計算のくふう",
+            "path": "3nen/3_tasizan_hikizan_hissan/46-2_keisanno_kuhu.html"
           }
         ]
       },
@@ -591,6 +601,11 @@
             "id": "58-2_ichimanno_kuraino_yomikata_final",
             "title": "一万の位の読みかた",
             "path": "3nen/5_ichiman_koeru/58-2_ichimanno_kuraino_yomikata.html"
+          },
+          {
+            "id": "60-6_senmanno_kuraimadeno_kazuno_yomikata",
+            "title": "千万の位までの数のよみ方",
+            "path": "3nen/5_ichiman_koeru/60-6_senmanno_kuraimadeno_kazuno_yomikata.html"
           },
           {
             "id": "58-3_sujino_kakikata_final_v3",
@@ -783,7 +798,28 @@
     "units": [
       {
         "name": "１　　一億をこえる数",
-        "apps": []
+        "apps": [
+          {
+            "id": "12-2_senokuno_kuraimadeno_yomikata",
+            "title": "千億の位までの読み方",
+            "path": "4nen/1_ichioku_koeru_suu/12-2_senokuno_kuraimadeno_yomikata.html"
+          },
+          {
+            "id": "14-3_senchomadeno_kakikata",
+            "title": "千兆までのかき方",
+            "path": "4nen/1_ichioku_koeru_suu/14-3_senchomadeno_kakikata.html"
+          },
+          {
+            "id": "14-2_senchomadeno_yomikata",
+            "title": "千兆までの読み方",
+            "path": "4nen/1_ichioku_koeru_suu/14-2_senchomadeno_yomikata.html"
+          },
+          {
+            "id": "12-3_suujino_kakikata_v4",
+            "title": "数字のかき方",
+            "path": "4nen/1_ichioku_koeru_suu/12-3_suujino_kakikata.html"
+          }
+        ]
       },
       {
         "name": "２　　折れ線グラフ",
@@ -791,7 +827,13 @@
       },
       {
         "name": "３　　1けたでわるわり算の筆算",
-        "apps": []
+        "apps": [
+          {
+            "id": "division-app",
+            "title": "わり算筆算レイアウト（最終版）",
+            "path": "4nen/3_warizan_hissan1/division-app.html"
+          }
+        ]
       },
       {
         "name": "４　　角とその大きさ",

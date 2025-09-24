@@ -2,16 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>数字のかき方</title>
+  <title>千兆までの読み方</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --c-bg: #e0f7fa; --c-frame-bg: #fff; --c-frame-border: #4dd0e1;
-      --c-header-text: #006064; --c-button-bg: #26c6da; --c-button-hover: #00bcd4;
-      --c-text-main: #333; --c-text-on-button: #ffffff; --c-correct: #2e7d32;
-      --c-wrong: #c62828; --font-main: 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
+      /* Theme: 静かな図書館の午後 (A quiet library afternoon) */
+      --c-bg: #fdf6e3; /* 木漏れ日が差す壁や、使い込まれた本のクリーム色 */
+      --c-frame-bg: #ffffff;
+      --c-frame-border: #a1887f; /* 木の書架の明るい茶色 */
+      --c-header-text: #5d4037; /* 深い焦げ茶色（ヘッダー文字） */
+      --c-button-bg: #4caf50; /* 緑のランプシェードの色 */
+      --c-button-hover: #388e3c; /* ボタンのホバー色 */
+      --c-text-main: #5d4037; /* メインの文字色 */
+      --c-text-on-button: #ffffff;
+      --c-correct: #2e7d32;
+      --c-wrong: #c62828;
+      --font-main: 'HiraMaruProN-W4', 'メイリオ', Meiryo, sans-serif;
       --font-problem: "Kyokasho", "教科書体", serif;
-      --input-button-bg: #b2ebf2; --input-button-hover: #80deea;
+      --input-button-bg: #efebe9; /* 落ち着いた入力ボタンの背景色 */
+      --input-button-hover: #d7ccc8;
     }
     html { scroll-behavior: smooth; }
     body {
@@ -26,46 +35,32 @@
     h1 { font-size: 3rem; }
     h2 { font-size: 2.2rem; margin-bottom: 30px; }
     #problems-wrapper {
-      max-width: 900px; margin: 0 auto 30px; padding: 20px;
+      max-width: 1000px; margin: 0 auto 30px; padding: 20px;
       border: 4px dashed var(--c-frame-border); background: var(--c-frame-bg);
       box-shadow: 5px 5px 10px rgba(0,0,0,.15); border-radius: 20px;
     }
-
-    /* --- ▼▼▼ ここからレイアウト修正 ▼▼▼ --- */
+    
     .problem-block {
       font-family: var(--font-problem);
       border-bottom: 2px solid var(--c-frame-border);
-      padding: 15px 10px;
-      display: flex;
-      flex-direction: column; /* 要素を縦に並べる */
-      align-items: stretch;    /* 子要素を横幅いっぱいに広げる */
-      gap: 10px;             /* 問題と回答欄の間の隙間 */
+      padding: 20px 10px; display: flex; align-items: center;
+      justify-content: space-between; gap: 20px;
     }
     .problem-block:last-child { border-bottom: none; }
-    
-    .problem-question-area {
-        display: flex;
-        align-items: baseline;
-        gap: 15px;
-    }
-    .problem-answer-area {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end; /* 中身を右に寄せる */
-    }
-    /* --- ▲▲▲ ここまでレイアウト修正 ▲▲▲ --- */
 
+    .problem-question-area { display: flex; align-items: baseline; gap: 15px; flex-shrink: 0; }
+    .problem-answer-area { display: flex; align-items: center; flex-grow: 1; min-width: 0; }
     .problem-number { font-size: 2.5rem; font-weight: bold; color: var(--c-header-text); }
-    .problem-content { font-size: 2.4rem; letter-spacing: 1px; }
+    .problem-content { font-size: 2.6rem; letter-spacing: 2px; }
 
     input[type="text"] {
-      font-family: var(--font-problem); font-size: 2.2rem; width: 300px;
-      text-align: right; border: none; border-bottom: 2px solid #ccc;
-      background: transparent; margin: 0 15px; touch-action: manipulation;
+      width: 100%; font-family: var(--font-problem); font-size: 2rem;
+      text-align: left; border: none; border-bottom: 2px solid #ccc;
+      background: transparent; margin: 0; touch-action: manipulation;
     }
     input:focus { outline: none; border-bottom-color: var(--c-button-hover); }
 
-    .result-icon { font-size: 3rem; font-weight: bold; }
+    .result-icon { font-size: 3rem; font-weight: bold; margin-left: 10px; }
     .correct { color: var(--c-correct); }
     .wrong { color: var(--c-wrong); }
     .button-area, #start-area { text-align: center; margin: 40px 0; }
@@ -84,26 +79,26 @@
     }
     #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
     .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-    #history-list { list-style: none; padding: 0; background: #e0f7fa; border-radius: 8px; margin-top:10px;}
-    
+    #history-list { list-style: none; padding: 0; background: #f9fbe7; border-radius: 8px; margin-top:10px;}
     #input-buttons {
       position: fixed; bottom: 0; left: 0; right: 0; display: flex;
       justify-content: center; align-items: stretch; gap: 5px;
       padding: 10px; background-color: var(--c-bg);
       box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 100;
     }
-    .input-btn-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+    .input-btn-group { display: flex; gap: 5px; }
     .input-btn {
-      font-family: var(--font-main); font-size: 1.8rem;
-      width: 60px; height: 50px; border: 1px solid var(--c-frame-border);
+      font-family: var(--font-main); font-size: 1.5rem;
+      width: 55px; border: 1px solid var(--c-frame-border);
       border-radius: 8px; background-color: var(--input-button-bg);
       color: var(--c-text-main); cursor: pointer; transition: background-color 0.2s;
       display: flex; justify-content: center; align-items: center;
     }
     .input-btn:hover { background-color: var(--input-button-hover); }
-    .action-btn { background-color: #c5cae9; width: 125px; }
-    .action-btn:hover { background-color: #9fa8da; }
-    .delete-btn { background-color: #ffcdd2; color: var(--c-wrong); width: 125px; }
+    .spacer { width: 15px; }
+    .action-btn { background-color: #e8eaf6; width: 120px; }
+    .action-btn:hover { background-color: #c5cae9; }
+    .delete-btn { background-color: #ffcdd2; color: var(--c-wrong); width: 120px; }
     .delete-btn:hover { background-color: #ef9a9a; }
   </style>
 </head>
@@ -134,12 +129,20 @@
   
   <div id="input-buttons" style="display: none;">
     <div class="input-btn-group">
-      <button class="input-btn" data-value="1">1</button> <button class="input-btn" data-value="2">2</button>
-      <button class="input-btn" data-value="3">3</button> <button class="input-btn" data-value="4">4</button>
-      <button class="input-btn" data-value="5">5</button> <button class="input-btn" data-value="6">6</button>
-      <button class="input-btn" data-value="7">7</button> <button class="input-btn" data-value="8">8</button>
-      <button class="input-btn" data-value="9">9</button> <button class="input-btn" data-value="0">0</button>
+      <button class="input-btn" data-value="一">一</button> <button class="input-btn" data-value="二">二</button>
+      <button class="input-btn" data-value="三">三</button> <button class="input-btn" data-value="四">四</button>
+      <button class="input-btn" data-value="五">五</button> <button class="input-btn" data-value="六">六</button>
+      <button class="input-btn" data-value="七">七</button> <button class="input-btn" data-value="八">八</button>
+      <button class="input-btn" data-value="九">九</button>
     </div>
+    <div class="spacer"></div>
+    <div class="input-btn-group">
+      <button class="input-btn" data-value="十">十</button> <button class="input-btn" data-value="百">百</button>
+      <button class="input-btn" data-value="千">千</button> <button class="input-btn" data-value="万">万</button>
+      <button class="input-btn" data-value="億">億</button>
+      <button class="input-btn" data-value="兆">兆</button>
+    </div>
+    <div class="spacer"></div>
     <div class="input-btn-group">
       <button class="input-btn delete-btn" data-value="del">けす</button>
       <button class="input-btn action-btn" data-value="next">次へ</button>
@@ -149,17 +152,17 @@
 <script>
     (function () {
       const config = {
-        appId: "12-3_suujino_kakikata_v4", // version up
-        mainTitle: "１　一億をこえる数",
-        title: "数字のかき方",
+        appId: "14-2_senchomadeno_yomikata",
+        mainTitle: "１　一億を超える数",
+        title: "千兆までの読み方",
         problemCount: 5,
         baseScore: 100,
-        targetTimePerQuestion: 25,
+        targetTimePerQuestion: 50,
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         
         convertToJapaneseReading(num) {
             if (num === 0) return "零";
-            const units = ["", "万", "億", "兆"];
+            const units = ["", "万", "億", "兆", "京"];
             let result = "";
             let unitIndex = 0;
             let n = BigInt(num);
@@ -190,48 +193,52 @@
         },
         problemGenerator() {
           const problemsList = [];
-          
-          const okuPart1 = BigInt(Math.floor(Math.random() * (9999 - 1 + 1)) + 1);
-          const num1 = okuPart1 * 100000000n;
-          problemsList.push({ num: num1 });
+          const T = 1_0000_0000_0000n; // 1兆
+          const O = 1_0000_0000n; // 1億
 
-          const okuPart2 = BigInt(Math.floor(Math.random() * (9999 - 1 + 1)) + 1);
-          const baseNum2 = okuPart2 * 100000000n;
-          const randomPlace1 = BigInt(10 ** Math.floor(Math.random() * 8));
-          const randomDigit1 = BigInt(Math.floor(Math.random() * 9) + 1);
-          const num2 = baseNum2 + (randomDigit1 * randomPlace1);
-          problemsList.push({ num: num2 });
+          // タイプ1: XXXX兆 のようなキリのいい数
+          const chouPart1 = BigInt(Math.floor(Math.random() * 9999) + 1);
+          problemsList.push({ num: chouPart1 * T });
 
-          const okuPart3 = BigInt(Math.floor(Math.random() * (9999 - 1 + 1)) + 1);
-          const baseNum3 = okuPart3 * 100000000n;
-          const places = [0, 1, 2, 3, 4, 5, 6, 7];
+          // タイプ2: XXXX兆YYYY億 のような数
+          const chouPart2 = BigInt(Math.floor(Math.random() * 9998) + 1);
+          const okuPart2 = BigInt(Math.floor(Math.random() * 9998) + 1);
+          problemsList.push({ num: chouPart2 * T + okuPart2 * O });
+
+          // タイプ3: 兆の位を基準に、下位のどこか2つの位に数字が入る
+          const baseNum3 = BigInt(Math.floor(Math.random() * 9000) + 1000) * T;
+          const places = Array.from({length: 12}, (_, i) => i);
           for (let i = places.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));
               [places[i], places[j]] = [places[j], places[i]];
           }
-          const randomPlaceA = BigInt(10 ** places[0]);
-          const randomPlaceB = BigInt(10 ** places[1]);
+          const randomPlaceA = 10n ** BigInt(places[0]);
+          const randomPlaceB = 10n ** BigInt(places[1]);
           const randomDigitA = BigInt(Math.floor(Math.random() * 9) + 1);
           const randomDigitB = BigInt(Math.floor(Math.random() * 9) + 1);
-          const num3 = baseNum3 + (randomDigitA * randomPlaceA) + (randomDigitB * randomPlaceB);
-          problemsList.push({ num: num3 });
-
-          const manPart = BigInt(Math.floor(Math.random() * (99999999 - 10000 + 1)) + 10000);
-          const num4 = manPart * 10000n;
-          problemsList.push({ num: num4 });
-
-          const min = 100000000n;
-          const max = 999999999999n;
-          const range = max - min;
-          const randomChunk1 = BigInt(Math.floor(Math.random() * 1000000));
-          const randomChunk2 = BigInt(Math.floor(Math.random() * 1000000));
-          const randomBigInt = min + (randomChunk1 * 1000000n + randomChunk2) % (range + 1n);
-          problemsList.push({ num: randomBigInt });
-
+          problemsList.push({ num: baseNum3 + (randomDigitA * randomPlaceA) + (randomDigitB * randomPlaceB) });
+          
+          // タイプ4 & 5: 完全ランダム
+          const min = O; // 1億
+          const max = 9999_9999_9999_9999n; // 約9999兆
+          for (let i = 0; i < 2; i++) {
+              const range = max - min;
+              const bits = range.toString(2).length;
+              let randomBigInt;
+              do {
+                let r = 0n;
+                for (let j = 0; j < bits; j++) {
+                  if (Math.random() < 0.5) r |= 1n << BigInt(j);
+                }
+                randomBigInt = min + (r % (range + 1n));
+              } while (randomBigInt > max);
+              problemsList.push({ num: randomBigInt });
+          }
+          
           const self = this;
           problemsList.forEach(p => {
-              p.displayText = self.convertToJapaneseReading(p.num);
-              p.answer = Number(p.num);
+              p.answer = self.convertToJapaneseReading(p.num);
+              p.displayText = self.formatWith4DigitSpaces(p.num);
           });
 
           for (let i = problemsList.length - 1; i > 0; i--) {
@@ -239,9 +246,14 @@
             [problemsList[i], problemsList[j]] = [problemsList[j], problemsList[i]];
           }
           return problemsList;
+        },
+        formatWith4DigitSpaces(num) {
+          return String(num).replace(/\B(?=(\d{4})+(?!\d))/g, " ");
         }
       };
 
+      // The rest of the script is the same as the previous versions
+      // (loadData, saveData, displayProblems, checkAnswers, retry, event listeners, etc.)
       let problems = [], incorrectIndices = [], startTime = 0, highScore = 0;
       let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
       let overallStatusStars = '―';
@@ -297,12 +309,10 @@
       
       function attachInputEvents(el) {
         if (!el) return;
-
         el.addEventListener('focus', (e) => {
             activeInput = e.target;
             e.target.closest('.problem-block')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
-
         el.addEventListener('keydown', e => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -313,96 +323,49 @@
               if (currentIndexInErrorList < incorrectIndices.length - 1) {
                 const nextIncorrectProbIdx = incorrectIndices[currentIndexInErrorList + 1];
                 document.querySelector(`#ans-${nextIncorrectProbIdx}`)?.focus();
-              } else { checkBtn.focus(); }
+              } else {
+                checkBtn.focus();
+              }
             } else {
               const nextProbIdx = probIdx + 1;
               if (nextProbIdx < problems.length) {
                 document.querySelector(`#ans-${nextProbIdx}`)?.focus();
-              } else { checkBtn.focus(); }
+              } else {
+                checkBtn.focus();
+              }
             }
           }
         });
-
-        el.addEventListener('input', (e) => {
-            const input = e.target;
-            const originalPos = input.selectionStart;
-            const originalValue = input.value;
-            const digitsBeforeCursor = (originalValue.substring(0, originalPos).match(/\d/g) || []).length;
-            
-            let rawValue = originalValue.replace(/[^\d]/g, '');
-
-            const formattedValue = rawValue.replace(/\B(?=(\d{4})+(?!\d))/g, ' ');
-            
-            if (input.value !== formattedValue) {
-                input.value = formattedValue;
-            }
-
-            let newPos = 0;
-            let digitsCounted = 0;
-            for (const char of formattedValue) {
-                if (digitsCounted === digitsBeforeCursor) {
-                    break;
-                }
-                newPos++;
-                if (/\d/.test(char)) {
-                    digitsCounted++;
-                }
-            }
-            if (digitsBeforeCursor > 0 && newPos === formattedValue.length && digitsCounted < digitsBeforeCursor) {
-            } else if (digitsCounted < digitsBeforeCursor) {
-              newPos = formattedValue.length;
-            }
-            
-            input.setSelectionRange(newPos, newPos);
-        });
       }
 
-      function handleInputButtonClick(event) {
+    function handleInputButtonClick(event) {
         if (!activeInput) return;
         const value = event.target.dataset.value;
         const start = activeInput.selectionStart;
+        const end = activeInput.selectionEnd;
 
-        if (value === 'next') {
+        if (value === 'del') {
+          if (start === end && start > 0) {
+            activeInput.value = activeInput.value.substring(0, start - 1) + activeInput.value.substring(end);
+            activeInput.selectionStart = activeInput.selectionEnd = start - 1;
+          } else {
+            activeInput.value = activeInput.value.substring(0, start) + activeInput.value.substring(end);
+            activeInput.selectionStart = activeInput.selectionEnd = start;
+          }
+        } else if (value === 'next') {
           const [_, probIdxStr] = activeInput.id.split('-');
           const probIdx = parseInt(probIdxStr, 10);
           const nextProbIdx = probIdx + 1;
           if (nextProbIdx < problems.length) document.querySelector(`#ans-${nextProbIdx}`)?.focus();
           else checkBtn.focus();
-          return;
-        }
-
-        let rawValue = activeInput.value.replace(/\s/g, '');
-        let digitsBefore = (activeInput.value.substring(0, start).match(/\d/g) || []).length;
-        let originalDigits = digitsBefore;
-
-        if (value === 'del') {
-          if (digitsBefore > 0) {
-              rawValue = rawValue.substring(0, digitsBefore - 1) + rawValue.substring(digitsBefore);
-              originalDigits--;
-          }
         } else {
-          rawValue = rawValue.substring(0, digitsBefore) + value + rawValue.substring(digitsBefore);
-          originalDigits++;
+          activeInput.value = activeInput.value.substring(0, start) + value + activeInput.value.substring(end);
+          activeInput.selectionStart = activeInput.selectionEnd = start + value.length;
         }
-        
-        activeInput.value = rawValue;
-        const inputEvent = new Event('input', { bubbles: true });
-        activeInput.dispatchEvent(inputEvent);
-        
-        // カーソル位置を再計算
-        let newPos = 0;
-        let digitsCounted = 0;
-        for (const char of activeInput.value) {
-            if (digitsCounted === originalDigits) break;
-            newPos++;
-            if (/\d/.test(char)) digitsCounted++;
-        }
-        activeInput.setSelectionRange(newPos, newPos);
-
         activeInput.focus();
       }
       
-      function displayProblems() {
+    function displayProblems() {
         const wrap = document.getElementById('problems-wrapper');
         wrap.innerHTML = '';
         problems.forEach((p, i) => {
@@ -410,25 +373,25 @@
           block.className = 'problem-block';
           block.innerHTML = `
             <div class="problem-question-area">
-                <div class="problem-number">${i + 1}.</div>
-                <span class="problem-content">${p.displayText}</span>
+              <div class="problem-number">${i + 1}.</div>
+              <span class="problem-content">${p.displayText}</span>
             </div>
             <div class="problem-answer-area">
-                <input type="text" id="ans-${i}" inputmode="decimal" placeholder="半角で入力">
-                <div id="icon-${i}" class="result-icon"></div>
+              <input type="text" id="ans-${i}" inputmode="none">
+              <div id="icon-${i}" class="result-icon"></div>
             </div>
           `;
           wrap.appendChild(block);
           attachInputEvents(document.querySelector(`#ans-${i}`));
         });
-      }
+    }
 
-      function checkAnswers() {
+    function checkAnswers() {
         checkBtn.disabled = true;
         let newIncorrectIndices = [];
         problems.forEach((p, i) => {
           const ansEl = document.querySelector(`#ans-${i}`);
-          const userAnswer = +(ansEl.value.replace(/\s/g, ''));
+          const userAnswer = ansEl.value.trim();
           const isCorrect = (userAnswer === p.answer);
           const icon = document.querySelector(`#icon-${i}`);
           if (isCorrect) {
@@ -473,21 +436,20 @@
         } else {
           resultEl.innerHTML = 'おしい！まちがいを直そう！';
           checkBtn.disabled = false;
-          const firstWrongEl = document.querySelector(`#ans-${incorrectIndices[0]}`);
-          firstWrongEl?.focus();
+          document.querySelector(`#ans-${incorrectIndices[0]}`)?.focus();
         }
-      }
+    }
       
-      function retry() {
+    function retry() {
         resultEl.textContent = ''; checkBtn.disabled = false;
         startTime = Date.now();
         incorrectIndices = [];
         problems = config.problemGenerator();
         displayProblems();
         document.querySelector('#ans-0')?.focus();
-      }
+    }
       
-      window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('main-title').textContent = config.mainTitle;
         document.getElementById('sub-title').textContent = config.title;
         const startBtn = document.getElementById('start-btn');
@@ -504,12 +466,14 @@
           inputButtonsDiv.style.display = 'flex';
           retry();
         };
+
         checkBtn.onclick = checkAnswers;
 
         retryBtn.onclick = () => {
             retry();
             problemsSection.scrollIntoView({ behavior: 'smooth' });
         };
+        
         resetHighScoreBtn.onclick = () => {
           if (confirm('ハイスコアとステータスをリセットしますか？')) {
             highScore = 0; overallStatusStars = '―';
@@ -523,9 +487,9 @@
         document.addEventListener('keydown', e => {
           if (e.key === 'Enter' && startArea.style.display !== 'none') startBtn.click();
         });
-      });
+    });
     })();
-  </script>
+</script>
 
 </body>
 </html>
