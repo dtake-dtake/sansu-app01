@@ -829,9 +829,19 @@
         "name": "３　　1けたでわるわり算の筆算",
         "apps": [
           {
-            "id": "division-app",
-            "title": "わり算筆算レイアウト（最終版）",
-            "path": "4nen/3_warizan_hissan1/division-app.html"
+            "id": "40-2_2keta_waru_1keta_amarinasi",
+            "title": "２けた÷１けた（あまりなし）",
+            "path": "4nen/3_warizan_hissan1/39-2_2keta_waru_1keta_amarinasi.html"
+          },
+          {
+            "id": "40-5_amarinoaru_warizanno_hissan_improved",
+            "title": "あまりのあるわり算の筆算",
+            "path": "4nen/3_warizan_hissan1/40-5_amarinoaru_warizanno_hissan.html"
+          },
+          {
+            "id": "41-7_hiite0ninaru_warizanno_hissan_final",
+            "title": "ひいて0になるわり算の筆算",
+            "path": "4nen/3_warizan_hissan1/41-7_hiite0ninaru_warizanno_hissann.html"
           }
         ]
       },
