@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>３けた÷１けたの筆算（基本）</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --c-bg-main: #fdf6e3; --c-primary: #268bd2; --c-primary-dark: #002b36;
+            --c-primary-light: #e0f7fa; --c-button-bg: #2aa198; --c-button-hover: #23857d;
+            --c-result-area-bg: #eee8d5; --c-problem-row-bg: #ffffff; --c-history-bg: #fdf6e3;
+            --c-text-main: #586e75; --c-text-on-button: #ffffff; --c-feedback-correct-bg: #e8f5e9;
+            --c-feedback-wrong-bg: #ffebee; --cell-size: 50px; --font-size: 2rem;
+            --border-color: #93a1a1; --symbol-color: #000000; --symbol-stroke-width: 2px;
+            --subtraction-line-color: #000000; --paren-font-size: 3.7rem; --paren-left-pos: -4px;
+            --paren-top-pos: -23px; --paren-font-weight: 230;
+        }
+
+        body {
+            font-family: sans-serif; background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1.5rem; background: var(--c-primary-light); padding: 5px; border-radius: 8px;}
+
+        #problems-container {
+            display: grid; grid-template-columns: 1fr; gap: 40px 20px;
+            width: 100%; max-width: 500px; margin-top: 20px;
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: flex-start; justify-content: center;
+            background: var(--c-problem-row-bg); border-radius: 10px; padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s, border-color 0.3s;
+            border: 2px solid transparent;
+        }
+        .problem-wrapper.is-active {
+            box-shadow: 0 4px 12px rgba(38, 139, 210, 0.4);
+            border-color: var(--c-primary);
+        }
+        
+        .problem-number {
+            font-size: 2rem; font-weight: bold; margin-right: 10px;
+            color: var(--c-primary);
+        }
+
+        .box-grid {
+            display: grid; grid-template-columns: repeat(4, var(--cell-size)); grid-template-rows: repeat(8, var(--cell-size));
+            border: 2px solid var(--border-color);
+        }
+        .cell {
+            border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: center; align-items: center;
+            font-size: var(--font-size); box-sizing: border-box;
+            background-color: var(--c-bg-main);
+        }
+        .dividend-start { position: relative; border-top: var(--symbol-stroke-width) solid var(--symbol-color); }
+        .dividend-start::before { content: ")"; position: absolute; color: var(--symbol-color); font-size: var(--paren-font-size); left: var(--paren-left-pos); top: var(--paren-top-pos); font-weight: var(--paren-font-weight); }
+        .symbol-top-border { border-top: var( --symbol-stroke-width) solid var(--symbol-color); }
+        .subtraction-line { border-top: 1px solid var(--subtraction-line-color); }
+        .box-grid > .cell:nth-child(4n) { border-right: none; }
+        .box-grid > .cell:nth-last-child(-n+4) { border-bottom: none; }
+        .input-cell { width: 100%; height: 100%; text-align: center; font-size: var(--font-size); font-family: inherit; border: none; background-color: transparent; padding: 0; color: var(--c-text-main); outline: none; }
+        .input-cell:focus { box-shadow: 0 0 0 3px rgba(38, 139, 210, 0.5); border-radius: 4px; }
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+        
+        button { font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px; background-color: var(--c-button-bg); color: var(--c-text-on-button); cursor: pointer; transition: background-color 0.2s; }
+        button:hover { background-color: var(--c-button-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        #result-area { max-width: 600px; margin: 20px auto; padding: 15px; background: var(--c-result-area-bg); border-radius: 10px; text-align: center; }
+        #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
+        .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px;}
+         @media (min-width: 600px) {
+            #problems-container { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title"></h2>
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="monthlyCountArea">今月のクリア：<span id="monthlyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area">りれき（１０件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "42-3_3keta_waru_1keta_kihon",
+        mainTitle: "３ １けたでわるわり算の筆算",
+        title: "３けた÷１けたの筆算（基本）",
+        baseScore: 100,
+        targetTimePerQuestion: 75,
+        starThresholds: { star1: 100, star2: 110, star3: 120, star4: 130, star5: 140 },
+        
+        problemGenerator(count = 4) {
+            const problems = [];
+            const generated = new Set();
+            let guard = 0;
+            while (problems.length < count && guard < 3000) {
+                guard++;
+                const divisor = Math.floor(Math.random() * 8) + 2;
+                const dividend = Math.floor(Math.random() * 900) + 100;
+                
+                if (dividend % divisor !== 0) continue;
+                const quotient = dividend / divisor;
+                if (quotient < 100) continue;
+                if (Math.floor(quotient / 10) % 10 === 0) continue;
+
+                const key = `${dividend}÷${divisor}`;
+                if (generated.has(key)) continue;
+
+                const q_digits = String(quotient).split('').map(Number);
+                const d_digits = String(dividend).split('').map(Number);
+                
+                const answers = {};
+                const inputOrder = [];
+
+                // ▼▼▼ 修正点: アルファベットの指示通りの順に inputOrder を作成 ▼▼▼
+                
+                // a: 商の百の位
+                answers['c12'] = q_digits[0]; inputOrder.push('c12');
+
+                // b: かける(1)
+                const product1 = divisor * q_digits[0];
+                answers['c32'] = product1; inputOrder.push('c32');
+
+                // c: ひく(1)
+                const rem1_val = d_digits[0] - product1;
+                answers['c42'] = rem1_val; inputOrder.push('c42');
+                
+                // d: おろす(1) - 入力なし
+                answers['c43'] = d_digits[1]; 
+                
+                // e: 商の十の位
+                answers['c13'] = q_digits[1]; inputOrder.push('c13');
+
+                // f, g: かける(2)
+                const step2_dividend_val = rem1_val * 10 + d_digits[1];
+                const product2 = divisor * q_digits[1];
+                if (product2 >= 10) {
+                    answers['c52'] = Math.floor(product2/10); inputOrder.push('c52');
+                    answers['c53'] = product2 % 10; inputOrder.push('c53');
+                } else {
+                    answers['c53'] = product2; inputOrder.push('c53');
+                }
+                
+                // h, i: ひく(2)
+                const rem2_val = step2_dividend_val - product2;
+                if (rem2_val >= 10) {
+                    answers['c62'] = Math.floor(rem2_val/10); inputOrder.push('c62');
+                    answers['c63'] = rem2_val % 10; inputOrder.push('c63');
+                } else {
+                    answers['c63'] = rem2_val; inputOrder.push('c63');
+                }
+                
+                // おろす(2) - 入力なし
+                answers['c64'] = d_digits[2];
+                
+                // j: 商の一の位
+                answers['c14'] = q_digits[2]; inputOrder.push('c14');
+                
+                // k, l: かける(3)
+                const step3_dividend_val = rem2_val * 10 + d_digits[2];
+                const product3 = divisor * q_digits[2];
+                 if (product3 >= 10) {
+                    answers['c73'] = Math.floor(product3/10); inputOrder.push('c73');
+                    answers['c74'] = product3 % 10; inputOrder.push('c74');
+                } else {
+                    answers['c74'] = product3; inputOrder.push('c74');
+                }
+                
+                // m: ひく(3)
+                answers['c84'] = step3_dividend_val - product3; inputOrder.push('c84');
+
+                problems.push({ divisor, dividend, answers, inputOrder });
+                generated.add(key);
+            }
+            if (problems.length < count) {
+                console.warn(`Could only generate ${problems.length} problems.`);
+            }
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let incorrectCells = [];
+      let totalClearCount = 0, monthlyCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`;
+      const KEY_HISTORY = `${config.appId}:history`;
+      const KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_MONTHLY_PREFIX = `${config.appId}:monthlyClear-`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④'];
+        problems.forEach((p, i) => {
+            const problemId = `problem-${i}`;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `wrapper-${i}`;
+            // ▼▼▼ 修正点: ヒントボタンなどを削除し、シンプルな構成に戻す ▼▼▼
+            wrapper.innerHTML = `
+                <span class="problem-number">${circledNumbers[i]}</span>
+                <div class="box-grid" id="${problemId}-grid"></div>
+            `;
+            const grid = wrapper.querySelector('.box-grid');
+            for (let r = 1; r <= 8; r++) { for (let c = 1; c <= 4; c++) {
+                const cell = document.createElement('div');
+                cell.id = `${problemId}-c${r}${c}`;
+                cell.className = 'cell';
+                grid.appendChild(cell);
+            }}
+            container.appendChild(wrapper);
+            const getCell = (r, c) => document.getElementById(`${problemId}-c${r}${c}`);
+            
+            getCell(2,1).innerHTML = p.divisor;
+            const dividendDigits = String(p.dividend).split('');
+            getCell(2,2).innerHTML = dividendDigits[0];
+            getCell(2,3).innerHTML = dividendDigits[1];
+            getCell(2,4).innerHTML = dividendDigits[2];
+            
+            for (let r = 1; r <= 8; r++) { for (let c = 1; c <= 4; c++) {
+                const cellKey = `c${r}${c}`;
+                if ((r === 2 && c <= 4) || c === 1) continue;
+                if (p.inputOrder.includes(cellKey)) {
+                    getCell(r, c).innerHTML = `<input type="text" inputmode="numeric" id="ans-${i}-${cellKey}" class="input-cell" data-prob-idx="${i}" data-cell-key="${cellKey}" maxlength="1">`;
+                }
+            }}
+
+            if (p.answers['c43'] !== undefined) getCell(4,3).textContent = p.answers['c43'];
+            if (p.answers['c64'] !== undefined) getCell(6,4).textContent = p.answers['c64'];
+
+            getCell(2,2).classList.add('dividend-start');
+            getCell(2,3).classList.add('symbol-top-border');
+            getCell(2,4).classList.add('symbol-top-border');
+            getCell(4,2).classList.add('subtraction-line'); getCell(4,3).classList.add('subtraction-line');
+            getCell(6,2).classList.add('subtraction-line'); getCell(6,3).classList.add('subtraction-line'); getCell(6,4).classList.add('subtraction-line');
+            getCell(8,3).classList.add('subtraction-line'); getCell(8,4).classList.add('subtraction-line');
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('focusin', (e) => {
+            if (e.target.classList.contains('input-cell')) {
+                document.querySelectorAll('.problem-wrapper.is-active').forEach(w => w.classList.remove('is-active'));
+                const wrapper = e.target.closest('.problem-wrapper');
+                if (wrapper) wrapper.classList.add('is-active');
+                e.target.select();
+            }
+        });
+
+        // ▼▼▼ 修正点: inputイベントリスナーをシンプルな自動ナビゲーションに戻す ▼▼▼
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            const cellKey = el.dataset.cellKey;
+            const p = problems[probIdx];
+            
+            if (el.value.length >= 1) {
+                const currentIndex = p.inputOrder.indexOf(cellKey);
+                if (currentIndex > -1 && currentIndex < p.inputOrder.length - 1) {
+                    const nextCellKey = p.inputOrder[currentIndex + 1];
+                    document.querySelector(`[data-cell-key="${nextCellKey}"][data-prob-idx="${probIdx}"]`).focus();
+                }
+            }
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            const cellKey = el.dataset.cellKey;
+            const p = problems[probIdx];
+            
+            if (e.key === 'Backspace' && el.value === '') {
+                e.preventDefault();
+                const currentIndex = p.inputOrder.indexOf(cellKey);
+                if (currentIndex > 0) {
+                    const prevCellKey = p.inputOrder[currentIndex - 1];
+                    document.querySelector(`[data-cell-key="${prevCellKey}"][data-prob-idx="${probIdx}"]`).focus();
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (incorrectCells.length > 0) {
+                    const currentId = el.id;
+                    const currentIndex = incorrectCells.indexOf(currentId);
+                    if (currentIndex > -1 && currentIndex < incorrectCells.length - 1) {
+                        document.getElementById(incorrectCells[currentIndex + 1]).focus();
+                    } else {
+                        document.querySelector('#check-answers').focus();
+                    }
+                } else {
+                    if (probIdx < problems.length - 1) {
+                        const nextFirstInputKey = problems[probIdx + 1].inputOrder[0];
+                        document.querySelector(`[data-cell-key="${nextFirstInputKey}"][data-prob-idx="${probIdx + 1}"]`).focus();
+                    } else { document.querySelector('#check-answers').focus(); }
+                }
+            } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                const r = parseInt(cellKey.substring(1, 2));
+                const c = parseInt(cellKey.substring(2, 3));
+                let nextRow = r, nextCol = c;
+                if (e.key === 'ArrowUp') nextRow--; else if (e.key === 'ArrowDown') nextRow++;
+                if (e.key === 'ArrowLeft') nextCol--; else if (e.key === 'ArrowRight') nextCol++;
+                if (nextRow >= 1 && nextRow <= 8 && nextCol >= 1 && nextCol <= 4) {
+                     const nextInput = document.querySelector(`#ans-${probIdx}-c${nextRow}${nextCol}`);
+                     if (nextInput) { nextInput.focus(); }
+                }
+            }
+        });
+      }
+      
+      function checkAnswers() {
+        document.querySelector('#check-answers').disabled = true;
+        incorrectCells = [];
+        let allCorrect = true;
+        problems.forEach((p, i) => {
+          let problemCorrect = true;
+          for (const cellKey of p.inputOrder) {
+            const el = document.querySelector(`#ans-${i}-${cellKey}`);
+            if (!el) continue;
+            el.parentElement.classList.remove('correct-bg', 'wrong-bg');
+            const userAnswer = el.value;
+            const correctAnswer = String(p.answers[cellKey]);
+            if (userAnswer !== correctAnswer) {
+                problemCorrect = false;
+            }
+          }
+          
+          if (problemCorrect) {
+              p.inputOrder.forEach(cellKey => {
+                  const el = document.querySelector(`#ans-${i}-${cellKey}`);
+                  if (el) { el.parentElement.classList.add('correct-bg'); el.disabled = true; }
+              });
+          } else {
+              allCorrect = false;
+              p.inputOrder.forEach(cellKey => {
+                const el = document.querySelector(`#ans-${i}-${cellKey}`);
+                if (!el) return;
+                const userAnswer = el.value;
+                const correctAnswer = String(p.answers[cellKey]);
+                if (userAnswer !== correctAnswer) {
+                    el.parentElement.classList.add('wrong-bg');
+                    incorrectCells.push(el.id);
+                } else {
+                   el.parentElement.classList.add('correct-bg');
+                }
+              });
+          }
+        });
+        
+        if (allCorrect) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const score = config.baseScore + Math.max(0, Math.floor(100 * (problems.length * config.targetTimePerQuestion - elapsed) / (problems.length * config.targetTimePerQuestion)));
+           totalClearCount++; monthlyCount++; dailyCount++;
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : (score >= s.star1) ? '★☆☆☆☆' : '―';
+           overallStatusStars = starsHtml;
+           let msg = '🎉 全問正解！おめでとう！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア達成！すごい！🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
+           }
+           document.querySelector('#result').innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           document.querySelector('#result').textContent = 'おしい！まちがいを直そう！';
+           document.querySelector('#check-answers').disabled = false;
+           if (incorrectCells.length > 0) {
+               document.getElementById(incorrectCells[0]).focus();
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        incorrectCells = [];
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        problems = config.problemGenerator();
+        
+        if (!problems || problems.length === 0) {
+             alert("問題の生成に失敗しました。条件に合う問題が見つかりにくい可能性があります。ページを再読み込みしてください。");
+             return;
+        }
+        document.querySelector('#problems-section').style.display = 'block';
+        displayProblems();
+        if (problems[0].inputOrder.length > 0) {
+            const firstInputKey = problems[0].inputOrder[0];
+            document.querySelector(`#ans-0-${firstInputKey}`)?.focus();
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('sub-title').textContent = config.title;
+        loadData(); updateDisplay();
+        startBtn.onclick = () => { startArea.style.display = 'none'; retry(); };
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { if (confirm('ハイスコアとステータスをリセットしますか？\n（クリア回数はリセットされません）')) { highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); } };
+        document.addEventListener('keydown', e => { if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } });
+        setupEventListeners();
+      });
+      
+      function loadData() { highScore = +ls.getItem(KEY_HS) || 0; const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10); const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7); totalClearCount = +ls.getItem(KEY_CLEAR) || 0; monthlyCount = +ls.getItem(monthKey) || 0; dailyCount = +ls.getItem(todayKey) || 0; overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―'; };
+      function saveData() { ls.setItem(KEY_HS, String(highScore)); const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10); const monthKey = KEY_MONTHLY_PREFIX + new Date().toISOString().slice(0, 7); ls.setItem(KEY_CLEAR, String(totalClearCount)); ls.setItem(monthKey, String(monthlyCount)); ls.setItem(todayKey, String(dailyCount)); ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); };
+      function saveHistoryEntry(score) { const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); history.unshift({ datetime: new Date().toLocaleString(), score }); if (history.length > 10) history.pop(); ls.setItem(KEY_HISTORY, JSON.stringify(history)); };
+      function updateDisplay() { document.querySelector('#highScoreValue').textContent = highScore; document.querySelector('#clearCountValue').textContent = totalClearCount; document.querySelector('#monthlyCountValue').textContent = monthlyCount; document.querySelector('#dailyCountValue').textContent = dailyCount; document.querySelector('#overallStars').innerHTML = overallStatusStars; const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime}：${h.score}てん</li>`).join(''); };
+    })();
+    </script>
+</body>
+</html>

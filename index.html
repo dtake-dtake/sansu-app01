@@ -3,47 +3,238 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>わくわく　算数ドリル</title>
+<title>わくわく 算数ドリル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@500&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+
 <style>
-  body{font-family:'HiraMaruProN-W4','ヒラギノ丸ゴ ProN W4','メイリオ',Meiryo,sans-serif;background:#f0f8ff;margin:0;padding:20px;color:#333;}
-  h1{ text-align:center;color:#1a73e8;margin-bottom:30px;font-size:2.8em;text-shadow:1px 1px 2px rgba(0,0,0,.1); }
-
-  #grade-tabs{ display:flex;justify-content:center;margin-bottom:30px;flex-wrap:wrap;gap:10px; }
-  .grade-tab{ background:#bbdefb;color:#1a237e;border:none;padding:12px 25px;font-size:1.5em;cursor:pointer;border-radius:25px;transition:.3s;box-shadow:0 4px 6px rgba(0,0,0,.1);white-space:nowrap; }
-  .grade-tab:hover{ background:#90caf9; transform:translateY(-2px); }
-  .grade-tab.active{ background:#2196f3; color:#fff; box-shadow:0 6px 10px rgba(0,0,0,.15); transform:translateY(-2px); }
-
-  #units-container{ display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:25px;max-width:1200px;margin:0 auto; }
-  .unit-card{ background:#fff;border-radius:15px;padding:20px;box-shadow:0 8px 15px rgba(0,0,0,.1);transition:.3s; }
-  .unit-card:hover{ transform:translateY(-5px); box-shadow:0 12px 20px rgba(0,0,0,.12); }
-  .unit-title{ font-size:1.4em;color:#0d47a1;margin:0 0 15px;padding-bottom:10px;border-bottom:2px solid #e3f2fd; }
-
-  .apps-list{ display:flex;flex-direction:column;gap:10px; }
-  .app-link{ display:flex;align-items:center;justify-content:space-between;background:#e3f2fd;padding:12px 15px;text-decoration:none;color:#333;border-radius:10px;transition:.3s;box-shadow:0 4px 6px rgba(0,0,0,.1); }
-  .app-link:hover{ transform:translateX(5px); background:#d1eaff; }
-  .app-title{ font-size:1.1em;flex:1; }
-
-  .status-container{ display:flex;align-items:center;gap:10px;white-space:nowrap; }
-  .status-stars{ font-size:1.2em;color:#ffc107; }
-  .clear-count{ background:#a5d6a7;color:#1b5e20;padding:3px 8px;border-radius:10px;font-size:.8em;font-weight:700; }
-  
-  /* ▼▼▼ 「準備中」のスタイルを追加 ▼▼▼ */
-  .app-link.preparation {
-    color: #9e9e9e;
-    font-style: italic;
-    cursor: default;
-    background-color: #f5f5f5;
-    justify-content: center;
+  :root {
+    --primary: #4facfe;
+    --primary-dark: #00f2fe;
+    --accent: #ff9a9e;
+    --accent-dark: #fecfef;
+    --text: #444;
+    --bg-color: #eef9ff;
+    --card-bg: #ffffff;
+    --shadow: 0 8px 20px rgba(0,0,0,0.08);
   }
-  .app-link.preparation:hover {
-    transform: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,.1);
+
+  body {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    background-color: var(--bg-color);
+    /* 方眼紙のような背景パターン */
+    background-image: 
+      linear-gradient(rgba(79, 172, 254, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79, 172, 254, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    margin: 0;
+    padding: 20px;
+    color: var(--text);
+  }
+
+  /* ヘッダー周り */
+  h1 { 
+    text-align: center;
+    color: #007bff;
+    margin: 20px 0 40px;
+    font-size: 2.5em;
+    font-family: 'Kiwi Maru', serif;
+    text-shadow: 3px 3px 0px #fff, 5px 5px 0px rgba(0,0,0,0.1);
+    letter-spacing: 0.1em;
+  }
+  
+  /* タブナビゲーション */
+  #grade-tabs { 
+    display: flex; 
+    justify-content: center; 
+    margin-bottom: 40px; 
+    flex-wrap: wrap; 
+    gap: 12px; 
+  }
+  .grade-tab { 
+    background: #fff;
+    color: var(--text);
+    border: 2px solid #bce0fd;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    font-weight: 800;
+    cursor: pointer;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+    min-width: 80px;
+    box-shadow: 0 4px 0 #bce0fd;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+  }
+  .grade-tab:hover { 
+    transform: translateY(-2px);
+    background: #e6f7ff;
+  }
+  .grade-tab:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 #bce0fd;
+  }
+  .grade-tab.active { 
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #fff; 
+    border-color: transparent;
+    box-shadow: 0 4px 10px rgba(79, 172, 254, 0.4);
+    transform: scale(1.05);
+  }
+
+  /* ユニットグリッド */
+  #units-container { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 30px; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    /* アニメーション用 */
+    opacity: 0;
+    animation: fadeIn 0.5s forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(20px); }
+  }
+
+  /* ユニットカード */
+  .unit-card { 
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 0; /* タイトルバーのためにpadding調整 */
+    box-shadow: var(--shadow);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    border: 1px solid #eef;
+    display: flex;
+    flex-direction: column;
+  }
+  .unit-card:hover { 
+    transform: translateY(-8px) scale(1.02); 
+    box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+  }
+  
+  .unit-title { 
+    font-size: 1.3em;
+    color: #fff;
+    margin: 0;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+    font-weight: 800;
+    text-align: center;
+    position: relative;
+  }
+  /* 単元ごとに色を変えるためのCSSクラス（JSでランダム付与も可能だが今回は固定でシンプルに） */
+  .unit-card:nth-child(2n) .unit-title { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+  .unit-card:nth-child(3n) .unit-title { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+
+  .unit-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* アプリリンク（ボタン風） */
+  .app-link { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: #f8fbff; 
+    padding: 12px 15px; 
+    text-decoration: none; 
+    color: #555; 
+    border-radius: 12px; 
+    transition: all 0.2s; 
+    border: 2px solid #eef;
+    position: relative;
+  }
+  .app-link:hover { 
+    background: #fff;
+    border-color: #4facfe;
+    transform: translateX(3px);
+  }
+  
+  /* アイコン代わりの丸印 */
+  .app-link::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #ddd;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  .app-link:hover::before {
+    background: #4facfe;
+  }
+
+  .app-title { 
+    font-size: 1.05em; 
+    font-weight: 700;
+    flex: 1; 
+  }
+
+  /* ステータスバッジ */
+  .status-container { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    white-space: nowrap; 
+  }
+  .status-stars { 
+    font-size: 1.2em; 
+    color: #ffc107; 
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
+  }
+  .clear-count { 
+    background: #e8f5e9; 
+    color: #2e7d32; 
+    padding: 4px 10px; 
+    border-radius: 20px; 
+    font-size: 0.75em; 
+    font-weight: 800;
+    border: 1px solid #c8e6c9;
+  }
+
+  /* 準備中スタイル */
+  .app-link.preparation {
+    color: #aaa;
+    background-color: #f9f9f9;
+    justify-content: center;
+    border-style: dashed;
+    border-color: #ddd;
+    pointer-events: none;
+  }
+  .app-link.preparation::before { display: none; }
+  
+  /* 空の学年メッセージ */
+  .empty-grade-msg {
+    text-align: center;
+    background: #fff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: #888;
+    max-width: 600px;
+    margin: 40px auto;
+  }
+
+  /* スマホ対応 */
+  @media (max-width: 600px) {
+    h1 { font-size: 1.8em; margin-bottom: 20px; }
+    .grade-tab { padding: 8px 15px; font-size: 1em; }
+    #units-container { grid-template-columns: 1fr; }
+    .unit-card:hover { transform: none; }
   }
 </style>
 </head>
 <body>
 
-<h1>わくわく　算数ドリル</h1>
+<h1>✏️ わくわく 算数ドリル</h1>
 <div id="grade-tabs"></div>
 <div id="units-container"></div>
 
@@ -92,31 +283,35 @@ function renderGradeTabs(activeGrade) {
   });
 }
 
-// ▼▼▼ 修正済みの displayUnits 関数 ▼▼▼
 async function displayUnits(grade, units) {
   const unitsContainer = document.getElementById('units-container');
+  // アニメーションのリセットのために一旦空にする
+  unitsContainer.style.animation = 'none';
+  unitsContainer.offsetHeight; /* trigger reflow */
+  unitsContainer.style.animation = 'fadeIn 0.5s forwards';
+  
   unitsContainer.innerHTML = '';
 
   for (const unit of units) {
     const unitDiv = document.createElement('div');
     unitDiv.className = 'unit-card';
 
-    const unitTitle = document.createElement('h2');
+    // タイトル部分
+    const unitTitle = document.createElement('div');
     unitTitle.className = 'unit-title';
     unitTitle.textContent = unit.name;
     unitDiv.appendChild(unitTitle);
 
-    const appsList = document.createElement('div');
-    appsList.className = 'apps-list';
+    // コンテンツ部分（余白調整のため）
+    const unitContent = document.createElement('div');
+    unitContent.className = 'unit-content';
 
     if (unit.apps.length === 0) {
-      // アプリが一つもない場合
-      const preparationText = document.createElement('span');
+      const preparationText = document.createElement('div');
       preparationText.className = 'app-link preparation';
-      preparationText.textContent = '（準備中）';
-      appsList.appendChild(preparationText);
+      preparationText.textContent = 'ただいま準備中です...';
+      unitContent.appendChild(preparationText);
     } else {
-      // アプリがある場合（これまでの処理）
       for (const app of unit.apps) {
         const appId = app.id;
         const link = document.createElement('a');
@@ -129,11 +324,11 @@ async function displayUnits(grade, units) {
             <span class="clear-count" id="count-${appId}">0回</span>
           </div>
         `;
-        appsList.appendChild(link);
+        unitContent.appendChild(link);
       }
     }
     
-    unitDiv.appendChild(appsList);
+    unitDiv.appendChild(unitContent);
     unitsContainer.appendChild(unitDiv);
   }
 
@@ -148,9 +343,9 @@ async function displayGrade(grade) {
 
   if (!units || units.length === 0) {
     unitsContainer.innerHTML = `
-      <div style="max-width:800px;margin:0 auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 8px 15px rgba(0,0,0,.1);">
-        <h3 style="margin:0 0 10px;">${grade}年</h3>
-        <p style="margin:0;">この学年のアプリは準備中です。</p>
+      <div class="empty-grade-msg">
+        <h3 style="margin:0 0 10px; font-size:1.5em;">${grade}年生のみなさんへ</h3>
+        <p style="margin:0;">この学年のアプリはまだ準備中です。<br>もうちょっと待っててね！</p>
       </div>`;
     return;
   }
@@ -183,7 +378,7 @@ async function loadAppData(){
     initializeUI();
   } catch(e) {
     console.error('app_data.json の読み込みに失敗しました:', e);
-    document.getElementById('units-container').innerHTML = `<p style="text-align:center;color:red;">データの読み込みに失敗しました。ページを再読み込みしてください。</p>`;
+    document.getElementById('units-container').innerHTML = `<p style="text-align:center;color:red;padding:20px;">データの読み込みに失敗しました。</p>`;
   }
 }
 
