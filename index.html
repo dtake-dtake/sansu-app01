@@ -11,19 +11,13 @@
 <style>
   :root {
     --primary: #4facfe;
-    --primary-dark: #00f2fe;
-    --accent: #ff9a9e;
-    --accent-dark: #fecfef;
-    --text: #444;
     --bg-color: #eef9ff;
-    --card-bg: #ffffff;
-    --shadow: 0 8px 20px rgba(0,0,0,0.08);
+    --text: #444;
   }
 
   body {
     font-family: 'M PLUS Rounded 1c', sans-serif;
     background-color: var(--bg-color);
-    /* 方眼紙のような背景パターン */
     background-image: 
       linear-gradient(rgba(79, 172, 254, 0.1) 1px, transparent 1px),
       linear-gradient(90deg, rgba(79, 172, 254, 0.1) 1px, transparent 1px);
@@ -33,7 +27,6 @@
     color: var(--text);
   }
 
-  /* ヘッダー周り */
   h1 { 
     text-align: center;
     color: #007bff;
@@ -41,38 +34,26 @@
     font-size: 2.5em;
     font-family: 'Kiwi Maru', serif;
     text-shadow: 3px 3px 0px #fff, 5px 5px 0px rgba(0,0,0,0.1);
-    letter-spacing: 0.1em;
   }
   
-  /* タブナビゲーション */
   #grade-tabs { 
     display: flex; 
     justify-content: center; 
-    margin-bottom: 40px; 
+    margin-bottom: 30px; 
     flex-wrap: wrap; 
-    gap: 12px; 
+    gap: 10px; 
   }
   .grade-tab { 
     background: #fff;
     color: var(--text);
     border: 2px solid #bce0fd;
-    padding: 10px 20px;
-    font-size: 1.2em;
+    padding: 8px 20px;
+    font-size: 1.1em;
     font-weight: 800;
     cursor: pointer;
     border-radius: 50px;
-    transition: all 0.2s ease;
-    min-width: 80px;
-    box-shadow: 0 4px 0 #bce0fd;
+    transition: all 0.2s;
     font-family: 'M PLUS Rounded 1c', sans-serif;
-  }
-  .grade-tab:hover { 
-    transform: translateY(-2px);
-    background: #e6f7ff;
-  }
-  .grade-tab:active {
-    transform: translateY(2px);
-    box-shadow: 0 0 0 #bce0fd;
   }
   .grade-tab.active { 
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -82,63 +63,94 @@
     transform: scale(1.05);
   }
 
-  /* ユニットグリッド */
+  /* ▼▼▼ アコーディオン（リボン）スタイルの変更点 ▼▼▼ */
   #units-container { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 30px; 
-    max-width: 1200px; 
-    margin: 0 auto; 
-    /* アニメーション用 */
-    opacity: 0;
-    animation: fadeIn 0.5s forwards;
-  }
-
-  @keyframes fadeIn {
-    to { opacity: 1; transform: translateY(0); }
-    from { opacity: 0; transform: translateY(20px); }
-  }
-
-  /* ユニットカード */
-  .unit-card { 
-    background: var(--card-bg);
-    border-radius: 20px;
-    padding: 0; /* タイトルバーのためにpadding調整 */
-    box-shadow: var(--shadow);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    overflow: hidden;
-    border: 1px solid #eef;
-    display: flex;
+    display: flex;       /* グリッドからフレックス（縦並び）に変更 */
     flex-direction: column;
+    gap: 15px; 
+    max-width: 800px;    /* 横幅を少し狭めて読みやすく */
+    margin: 0 auto; 
   }
-  .unit-card:hover { 
-    transform: translateY(-8px) scale(1.02); 
-    box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+
+  .unit-card { 
+    background: transparent;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    overflow: hidden; /* 開閉アニメーション用 */
+  }
+
+  /* リボン（ヘッダー部分） */
+  .unit-header {
+    background: #fff;
+    padding: 15px 25px;
+    border-radius: 15px; /* 閉じてる時は角丸 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid #eef;
+    position: relative;
+    z-index: 2;
+    transition: 0.3s;
   }
   
-  .unit-title { 
-    font-size: 1.3em;
-    color: #fff;
-    margin: 0;
-    padding: 15px 20px;
-    background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-    font-weight: 800;
-    text-align: center;
-    position: relative;
+  .unit-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    border-color: #bce0fd;
   }
-  /* 単元ごとに色を変えるためのCSSクラス（JSでランダム付与も可能だが今回は固定でシンプルに） */
-  .unit-card:nth-child(2n) .unit-title { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
-  .unit-card:nth-child(3n) .unit-title { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
 
+  /* 開いている時のヘッダー */
+  .unit-card.open .unit-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #fff;
+    border-color: transparent;
+    border-radius: 15px 15px 0 0; /* 上だけ角丸 */
+  }
+
+  .unit-title-text {
+    font-size: 1.2em;
+    font-weight: 800;
+  }
+
+  /* 開閉の矢印アイコン */
+  .toggle-icon {
+    font-size: 1.2em;
+    transition: transform 0.3s;
+    color: #4facfe;
+  }
+  .unit-card.open .toggle-icon {
+    transform: rotate(180deg);
+    color: #fff;
+  }
+
+  /* 中身（アプリリスト） */
   .unit-content {
+    background: #fff;
+    max-height: 0;        /* デフォルトは高さ0（非表示） */
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); /* スルッと開くアニメーション */
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+
+  /* 開いた時の中身 */
+  .unit-card.open .unit-content {
+    max-height: 1000px;   /* 十分な高さを指定 */
+    border: 2px solid #bce0fd;
+    border-top: none;
+    transition: max-height 0.5s ease-in-out;
+  }
+
+  .apps-wrapper {
     padding: 20px;
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
-  /* アプリリンク（ボタン風） */
+  /* アプリリンクのデザイン */
   .app-link { 
     display: flex; 
     align-items: center; 
@@ -147,89 +159,29 @@
     padding: 12px 15px; 
     text-decoration: none; 
     color: #555; 
-    border-radius: 12px; 
+    border-radius: 10px; 
     transition: all 0.2s; 
-    border: 2px solid #eef;
-    position: relative;
+    border: 1px solid #eef;
   }
   .app-link:hover { 
-    background: #fff;
-    border-color: #4facfe;
-    transform: translateX(3px);
+    background: #e6f7ff;
+    transform: translateX(5px);
   }
   
-  /* アイコン代わりの丸印 */
   .app-link::before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: #ddd;
-    border-radius: 50%;
+    content: '★';
+    color: #ddd;
     margin-right: 10px;
+    font-size: 0.8em;
   }
-  .app-link:hover::before {
-    background: #4facfe;
-  }
+  .app-link:hover::before { color: #ffc107; }
 
-  .app-title { 
-    font-size: 1.05em; 
-    font-weight: 700;
-    flex: 1; 
-  }
+  .status-container { font-size: 0.9em; display:flex; align-items:center; gap:5px;}
+  .clear-count { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
 
-  /* ステータスバッジ */
-  .status-container { 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    white-space: nowrap; 
-  }
-  .status-stars { 
-    font-size: 1.2em; 
-    color: #ffc107; 
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
-  }
-  .clear-count { 
-    background: #e8f5e9; 
-    color: #2e7d32; 
-    padding: 4px 10px; 
-    border-radius: 20px; 
-    font-size: 0.75em; 
-    font-weight: 800;
-    border: 1px solid #c8e6c9;
-  }
-
-  /* 準備中スタイル */
-  .app-link.preparation {
-    color: #aaa;
-    background-color: #f9f9f9;
-    justify-content: center;
-    border-style: dashed;
-    border-color: #ddd;
-    pointer-events: none;
-  }
+  .app-link.preparation { color: #aaa; justify-content: center; border-style: dashed; pointer-events: none; }
   .app-link.preparation::before { display: none; }
-  
-  /* 空の学年メッセージ */
-  .empty-grade-msg {
-    text-align: center;
-    background: #fff;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    color: #888;
-    max-width: 600px;
-    margin: 40px auto;
-  }
 
-  /* スマホ対応 */
-  @media (max-width: 600px) {
-    h1 { font-size: 1.8em; margin-bottom: 20px; }
-    .grade-tab { padding: 8px 15px; font-size: 1em; }
-    #units-container { grid-template-columns: 1fr; }
-    .unit-card:hover { transform: none; }
-  }
 </style>
 </head>
 <body>
@@ -243,30 +195,24 @@ const LAST_SELECTED_GRADE_KEY = 'sansu-app-last-selected-grade';
 const ALL_GRADES = ["1", "2", "3", "4", "5", "6"];
 let gradeMap = new Map();
 
+// JSONデータの整形
 function sanitizeAppData(data) {
   if (!Array.isArray(data)) return [];
   return data.filter(g => g && typeof g.grade === 'string' && Array.isArray(g.units));
 }
 
-function getAppKey(appId, key) {
-  return `${appId}:${key}`;
-}
-
-async function updateAppStatus(appId) {
+// ステータス更新
+function updateAppStatus(appId) {
   const starsEl = document.getElementById(`stars-${appId}`);
   const countEl = document.getElementById(`count-${appId}`);
   if (!starsEl || !countEl) return;
-
-  const KEY_CLEAR = getAppKey(appId, 'clearCount');
-  const KEY_OVERALL_STATUS = getAppKey(appId, 'status');
-
-  const totalClearCount = localStorage.getItem(KEY_CLEAR) || '0';
-  const overallStatusStars = localStorage.getItem(KEY_OVERALL_STATUS) || '―';
-  
+  const totalClearCount = localStorage.getItem(`${appId}:clearCount`) || '0';
+  const overallStatusStars = localStorage.getItem(`${appId}:status`) || '―';
   starsEl.innerHTML = overallStatusStars;
   countEl.textContent = `${totalClearCount}回`;
 }
 
+// 学年タブ描画
 function renderGradeTabs(activeGrade) {
   const tabsContainer = document.getElementById('grade-tabs');
   tabsContainer.innerHTML = '';
@@ -283,34 +229,41 @@ function renderGradeTabs(activeGrade) {
   });
 }
 
+// アコーディオンの開閉処理
+function toggleUnit(headerElement) {
+  const card = headerElement.parentElement;
+  // 他のカードを閉じたい場合はここで行う（今回は複数は開ける仕様）
+  card.classList.toggle('open');
+}
+
+// ユニット描画（リボン形式）
 async function displayUnits(grade, units) {
   const unitsContainer = document.getElementById('units-container');
-  // アニメーションのリセットのために一旦空にする
-  unitsContainer.style.animation = 'none';
-  unitsContainer.offsetHeight; /* trigger reflow */
-  unitsContainer.style.animation = 'fadeIn 0.5s forwards';
-  
   unitsContainer.innerHTML = '';
 
   for (const unit of units) {
-    const unitDiv = document.createElement('div');
-    unitDiv.className = 'unit-card';
+    const unitCard = document.createElement('div');
+    unitCard.className = 'unit-card';
 
-    // タイトル部分
-    const unitTitle = document.createElement('div');
-    unitTitle.className = 'unit-title';
-    unitTitle.textContent = unit.name;
-    unitDiv.appendChild(unitTitle);
+    // 1. ヘッダー（リボン部分）
+    const header = document.createElement('div');
+    header.className = 'unit-header';
+    header.onclick = () => toggleUnit(header); // クリックイベント
+    header.innerHTML = `
+      <span class="unit-title-text">${unit.name}</span>
+      <span class="toggle-icon">▼</span>
+    `;
+    unitCard.appendChild(header);
 
-    // コンテンツ部分（余白調整のため）
-    const unitContent = document.createElement('div');
-    unitContent.className = 'unit-content';
+    // 2. コンテンツ部分（隠れている部分）
+    const content = document.createElement('div');
+    content.className = 'unit-content';
+    
+    const appsWrapper = document.createElement('div');
+    appsWrapper.className = 'apps-wrapper';
 
     if (unit.apps.length === 0) {
-      const preparationText = document.createElement('div');
-      preparationText.className = 'app-link preparation';
-      preparationText.textContent = 'ただいま準備中です...';
-      unitContent.appendChild(preparationText);
+      appsWrapper.innerHTML = `<div class="app-link preparation">準備中</div>`;
     } else {
       for (const app of unit.apps) {
         const appId = app.id;
@@ -324,14 +277,16 @@ async function displayUnits(grade, units) {
             <span class="clear-count" id="count-${appId}">0回</span>
           </div>
         `;
-        unitContent.appendChild(link);
+        appsWrapper.appendChild(link);
       }
     }
     
-    unitDiv.appendChild(unitContent);
-    unitsContainer.appendChild(unitDiv);
+    content.appendChild(appsWrapper);
+    unitCard.appendChild(content);
+    unitsContainer.appendChild(unitCard);
   }
 
+  // ステータス更新
   units.forEach(unit => {
     unit.apps.forEach(app => updateAppStatus(app.id));
   });
@@ -340,13 +295,8 @@ async function displayUnits(grade, units) {
 async function displayGrade(grade) {
   const units = gradeMap.get(grade + "年")?.units;
   const unitsContainer = document.getElementById('units-container');
-
   if (!units || units.length === 0) {
-    unitsContainer.innerHTML = `
-      <div class="empty-grade-msg">
-        <h3 style="margin:0 0 10px; font-size:1.5em;">${grade}年生のみなさんへ</h3>
-        <p style="margin:0;">この学年のアプリはまだ準備中です。<br>もうちょっと待っててね！</p>
-      </div>`;
+    unitsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#888;">準備中</div>`;
     return;
   }
   await displayUnits(String(grade), units);
@@ -359,7 +309,6 @@ function initializeUI(){
   displayGrade(active);
 }
 
-// ============= スクロール復元 =============
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
 window.addEventListener('load', () => {
@@ -367,7 +316,6 @@ window.addEventListener('load', () => {
   if (y !== null) window.scrollTo(0, parseInt(y,10));
 });
 
-// ============= JSON読み込み =============
 async function loadAppData(){
   try{
     const res = await fetch('app_data.json?v=' + Date.now());
@@ -376,10 +324,7 @@ async function loadAppData(){
     const clean = sanitizeAppData(data);
     gradeMap = new Map(clean.map(g => [g.grade, g]));
     initializeUI();
-  } catch(e) {
-    console.error('app_data.json の読み込みに失敗しました:', e);
-    document.getElementById('units-container').innerHTML = `<p style="text-align:center;color:red;padding:20px;">データの読み込みに失敗しました。</p>`;
-  }
+  } catch(e) { console.error(e); }
 }
 
 loadAppData();
