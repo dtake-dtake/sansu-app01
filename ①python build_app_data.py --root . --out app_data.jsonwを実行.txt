@@ -1,0 +1,1 @@
+python build_app_data.py --root . --out app_data.json

@@ -10,9 +10,40 @@
         "name": "６　　たしざん(1)",
         "apps": [
           {
-            "id": "9-3_tashizan_10made",
-            "title": "１０までのたしざん",
-            "path": "1nen/06_tashizan1/9-3_tashizan_10made.html"
+            "id": "1nen_12_make10_balloon",
+            "title": "10に しましょう",
+            "path": "1nen/06_tashizan1/012_1nen_fukushuu_make10.html",
+            "page": "12"
+          },
+          {
+            "id": "1nen_6_find_10",
+            "title": "10を みつけよう",
+            "path": "1nen/06_tashizan1/011_1nen_find_10.html",
+            "page": "11"
+          },
+          {
+            "id": "1nen_6_kazuno_bunkai",
+            "title": "かずの ぶんかい",
+            "path": "1nen/06_tashizan1/013_1nen_kazuno_bujnkai.html",
+            "page": "13"
+          },
+          {
+            "id": "1nen_6_tashizan_1",
+            "title": "たしざんの けいさん",
+            "path": "1nen/06_tashizan1/009_1nen_6_tashizan_1.html",
+            "page": "9"
+          },
+          {
+            "id": "1nen_6_tashizan_mondai",
+            "title": "たしざんの ぶんしょうだい",
+            "path": "1nen/06_tashizan1/010_1nen_6_tashizan_mondai.html",
+            "page": "10"
+          },
+          {
+            "id": "1nen_6_tashizan_card_30",
+            "title": "たしざんカード ３０もん",
+            "path": "1nen/06_tashizan1/011_1nen_card_30.html",
+            "page": "11"
           }
         ]
       },
@@ -20,9 +51,52 @@
         "name": "７　　ひきざん(1)",
         "apps": [
           {
-            "id": "18-6_hikizan_10made",
-            "title": "１０までのひきざん",
-            "path": "1nen/07_hikizan1/18-6_hikizan_10made.html"
+            "id": "1nen_7_hikizan_find_1",
+            "title": "1を みつけよう",
+            "path": "1nen/07_hikizan1/019_1nen_7_hikizan_find_1.html",
+            "page": "19"
+          },
+          {
+            "id": "1nen_7_hikizan_chigai_2",
+            "title": "ちがいは いくつ",
+            "path": "1nen/07_hikizan1/022_1nen_7_hikizan_chigaimasuka.html",
+            "page": "22"
+          },
+          {
+            "id": "1nen_7_hikizan_chigai_v6",
+            "title": "どちらが おおい",
+            "path": "1nen/07_hikizan1/021_1nen_7_hikizan_ooidesuka.html",
+            "page": "21"
+          },
+          {
+            "id": "1nen_7_hikizan_simple_v3",
+            "title": "のこりは いくつ",
+            "path": "1nen/07_hikizan1/015_1nen_7_hikizan_nokori.html",
+            "page": "15"
+          },
+          {
+            "id": "1nen_7_hikizan_keisan",
+            "title": "ひきざんの けいさん",
+            "path": "1nen/07_hikizan1/018_1nen_7_hikizan_keisan.html",
+            "page": "18"
+          },
+          {
+            "id": "1nen_7_hikizan_bunsyou",
+            "title": "ひきざんの ぶんしょうだい",
+            "path": "1nen/07_hikizan1/017_1nen_7_hikizan_bunsyou.html",
+            "page": "17"
+          },
+          {
+            "id": "1nen_7_hikizan_mondai_p23",
+            "title": "ひきざんの もんだい",
+            "path": "1nen/07_hikizan1/023_1nen_7_hikizan_mondai_matome.html",
+            "page": "23"
+          },
+          {
+            "id": "1nen_7_hikizan_card_30",
+            "title": "ひきざんカード ３０もん",
+            "path": "1nen/07_hikizan1/019_1nen_7_hikizan_card_30.html",
+            "page": "19"
           }
         ]
       },
@@ -785,7 +859,13 @@
       },
       {
         "name": "１９　2けたをかけるかけ算の筆算",
-        "apps": []
+        "apps": [
+          {
+            "id": "math_2digit_times_tens_v3",
+            "title": "何十をかける計算",
+            "path": "3nen/19_kakezan_hissan2/Untitled-1.html"
+          }
+        ]
       },
       {
         "name": "２０　□を使った式",
@@ -829,19 +909,46 @@
         "name": "３　　1けたでわるわり算の筆算",
         "apps": [
           {
-            "id": "40-2_2keta_waru_1keta_amarinasi",
-            "title": "２けた÷１けた（あまりなし）",
-            "path": "4nen/3_warizan_hissan1/39-2_2keta_waru_1keta_amarinasi.html"
+            "id": "3keta_waru_1keta_p42",
+            "title": "(3けた)÷(1けた)の筆算",
+            "path": "4nen/3_warizan_hissan1/42_3keta_waru_1keta.html",
+            "page": "42"
           },
           {
-            "id": "40-5_amarinoaru_warizanno_hissan_improved",
-            "title": "あまりのあるわり算の筆算",
-            "path": "4nen/3_warizan_hissan1/40-5_amarinoaru_warizanno_hissan.html"
+            "id": "2keta_waru_1keta_p40",
+            "title": "あまりのでるわり算の筆算",
+            "path": "4nen/3_warizan_hissan1/40_2keta_waru_1keta.html",
+            "page": "40"
           },
           {
-            "id": "41-7_hiite0ninaru_warizanno_hissan_final",
-            "title": "ひいて0になるわり算の筆算",
-            "path": "4nen/3_warizan_hissan1/41-7_hiite0ninaru_warizanno_hissann.html"
+            "id": "2keta_waru_1keta_p39",
+            "title": "あまりのないわり算の筆算",
+            "path": "4nen/3_warizan_hissan1/39_2keta_waru_1keta.html",
+            "page": "39"
+          },
+          {
+            "id": "2keta_waru_1keta_p41",
+            "title": "十の位がわりきれるわり算の筆算",
+            "path": "4nen/3_warizan_hissan1/41_2keta_waru_1keta.html",
+            "page": "41"
+          },
+          {
+            "id": "3keta_waru_1keta_p43-6",
+            "title": "十の位に０がたつ筆算",
+            "path": "4nen/3_warizan_hissan1/43-6_3keta_waru_1keta.html",
+            "page": "43"
+          },
+          {
+            "id": "anzan_2keta_1keta_p45",
+            "title": "暗算のしかた（2けた÷1けた）",
+            "path": "4nen/3_warizan_hissan1/45_anzan_2keta_1keta.html",
+            "page": "45"
+          },
+          {
+            "id": "3keta_waru_1keta_p43-7",
+            "title": "百の位に商がたたない筆算",
+            "path": "4nen/3_warizan_hissan1/43-7_3keta_waru_1keta.html",
+            "page": "43"
           }
         ]
       },
@@ -867,7 +974,67 @@
       },
       {
         "name": "７　　2けたでわるわり算の筆算",
-        "apps": []
+        "apps": [
+          {
+            "id": "107_2keta_waru_2keta_sho1keta",
+            "title": "２けた÷２けた（あまりなし）",
+            "path": "4nen/7_warizan_hissan2/107_2keta_waru_2keta_sho1keta.html",
+            "page": "107"
+          },
+          {
+            "id": "3keta_waru_2keta",
+            "title": "３けた÷２けた",
+            "path": "4nen/7_warizan_hissan2/110_3keta_waru_2keta.html",
+            "page": "110"
+          },
+          {
+            "id": "111_4keta_waru_2keta",
+            "title": "４けた÷２けたの筆算（完成版）",
+            "path": "4nen/7_warizan_hissan2/111_4keta_waru_2keta.html",
+            "page": "111"
+          },
+          {
+            "id": "113_warizan_no_seishitsu",
+            "title": "４年　わり算のせいしつ",
+            "path": "4nen/7_warizan_hissan2/113_warizan_no_seishitsu.html",
+            "page": "113"
+          },
+          {
+            "id": "104_nanjyu_de_waru_amariari",
+            "title": "７　２けたでわるわり算の筆算",
+            "path": "4nen/7_warizan_hissan2/104_nanjyu_de_waru_amariari.html",
+            "page": "104"
+          },
+          {
+            "id": "105_nanbyaku_waru_nanjyu_amariari",
+            "title": "７　２けたでわるわり算の筆算",
+            "path": "4nen/7_warizan_hissan2/105_nanbyaku_waru_nanjyu_amariari.html",
+            "page": "105"
+          },
+          {
+            "id": "4nen_7_nanjyu_de_waru",
+            "title": "何十でわるわり算",
+            "path": "4nen/7_warizan_hissan2/103_nanjyu_de_waru.html",
+            "page": "103"
+          },
+          {
+            "id": "4nen_2keta_waru_2keta_shokento",
+            "title": "商の見当をつけて",
+            "path": "4nen/7_warizan_hissan2/108_sho_no_kento_wo_tsukete.html",
+            "page": "108"
+          },
+          {
+            "id": "4nen_2keta_waru_2keta_sho_correction",
+            "title": "商の見当をつけて（商の修正）",
+            "path": "4nen/7_warizan_hissan2/109_sho_no_kento_to_syusei.html",
+            "page": "109"
+          },
+          {
+            "id": "115_kufu_shite_keisan",
+            "title": "工夫して計算しよう（メモ書きOK）",
+            "path": "4nen/7_warizan_hissan2/115_kufu_shite_keisan.html"
+          }
+        ]
       },
       {
         "name": "８　　式と計算の順じょ",
