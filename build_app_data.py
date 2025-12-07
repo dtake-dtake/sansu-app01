@@ -53,6 +53,14 @@ def get_app_id_from_script(script_content: str) -> Optional[str]:
             return match.group(1)
     return None
 
+def get_page_from_script(script_content: str) -> Optional[str]:
+    """スクリプト内から page: 123 または page: "123" を抽出する"""
+    pattern = re.compile(r"""page\s*:\s*['"]?(\d+)['"]?""")
+    match = pattern.search(script_content)
+    if match:
+        return match.group(1)
+    return None
+
 def extract_info(html_path: Path, encoding: str) -> dict:
     with html_path.open(encoding=encoding, errors="replace") as f:
         content = f.read()
@@ -61,16 +69,30 @@ def extract_info(html_path: Path, encoding: str) -> dict:
     title = get_title(soup, "app-title", ["h2", "h1", "title"]) or html_path.stem
     
     app_id_from_script = None
+    page_from_script = None
+
     for script in soup.find_all("script"):
         if not script.string:
             continue
-        app_id_from_script = get_app_id_from_script(script.string)
-        if app_id_from_script:
+        
+        # IDの抽出
+        if not app_id_from_script:
+            app_id_from_script = get_app_id_from_script(script.string)
+
+        # ページ番号の抽出（追加）
+        if not page_from_script:
+            page_from_script = get_page_from_script(script.string)
+
+        if app_id_from_script and page_from_script:
             break
             
     app_id = app_id_from_script or html_path.stem
     
-    return {"id": app_id, "title": title, "path": str(html_path).replace("\\", "/")}
+    result = {"id": app_id, "title": title, "path": str(html_path).replace("\\", "/")}
+    if page_from_script:
+        result["page"] = page_from_script
+    
+    return result
 
 def main():
     ap = argparse.ArgumentParser(description="Build app_data.json from directory structure and a TSV file.")

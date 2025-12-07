@@ -194,6 +194,18 @@
   }
   .app-link:hover::before { color: #ffc107; }
 
+  /* ページ番号バッジのスタイル */
+  .app-page {
+    margin-left: 10px;
+    font-size: 0.85em;
+    color: #fff;
+    background-color: #90a4ae;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
   .status-container { font-size: 0.9em; display:flex; align-items:center; gap:5px;}
   .clear-count { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
 
@@ -319,7 +331,7 @@ async function displayUnits(grade, units) {
         toggleUnit(header); 
     };
     
-    // 【変更点】アプリ数を表示するバッジを追加
+    // アプリ数を表示するバッジを追加
     header.innerHTML = `
       <div class="header-left">
         <span class="unit-title-text">${unit.name}</span>
@@ -341,11 +353,20 @@ async function displayUnits(grade, units) {
     } else {
       for (const app of unit.apps) {
         const appId = app.id;
+        
+        // ページ番号がある場合にHTMLを生成
+        const pageHtml = app.page ? `<span class="app-page">P.${app.page}</span>` : '';
+
         const link = document.createElement('a');
         link.href = app.path;
         link.className = 'app-link';
+        
+        // タイトル横にページ番号を追加
         link.innerHTML = `
-          <span class="app-title">${app.title}</span>
+          <div style="display:flex; align-items:center;">
+             <span class="app-title">${app.title}</span>
+             ${pageHtml}
+          </div>
           <div class="status-container">
             <span class="status-stars" id="stars-${appId}">―</span>
             <span class="clear-count" id="count-${appId}">0回</span>
