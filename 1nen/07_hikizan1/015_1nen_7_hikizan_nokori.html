@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>のこりは いくつ</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：アクア・ブルー ▼▼▼ */
+        :root {
+            --c-bg-main: #E0F7FA;         
+            --c-primary: #00ACC1;         
+            --c-primary-dark: #006064;    
+            --c-primary-light: #B2EBF2;   
+            
+            --c-text-main: #37474F;       
+            --c-correct: #E53935;         
+            --c-wrong: #F44336;   
+            --c-history-bg: #FFFFFF;      
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* ヘッダー */
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 5px 0; }
+        h1 { font-size: 1.4rem; }
+        h2 { 
+            font-size: 1.2rem; background: var(--c-primary-light); 
+            padding: 5px 15px; border-radius: 20px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; 
+            margin-bottom: 20px;
+        }
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+
+        /* ゲームエリア */
+        #game-area {
+            position: relative;
+            width: 100%; max-width: 600px;
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px; padding: 30px 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* イラストエリア（横一列） */
+        .illustration-area {
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            width: 100%; min-height: 120px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            overflow-x: auto; 
+        }
+        
+        .emoji-container {
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+            justify-content: center;
+        }
+        
+        .emoji-item {
+            font-size: 3.5rem; line-height: 1;
+            transition: opacity 0.5s ease;
+            cursor: pointer; 
+        }
+
+        /* ヒント用（薄くなる） */
+        .hint-mode { opacity: 0.2; }
+
+        /* 問題文と入力欄 */
+        #question-area {
+            font-size: 1.5rem; font-weight: bold; margin: 10px 0;
+            text-align: center; width: 100%;
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;
+            line-height: 1.8;
+        }
+        
+        .inline-input {
+            width: 80px; height: 50px;
+            font-size: 2.2rem; text-align: center;
+            border: 3px solid var(--c-primary); border-radius: 10px;
+            outline: none; background: #E0F7FA;
+            font-family: inherit; font-weight: bold;
+            vertical-align: middle;
+        }
+        .inline-input:focus { box-shadow: 0 0 0 4px rgba(0, 172, 193, 0.3); background-color: #fff; }
+
+        /* OKボタン */
+        #enter-btn {
+            font-size: 1.2rem; padding: 10px 40px; border: none; border-radius: 30px;
+            background-color: var(--c-primary); color: #fff;
+            cursor: pointer; font-weight: bold; margin-top: 15px;
+            box-shadow: 0 4px 0 var(--c-primary-dark);
+            transition: transform 0.1s;
+        }
+        #enter-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* 正解エフェクト */
+        .feedback-overlay {
+            position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 10rem; font-weight: bold; color: var(--c-correct);
+            z-index: 100; pointer-events: none; opacity: 0; transition: opacity 0.1s;
+            text-shadow: 2px 2px 0 #fff;
+        }
+
+        /* スタート・リトライ */
+        button.nav-btn {
+            font-size: 1.2rem; padding: 10px 25px; border: none; border-radius: 25px;
+            background-color: var(--c-primary); color: #fff;
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 3px 0 var(--c-primary-dark);
+            transition: transform 0.1s;
+        }
+        button.nav-btn:active { transform: translateY(3px); box-shadow: none; }
+
+        /* ▼▼▼ リセットボタンのデザイン修正 ▼▼▼ */
+        .reset-btn {
+            font-size: 0.8rem; padding: 4px 12px; border: none; border-radius: 15px;
+            background-color: #90A4AE; color: #fff; /* 落ち着いたブルーグレー */
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 2px 0 #607D8B; /* 影をつけて立体的に */
+            transition: transform 0.1s;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        .reset-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* 共通UIパーツ */
+        .hidden { display: none !important; }
+        .progress-container { width: 100%; max-width: 400px; height: 10px; background-color: #B2EBF2; border-radius: 5px; margin: 0 0 20px 0; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; background-color: var(--c-primary); transition: width 0.3s ease; }
+        .progress-text { font-weight: bold; color: var(--c-primary-dark); margin-bottom: 5px; }
+
+        /* 履歴エリア */
+        #stats-section {
+            width: 100%; max-width: 500px;
+            margin-top: 30px; padding: 15px;
+            background: #fff; border: 2px solid var(--c-primary-light); border-radius: 15px;
+            text-align: center;
+        }
+        .status-stars { font-size: 2.0rem; color: #FFD700; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); letter-spacing: 5px; }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px; font-size: 0.9rem; }
+        #history-list li { border-bottom: 1px dashed #B2EBF2; padding: 6px; display: flex; justify-content: space-between; }
+        #history-list li:last-child { border-bottom: none; }
+        
+        #start-view, #game-view, #result-view { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        
+        /* 振動アニメーション */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-view">
+        <div style="text-align:center; margin: 20px 0;">
+            <p style="font-size:1.1rem; line-height: 1.8;">
+                えを みて、のこりは いくつか<br>
+                しかくに かずを かこう。<br>
+                （ぜんぶで 5もん）
+            </p>
+            <button id="start-btn" class="nav-btn" style="margin-top:10px; font-size:1.5rem; padding:15px 40px;">スタート！</button>
+        </div>
+        <div id="stats-container-start"></div> 
+    </div>
+
+    <div id="game-view" class="hidden">
+        <div class="progress-text"><span id="current-count">1</span> / 5</div>
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <div id="game-area">
+            <div id="feedback-mark" class="feedback-overlay">◎</div>
+
+            <div class="illustration-area">
+                <div id="emoji-container" class="emoji-container"></div>
+            </div>
+
+            <div id="question-area"></div>
+
+            <button id="enter-btn">OK</button>
+        </div>
+    </div>
+
+    <div id="result-view" class="hidden">
+        <h2 style="font-size:2.0rem; color:var(--c-primary); background:none; border:none; margin-bottom:10px;">クリア！</h2>
+        <div style="font-size:1.2rem; margin-bottom: 20px;">
+            スコア： <span id="final-score" style="font-size:2.2rem; font-weight:bold;">0</span> てん
+        </div>
+        <p id="comment" style="font-size:1.1rem; color:#555; margin-bottom:20px; font-weight:bold;"></p>
+        
+        <button id="retry-btn" class="nav-btn">もういちど</button>
+        <div id="stats-container-result"></div>
+    </div>
+
+    <div id="stats-template" class="hidden">
+        <div id="stats-section">
+            <div id="overallStatusArea">ランク：<span id="overallStars" class="status-stars">―</span></div>
+            <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" class="reset-btn">リセット</button></div>
+            <div id="dailyCountArea">きょうの クリア：<span id="dailyCountValue">0</span> かい</div>
+            <div id="clearCountArea">ごうけい クリア：<span id="clearCountValue">0</span> かい</div>
+            <div id="history-area" style="margin-top:10px; text-align:left;">
+                <span style="font-size:0.9rem; font-weight:bold;">さいしん 5かい の きろく</span>
+                <ul id="history-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        // ▼▼▼ アプリ設定 ▼▼▼
+        const config = {
+            appId: "1nen_7_hikizan_simple_v3", 
+            mainTitle: "７　ひきざん（１）", 
+            title: "のこりは いくつ", 
+            page: 15, 
+            questionCount: 5, 
+            baseScore: 100,
+            targetTimePerQuestion: 20, 
+            starThresholds: { star5: 180, star4: 160, star3: 140, star2: 120 } 
+        };
+
+        let problems = [];
+        let currentIndex = 0;
+        let startTime = 0;
+        let isProcessing = false;
+        let wrongCount = 0; 
+
+        // データ保存用
+        let highScore = 0; 
+        let totalClearCount = 0;
+        let dailyCount = 0;
+        let overallRank = '―';
+
+        // ローカルストレージ
+        const ls = localStorage;
+        const KEY_HS = `${config.appId}:highScore`;
+        const KEY_HISTORY = `${config.appId}:history`;
+        const KEY_CLEAR = `${config.appId}:clearCount`;
+        const KEY_RANK = `${config.appId}:rank`;
+        const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+
+        // DOM要素
+        const startView = document.getElementById('start-view');
+        const gameView = document.getElementById('game-view');
+        const resultView = document.getElementById('result-view');
+        const progressBar = document.getElementById('progress-bar');
+        const currentCountEl = document.getElementById('current-count');
+        const questionArea = document.getElementById('question-area');
+        const feedbackMark = document.getElementById('feedback-mark');
+        const emojiContainer = document.getElementById('emoji-container');
+        const statsSection = document.getElementById('stats-section');
+
+        // --- データロード ---
+        function loadData() {
+            highScore = parseInt(ls.getItem(KEY_HS) || '0');
+            totalClearCount = parseInt(ls.getItem(KEY_CLEAR) || '0');
+            const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+            dailyCount = parseInt(ls.getItem(todayKey) || '0');
+            overallRank = ls.getItem(KEY_RANK) || '―';
+            updateStatsDisplay();
+        }
+
+        function saveData(newScore) {
+            if (newScore > highScore) {
+                highScore = newScore;
+                ls.setItem(KEY_HS, highScore);
+            }
+            totalClearCount++;
+            ls.setItem(KEY_CLEAR, totalClearCount);
+            const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+            dailyCount++;
+            ls.setItem(todayKey, dailyCount);
+
+            let rank = '★☆☆☆☆';
+            if (newScore >= config.starThresholds.star5) rank = '★★★★★';
+            else if (newScore >= config.starThresholds.star4) rank = '★★★★☆';
+            else if (newScore >= config.starThresholds.star3) rank = '★★★☆☆';
+            else if (newScore >= config.starThresholds.star2) rank = '★★☆☆☆';
+            
+            const currentStars = (overallRank.match(/★/g) || []).length;
+            const newStars = (rank.match(/★/g) || []).length;
+            if (newStars >= currentStars) {
+                overallRank = rank;
+                ls.setItem(KEY_RANK, overallRank);
+            }
+        }
+
+        function saveHistoryEntry(sc) {
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const dateStr = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            history.unshift({ date: dateStr, score: sc });
+            if (history.length > 5) history.pop();
+            ls.setItem(KEY_HISTORY, JSON.stringify(history));
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('highScoreValue').textContent = highScore;
+            document.getElementById('clearCountValue').textContent = totalClearCount;
+            document.getElementById('dailyCountValue').textContent = dailyCount;
+            document.getElementById('overallStars').textContent = overallRank;
+            
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const listEl = document.getElementById('history-list');
+            listEl.innerHTML = history.map(h => `<li><span>${h.date}</span> <span><strong>${h.score}</strong> てん</span></li>`).join('');
+        }
+
+        // --- 初期化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+
+            loadData();
+            document.getElementById('stats-container-start').appendChild(statsSection);
+        });
+
+        // --- 問題生成 ---
+        function generateProblems() {
+            const list = [];
+// バリエーション豊富に (自然な動作に見直し＋食べ物を追加)
+            const themes = [
+                // 飛ぶもの
+                { name:'とり', counter:'わ', verb:'とんで いく と', emoji:'🐦' },
+                { name:'ちょう', counter:'ひき', verb:'とんで いく と', emoji:'🦋' },
+                { name:'ハチ', counter:'ひき', verb:'とんで いく と', emoji:'🐝' },
+                
+                // 乗り物
+                { name:'くるま', counter:'だい', verb:'はしって いく と', emoji:'🚗' },
+                { name:'バス', counter:'だい', verb:'しゅっぱつ する と', emoji:'🚌' },
+                { name:'ヨット', counter:'そう', verb:'うごきだす と', emoji:'⛵' },
+                
+                // 水の生き物
+                { name:'さかな', counter:'ひき', verb:'およいでいく と', emoji:'🐟' },
+                { name:'かえる', counter:'ひき', verb:'かえる と', emoji:'🐸' },
+                { name:'ペンギン', counter:'わ', verb:'およいでいく と', emoji:'🐧' },
+                
+                // 陸の生き物
+                { name:'うさぎ', counter:'わ', verb:'はしっていく と', emoji:'🐇' },
+                { name:'いぬ', counter:'ひき', verb:'いなくなる と', emoji:'🐕' },
+                { name:'ねこ', counter:'ひき', verb:'いなくなる と', emoji:'🐈' },
+                { name:'あり', counter:'ひき', verb:'あるいて いく と', emoji:'🐜' },
+                
+                // 食べ物（新規追加）
+                { name:'りんご', counter:'こ', verb:'たべる と', emoji:'🍎' },
+                { name:'みかん', counter:'こ', verb:'たべる と', emoji:'🍊' },
+                { name:'ドーナツ', counter:'こ', verb:'たべる と', emoji:'🍩' },
+                { name:'あめ', counter:'こ', verb:'たべる と', emoji:'🍬' },
+                { name:'おにぎり', counter:'こ', verb:'たべる と', emoji:'🍙' },
+                { name:'アイス', counter:'こ', verb:'たべる と', emoji:'🍦' }
+            ];
+
+            while(list.length < config.questionCount) {
+                const total = Math.floor(Math.random() * 8) + 3; // 3~10
+                const sub = Math.floor(Math.random() * (total - 1)) + 1; // 1~(total-1)
+                const ans = total - sub;
+                
+                const th = themes[Math.floor(Math.random() * themes.length)];
+                
+                list.push({ total, sub, ans, th });
+            }
+            return list;
+        }
+
+        // --- ゲーム開始 ---
+        function startGame() {
+            problems = generateProblems();
+            currentIndex = 0;
+            startTime = Date.now();
+            isProcessing = false;
+            wrongCount = 0;
+            
+            startView.classList.add('hidden');
+            resultView.classList.add('hidden');
+            gameView.classList.remove('hidden');
+            
+            showProblem(problems[currentIndex]);
+        }
+
+        // --- 問題表示 ---
+        function showProblem(p) {
+            updateProgress();
+            wrongCount = 0; 
+            
+            questionArea.innerHTML = '';
+            emojiContainer.innerHTML = '';
+            feedbackMark.style.opacity = '0';
+
+            // 絵文字
+            for(let i=0; i<p.ans; i++) {
+                const span = document.createElement('span');
+                span.className = 'emoji-item';
+                span.textContent = p.th.emoji;
+                emojiContainer.appendChild(span);
+            }
+            for(let i=0; i<p.sub; i++) {
+                const span = document.createElement('span');
+                span.className = 'emoji-item leaving-target'; 
+                span.textContent = p.th.emoji;
+                emojiContainer.appendChild(span);
+            }
+
+            // 問題文
+            const inputHtml = `<input type="tel" id="inline-input" class="inline-input" maxlength="2" autocomplete="off">`;
+            questionArea.innerHTML = `
+                <span>${p.sub}${p.th.counter} ${p.th.verb}、</span>
+                <span>のこりは ${inputHtml} ${p.th.counter}</span>
+            `;
+
+            const inp = document.getElementById('inline-input');
+            inp.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+
+            setTimeout(() => {
+                inp.focus({ preventScroll: true });
+            }, 50);
+        }
+
+        // --- 答え合わせ ---
+        function checkAnswer() {
+            if (isProcessing) return;
+
+            const inp = document.getElementById('inline-input');
+            if (!inp || inp.value === '') return;
+
+            const userAns = parseInt(inp.value, 10);
+            const p = problems[currentIndex];
+
+            if (userAns === p.ans) {
+                // 正解
+                isProcessing = true;
+                feedbackMark.style.opacity = '1'; 
+                
+                setTimeout(() => {
+                    isProcessing = false;
+                    currentIndex++;
+                    if (currentIndex >= config.questionCount) {
+                        finishGame();
+                    } else {
+                        showProblem(problems[currentIndex]);
+                    }
+                }, 500); 
+
+            } else {
+                // 不正解
+                inp.classList.add('shake');
+                setTimeout(() => {
+                    inp.classList.remove('shake');
+                }, 500);
+                
+                inp.value = '';
+                inp.focus({ preventScroll: true });
+                
+                wrongCount++;
+                if (wrongCount >= 3) {
+                    showHint();
+                }
+            }
+        }
+        
+        function showHint() {
+            const targets = document.querySelectorAll('.leaving-target');
+            targets.forEach(el => {
+                el.classList.add('hint-mode');
+            });
+        }
+
+        function updateProgress() {
+            currentCountEl.textContent = currentIndex + 1;
+            const pct = ((currentIndex) / config.questionCount) * 100;
+            progressBar.style.width = `${pct}%`;
+        }
+
+        function finishGame() {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const baseTime = config.targetTimePerQuestion * config.questionCount; 
+            const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+            const finalScore = config.baseScore + bonus;
+            
+            gameView.classList.add('hidden');
+            resultView.classList.remove('hidden');
+            document.getElementById('stats-container-result').appendChild(statsSection);
+            
+            document.getElementById('final-score').textContent = finalScore;
+            
+            let msg = "よく がんばったね！";
+            if (finalScore >= config.starThresholds.star5) msg = "かみさま レベル！ ひきざん マスター！";
+            else if (finalScore >= config.starThresholds.star4) msg = "はかせ レベル！ すごい！";
+            else if (finalScore >= config.starThresholds.star3) msg = "いいちょうし！ そのままで いこう！";
+            
+            document.getElementById('comment').textContent = msg;
+
+            saveData(finalScore);
+            saveHistoryEntry(finalScore);
+            updateStatsDisplay();
+
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00ACC1', '#B2EBF2', '#FFF'] });
+            
+            document.getElementById('retry-btn').focus({ preventScroll: true });
+        }
+
+        // --- イベントリスナー ---
+        document.getElementById('start-btn').onclick = startGame;
+        document.getElementById('retry-btn').onclick = () => {
+            resultView.classList.add('hidden');
+            startView.classList.remove('hidden');
+            document.getElementById('stats-container-start').appendChild(statsSection);
+        };
+        
+        document.getElementById('enter-btn').onclick = checkAnswer;
+        
+        document.addEventListener('keydown', (e) => {
+            if (!startView.classList.contains('hidden') && e.key === 'Enter') {
+                startGame();
+            } else if (!gameView.classList.contains('hidden') && e.key === 'Enter') {
+                checkAnswer();
+            } else if (!resultView.classList.contains('hidden') && e.key === 'Enter') {
+                document.getElementById('retry-btn').click();
+            }
+        });
+
+        document.getElementById('reset-highscore').onclick = () => {
+            if(confirm('ハイスコアと りれきを リセットしますか？\n（クリアかいすうは そのままです）')) {
+                ls.removeItem(KEY_HS); 
+                ls.removeItem(KEY_RANK);
+                ls.removeItem(KEY_HISTORY);
+                highScore = 0; overallRank = '―';
+                updateStatsDisplay();
+            }
+        };
+
+    })();
+    </script>
+</body>
+</html>

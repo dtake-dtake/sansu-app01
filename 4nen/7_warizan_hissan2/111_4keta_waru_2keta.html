@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>４けた÷２けたの筆算（完成版）</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：フレッシュ・リーフグリーン ▼▼▼ */
+        :root {
+            --c-bg-main: #F1F8E9;         
+            --c-primary: #558B2F;         
+            --c-primary-dark: #33691E;    
+            --c-primary-light: #C5E1A5;   
+            
+            --c-button-bg: #689F38;       
+            --c-button-hover: #558B2F;    
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #DCEDC8;      
+            
+            --c-text-main: #1B5E20;       
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #C8E6C9; 
+            --c-feedback-wrong-bg: #FFCDD2;   
+            
+            --cell-size: 38px;
+            --font-size: 1.6rem;
+            
+            --border-color: #AED581;      
+            --symbol-color: #000000;
+            --symbol-stroke-width: 2px;
+            --subtraction-line-color: #000000;
+            
+            --paren-font-size: 2.6rem;
+            --paren-left-pos: -4px;
+            --paren-top-pos: -8px;
+            --paren-font-weight: 200;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.2rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px 15px;
+            width: 100%; max-width: 700px; margin-top: 20px;
+        }
+        @media (max-width: 650px) {
+            #problems-container { grid-template-columns: 1fr; }
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: flex-start; justify-content: center;
+            background: var(--c-problem-row-bg); border-radius: 10px; padding: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            scroll-margin-block: 150px; 
+        }
+        
+        .problem-number {
+            font-size: 1.6rem; font-weight: bold; margin-right: 8px;
+            color: var(--c-primary);
+        }
+
+        /* 6列 x 8行 */
+        .box-grid {
+            display: grid; 
+            grid-template-columns: repeat(6, var(--cell-size)); 
+            grid-template-rows: repeat(8, var(--cell-size));    
+            border: 2px solid var(--border-color);
+            background-color: #fff;
+            position: relative; 
+        }
+        .cell {
+            border-right: 1px dashed var(--border-color); 
+            border-bottom: 1px dashed var(--border-color);
+            display: flex; justify-content: center; align-items: center;
+            font-size: var(--font-size); box-sizing: border-box;
+            position: relative; 
+            z-index: 1;
+        }
+        
+        /* 斜線（スラッシュ） */
+        .crossed-out {
+            background: linear-gradient(to top right, transparent 48%, #000 48%, #000 52%, transparent 52%);
+            background-size: 80% 80%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .dividend-start { border-top: var(--symbol-stroke-width) solid var(--symbol-color) !important; }
+        .dividend-start::before {
+            content: ")"; position: absolute; color: var(--symbol-color);
+            font-size: var(--paren-font-size); left: var(--paren-left-pos);
+            top: var(--paren-top-pos); font-weight: var(--paren-font-weight);
+        }
+        .symbol-top-border { border-top: var(--symbol-stroke-width) solid var(--symbol-color) !important; }
+        .subtraction-line { border-top: 1px solid var(--subtraction-line-color) !important; }
+        
+        .box-grid > .cell:nth-child(6n) { border-right: none; }
+        .box-grid > .cell:nth-last-child(-n+6) { border-bottom: none; }
+
+        .input-cell {
+            width: 100%; height: 100%; text-align: center; font-size: var(--font-size);
+            font-family: inherit; border: none; background-color: transparent; padding: 0;
+            color: var(--c-text-main); outline: none; border-radius: 0;
+            z-index: 2; 
+        }
+        .input-cell:focus {
+             background-color: rgba(197, 225, 165, 0.5); 
+             box-shadow: inset 0 0 0 2px var(--c-primary);
+        }
+        
+        /* くり上がりメモ */
+        .input-cell.carry-note {
+            position: absolute; 
+            width: 22px; height: 22px; 
+            font-size: 0.9rem; 
+            color: #E91E63; 
+            border: 1px dashed #F48FB1;
+            border-radius: 50%;
+            background-color: transparent; 
+            top: -8px; left: -8px; 
+            z-index: 100; 
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* 繰り下がりメモ */
+        .input-cell.borrow-note {
+            position: absolute;
+            width: 18px; height: 18px;
+            font-size: 0.8rem;
+            color: #0277BD;
+            border: 1px dashed #81D4FA;
+            background-color: transparent;
+            top: -6px; left: 8px; 
+            z-index: 100;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+
+        button {
+            font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: background-color 0.2s; font-weight: bold;
+        }
+        button:hover { background-color: var(--c-button-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 15px;
+            background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+        }
+        #result { font-size: 1.6rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; }
+        #hint-message { color: #D81B60; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px solid #AED581; padding: 5px; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 1.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 15px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="説明を表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">学習のポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="hint-message"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px;">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（最新５件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "111_4keta_waru_2keta",
+        mainTitle: "４年　７　２けたでわるわり算の筆算",
+        title: "４けた÷２けた", 
+        page: 111, 
+        baseScore: 100,
+        targetTimePerQuestion: 120, 
+        questionCount: 4, 
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <p>４けた÷２けたの筆算です。<br>商が３けたになる場合と、２けたになる場合があります。</p>
+          <div style="background:#F1F8E9; padding:10px; border-radius:8px; border:1px solid #AED581; margin-bottom:10px;">
+             <strong>ポイント：</strong><br>
+             けた数が増えても、やり方は同じです。<br>
+             <span style="font-weight:bold; color:#558B2F;">たてる → かける → ひく → おろす</span><br>
+             のくり返しです。<br>
+             ※ひき算でひけないときは、となりから借りて、斜線で消してメモしましょう。
+          </div>
+        `,
+
+        problemGenerator(count = 4) {
+            const problems = [];
+            const generated = new Set();
+            let guard = 0;
+            
+            let count3digitQ = 0;
+            const target3digitQ = 2; 
+
+            while(problems.length < count && guard < 5000) {
+                guard++;
+
+                let is3DigitQTarget = false;
+                if (count3digitQ < target3digitQ) is3DigitQTarget = true;
+                else if (problems.length - count3digitQ < count - target3digitQ) is3DigitQTarget = false;
+                else is3DigitQTarget = Math.random() < 0.5;
+
+                const divisor = Math.floor(Math.random() * 80) + 11; 
+                let quotient;
+                if (is3DigitQTarget) {
+                    const maxQ = Math.min(909, Math.floor(9999 / divisor));
+                    if (maxQ < 100) continue;
+                    quotient = Math.floor(Math.random() * (maxQ - 100 + 1)) + 100;
+                } else {
+                    const minQ = Math.ceil(1000 / divisor);
+                    if (minQ > 99) continue; 
+                    quotient = Math.floor(Math.random() * (99 - minQ + 1)) + minQ;
+                }
+
+                const currentVal = divisor * quotient;
+                const maxRemainder = 9999 - currentVal;
+                const realMaxRem = Math.min(divisor - 1, maxRemainder);
+                const remainder = Math.floor(Math.random() * (realMaxRem + 1));
+                const dividend = currentVal + remainder;
+                
+                if (dividend < 1000 || dividend > 9999) continue;
+                if (Math.floor(dividend / divisor) !== quotient) continue;
+
+                const key = `${dividend}÷${divisor}`;
+                if (generated.has(key)) continue;
+                generated.add(key);
+                
+                if (quotient >= 100) count3digitQ++;
+                
+                const answers = {};
+                const inputOrder = [];
+
+                // --- 手順作成 ---
+                const div_str = String(divisor);
+                const dvd_str = String(dividend);
+                const div_ones = divisor % 10;
+                const q_str = String(quotient);
+                const num_steps = q_str.length;
+                
+                let dvd_idx = 0;
+                let current_partial_dvd_val = 0;
+                if (num_steps === 3) {
+                    current_partial_dvd_val = parseInt(dvd_str.substring(0, 2));
+                    dvd_idx = 1; 
+                } else {
+                    current_partial_dvd_val = parseInt(dvd_str.substring(0, 3));
+                    dvd_idx = 2; 
+                }
+                
+                for (let step = 0; step < num_steps; step++) {
+                    const q_digit = parseInt(q_str[step]);
+                    const currentRow = 3 + (step * 2); // 3, 5, 7
+                    const q_col = (num_steps === 3) ? (4 + step) : (5 + step);
+                    
+                    // 1. 商
+                    answers[`c1${q_col}`] = q_digit;
+                    inputOrder.push(`c1${q_col}`);
+                    
+                    if (step === num_steps - 1 && q_digit === 0) break;
+                    
+                    // 2. かけ算
+                    const prod = divisor * q_digit;
+                    const prod_str = String(prod);
+                    const p_carry = Math.floor((q_digit * div_ones) / 10);
+                    if (p_carry > 0) {
+                        answers[`carry${step}`] = p_carry;
+                        inputOrder.push(`carry${step}`);
+                    }
+                    
+                    let p_cols = [];
+                    for(let k=0; k<prod_str.length; k++) p_cols.push(q_col - (prod_str.length - 1 - k));
+                    
+                    if (prod_str.length === 3) {
+                        answers[`c${currentRow}${p_cols[2]}`] = prod_str[2]; inputOrder.push(`c${currentRow}${p_cols[2]}`);
+                        answers[`c${currentRow}${p_cols[0]}`] = prod_str[0]; inputOrder.push(`c${currentRow}${p_cols[0]}`);
+                        answers[`c${currentRow}${p_cols[1]}`] = prod_str[1]; inputOrder.push(`c${currentRow}${p_cols[1]}`);
+                    } else {
+                        for(let k=prod_str.length-1; k>=0; k--) {
+                            answers[`c${currentRow}${p_cols[k]}`] = prod_str[k];
+                            inputOrder.push(`c${currentRow}${p_cols[k]}`);
+                        }
+                    }
+                    
+                    // 3. ひき算 (共通化された繰り下がりロジック)
+                    const next_rem = current_partial_dvd_val - prod;
+                    const next_rem_str = String(next_rem);
+                    const nextRow = currentRow + 1;
+                    
+                    let minuend_val = current_partial_dvd_val;
+                    let subtrahend_val = prod;
+                    
+                    let m_arr = [], s_arr = [];
+                    let temp_m = minuend_val, temp_s = subtrahend_val;
+                    let max_digits = String(minuend_val).length;
+                    
+                    for(let k=0; k<max_digits; k++) {
+                        m_arr.push(temp_m % 10); temp_m = Math.floor(temp_m / 10);
+                        s_arr.push(temp_s % 10); temp_s = Math.floor(temp_s / 10);
+                    }
+                    
+                    for(let k=0; k<max_digits; k++) {
+                        if (m_arr[k] < s_arr[k]) {
+                            let source_idx = k + 1;
+                            while(source_idx < max_digits && m_arr[source_idx] === 0) {
+                                source_idx++;
+                            }
+                            
+                            if (source_idx < max_digits) {
+                                const borrowCol = q_col - source_idx;
+                                const sourceVal = m_arr[source_idx] - 1;
+                                answers[`borrow${step}_c${currentRow-1}${borrowCol}`] = sourceVal;
+                                inputOrder.push(`borrow${step}_c${currentRow-1}${borrowCol}`);
+                                m_arr[source_idx]--;
+                                
+                                for(let mid=source_idx-1; mid > k; mid--) {
+                                    m_arr[mid] = 9;
+                                    const midCol = q_col - mid;
+                                    answers[`borrow${step}_c${currentRow-1}${midCol}`] = 9;
+                                    inputOrder.push(`borrow${step}_c${currentRow-1}${midCol}`);
+                                }
+                                m_arr[k] += 10;
+                            }
+                        }
+                        
+                        if (k < next_rem_str.length) {
+                            if (next_rem === 0 && step < num_steps - 1) {
+                                // skip
+                            } else {
+                                const digit = next_rem_str[next_rem_str.length - 1 - k];
+                                const digitCol = q_col - k;
+                                answers[`c${nextRow}${digitCol}`] = digit;
+                                inputOrder.push(`c${nextRow}${digitCol}`);
+                            }
+                        }
+                    }
+                    
+                    if (step < num_steps - 1) {
+                        dvd_idx++;
+                        const brought_down_digit = parseInt(dvd_str[dvd_idx]);
+                        current_partial_dvd_val = next_rem * 10 + brought_down_digit;
+                        
+                        answers[`c${nextRow}${q_col+1}`] = brought_down_digit;
+                        inputOrder.push(`c${nextRow}${q_col+1}`);
+                    }
+                }
+
+                problems.push({ 
+                    divisor, dividend, quotient, remainder,
+                    answers, inputOrder,
+                    isSpecialZeroCase: (Object.keys(answers).some(k => k.startsWith('c4')) === false && answers['c14']) 
+                });
+                
+                const step0_q = parseInt(q_str[0]);
+                let first_partial;
+                if(q_str.length===3) first_partial = parseInt(dvd_str.substring(0,2));
+                else first_partial = parseInt(dvd_str.substring(0,3));
+                const first_rem = first_partial - (divisor*step0_q);
+                problems[problems.length-1].isSpecialZeroCase = (first_rem === 0);
+            }
+            return problems.sort(() => Math.random() - 0.5);
+        }
+      };
+
+      let problems = [], startTime = 0, currentProblemIndex = -1, incorrectCells = [];
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④', '⑤', '⑥'];
+        
+        problems.forEach((p, i) => {
+            const problemId = `problem-${i}`;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `problem-wrapper-${i}`; 
+            
+            wrapper.innerHTML = `<span class="problem-number">${circledNumbers[i]}</span><div class="box-grid" id="${problemId}-grid"></div>`;
+            const grid = wrapper.querySelector('.box-grid');
+            
+            for (let r = 1; r <= 8; r++) { 
+                for (let c = 1; c <= 6; c++) {
+                    const cell = document.createElement('div');
+                    cell.id = `${problemId}-c${r}${c}`;
+                    cell.className = 'cell';
+                    grid.appendChild(cell);
+                }
+            }
+            container.appendChild(wrapper);
+            
+            const getCell = (r, c) => document.getElementById(`${problemId}-c${r}${c}`);
+            
+            const div_str = String(p.divisor);
+            const dvd_str = String(p.dividend);
+            
+            getCell(2, 1).textContent = div_str[0]; 
+            getCell(2, 2).textContent = div_str[1]; 
+            
+            getCell(2, 3).textContent = dvd_str[0];
+            getCell(2, 4).textContent = dvd_str[1];
+            getCell(2, 5).textContent = dvd_str[2];
+            getCell(2, 6).textContent = dvd_str[3];
+            
+            getCell(2, 3).classList.add('dividend-start');
+            getCell(2, 3).classList.add('symbol-top-border');
+            getCell(2, 4).classList.add('symbol-top-border');
+            getCell(2, 5).classList.add('symbol-top-border');
+            getCell(2, 6).classList.add('symbol-top-border');
+            
+            // 線の描画修正
+            [3, 5, 7].forEach(row => {
+                const keys = Object.keys(p.answers).filter(k => k.startsWith(`c${row}`));
+                if (keys.length > 0) {
+                    let minC = 6, maxC = 1;
+                    keys.forEach(k => { 
+                        const c = parseInt(k.substring(2)); 
+                        if(c < minC) minC = c; 
+                        if(c > maxC) maxC = c; 
+                    });
+                    
+                    if (row === 3 && p.isSpecialZeroCase) {
+                        maxC += 1;
+                    }
+                    
+                    for(let c = minC; c <= maxC; c++) {
+                        if(c >= 1 && c <= 6) getCell(row + 1, c).classList.add('subtraction-line');
+                    }
+                }
+            });
+
+            p.inputOrder.forEach(key => {
+                let targetCell;
+                let extraClass = '';
+                let r, c;
+                
+                if (key.startsWith('carry')) {
+                    const idx = p.inputOrder.indexOf(key);
+                    const nextKey = p.inputOrder[idx+1];
+                    r = parseInt(nextKey.charAt(1));
+                    c = parseInt(nextKey.charAt(2));
+                    targetCell = getCell(r, c); 
+                    extraClass = 'carry-note';
+                } else if (key.startsWith('borrow')) {
+                    const parts = key.split('_');
+                    const coord = parts[1]; 
+                    r = parseInt(coord.charAt(1));
+                    c = parseInt(coord.charAt(2));
+                    targetCell = getCell(r, c);
+                    extraClass = 'borrow-note';
+                } else {
+                    r = parseInt(key.charAt(1));
+                    c = parseInt(key.charAt(2));
+                    targetCell = getCell(r, c);
+                }
+
+                if (targetCell) {
+                    const inputHtml = `<input type="tel" inputmode="numeric" id="ans-${i}-${key}" class="input-cell ${extraClass}" data-prob-idx="${i}" data-cell-key="${key}" data-target-cell="${targetCell.id}" maxlength="1">`;
+                    targetCell.insertAdjacentHTML('beforeend', inputHtml);
+                }
+            });
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            if (el.classList.contains('borrow-note')) {
+                const targetCell = document.getElementById(el.dataset.targetCell);
+                if (el.value.length > 0) targetCell.classList.add('crossed-out');
+                else targetCell.classList.remove('crossed-out');
+            }
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            const cellKey = el.dataset.cellKey;
+            const inputOrder = problems[probIdx].inputOrder;
+            if (el.value.length >= 1) {
+                el.value = el.value.replace(/[^0-9]/g, '');
+                if (el.value === '') return;
+                const currentIndex = inputOrder.indexOf(cellKey);
+                if (currentIndex > -1 && currentIndex < inputOrder.length - 1) {
+                    const nextCellKey = inputOrder[currentIndex + 1];
+                    const nextEl = document.querySelector(`#ans-${probIdx}-${nextCellKey}`);
+                    if(nextEl) nextEl.focus();
+                }
+            }
+        });
+        container.addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const probIdx = parseInt(e.target.dataset.probIdx, 10);
+            if (probIdx !== currentProblemIndex) {
+                currentProblemIndex = probIdx;
+                setTimeout(() => {
+                    const wrapper = document.getElementById(`problem-wrapper-${probIdx}`);
+                    if(wrapper) wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+            e.target.select();
+        });
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            const cellKey = el.dataset.cellKey;
+            const inputOrder = problems[probIdx].inputOrder;
+            
+            if (e.key === 'Enter' && document.getElementById('start-area').style.display !== 'none') {
+                document.getElementById('start-btn').click();
+            }
+
+            if (e.key === 'Backspace' && el.value === '') {
+                e.preventDefault();
+                if (el.classList.contains('borrow-note')) {
+                     document.getElementById(el.dataset.targetCell).classList.remove('crossed-out');
+                }
+                const currentIndex = inputOrder.indexOf(cellKey);
+                if (currentIndex > 0) {
+                    const prevEl = document.querySelector(`#ans-${probIdx}-${inputOrder[currentIndex - 1]}`);
+                    if(prevEl) prevEl.focus();
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (incorrectCells.length > 0) document.querySelector('#check-answers').focus();
+                else {
+                    if (probIdx < problems.length - 1) {
+                       const nextEl = document.querySelector(`#ans-${probIdx + 1}-${problems[probIdx + 1].inputOrder[0]}`);
+                       if(nextEl) nextEl.focus();
+                    } else document.querySelector('#check-answers').focus();
+                }
+            }
+        });
+        
+        // スタート画面でのEnterキー対応
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && document.getElementById('start-area').style.display !== 'none') {
+                document.getElementById('start-btn').click();
+            }
+        });
+      }
+
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        incorrectCells = [];
+        let allCorrect = true;
+        problems.forEach((p, i) => {
+          let problemCorrect = true;
+          p.inputOrder.forEach(cellKey => {
+             const el = document.querySelector(`#ans-${i}-${cellKey}`);
+             const parent = el.closest('.cell');
+             parent.classList.remove('correct-bg', 'wrong-bg');
+             if (el.value !== String(p.answers[cellKey])) {
+                 problemCorrect = false;
+                 parent.classList.add('wrong-bg');
+                 incorrectCells.push(el.id);
+             } else {
+                 if (!parent.classList.contains('wrong-bg')) parent.classList.add('correct-bg');
+             }
+          });
+          if (problemCorrect) {
+               p.inputOrder.forEach(cellKey => document.querySelector(`#ans-${i}-${cellKey}`).disabled = true);
+          } else allCorrect = false;
+        });
+        const resultEl = document.querySelector('#result');
+        if (allCorrect) {
+           const score = config.baseScore; 
+           const s = config.starThresholds;
+           let starsHtml = '★★★★★';
+           document.querySelector('#overallStars').innerHTML = starsHtml;
+           let msg = '🎉 全問正解！おめでとう！ 🎉';
+           if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#558B2F', '#C5E1A5', '#FFFFFF'] });
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong>`;
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           resultEl.textContent = 'おしい！まちがいを直そう！';
+           btn.disabled = false;
+           if (incorrectCells.length > 0) document.getElementById(incorrectCells[0]).focus();
+        }
+      }
+
+      function retry() {
+        startTime = Date.now();
+        currentProblemIndex = -1;
+        incorrectCells = [];
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        if (problems.length > 0) document.querySelector(`#ans-0-${problems[0].inputOrder[0]}`).focus();
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        document.querySelector('#start-btn').onclick = () => { 
+            document.querySelector('#start-area').style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        setupEventListeners();
+        const modal = document.getElementById("info-modal");
+        document.getElementById("bulb-btn").onclick = () => modal.style.display = "block";
+        document.querySelector(".close-modal").onclick = () => modal.style.display = "none";
+        window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

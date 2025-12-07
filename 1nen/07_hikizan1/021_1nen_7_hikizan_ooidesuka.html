@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>どちらが おおい</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：プレイフル・イエロー ▼▼▼ */
+        :root {
+            --c-bg-main: #FFFDE7;         
+            --c-primary: #FBC02D;         
+            --c-primary-dark: #F57F17;    
+            --c-primary-light: #FFF9C4;   
+            
+            --c-text-main: #3E2723;       
+            --c-correct: #E53935;         
+            --c-wrong: #F44336;   
+            --c-history-bg: #FFFFFF;      
+            
+            --font-size: 2.0rem; 
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* ヘッダー */
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 5px 0; }
+        h1 { font-size: 1.4rem; }
+        h2 { 
+            font-size: 1.2rem; background: var(--c-primary-light); 
+            padding: 5px 15px; border-radius: 20px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; 
+            margin-bottom: 20px;
+        }
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+
+        /* 共通の指示文エリア */
+        .section-instruction {
+            text-align: center; font-size: 1.3rem; font-weight: bold; 
+            color: var(--c-primary-dark); margin: 10px 0 20px 0;
+            background: rgba(255,255,255,0.6); padding: 5px 20px; border-radius: 20px;
+        }
+
+        #problems-container {
+            display: grid; grid-template-columns: 1fr; gap: 40px;
+            width: 100%; max-width: 600px; margin-top: 10px;
+        }
+        
+        .problem-wrapper {
+            background: #ffffff; border-radius: 15px; padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            scroll-margin-block: 150px; 
+            border-left: 6px solid var(--c-primary);
+            position: relative;
+        }
+        
+        .problem-header-row {
+            display: flex; align-items: flex-start; gap: 15px; margin-bottom: 15px;
+        }
+        .problem-number {
+            font-size: 1.4rem; font-weight: bold; color: #fff; 
+            background: var(--c-primary); 
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: -5px; 
+        }
+        .problem-text {
+            font-size: 1.3rem; line-height: 1.6; font-weight: bold; margin: 0;
+        }
+
+        /* イラストエリア */
+        .illustration-area {
+            display: flex; flex-direction: column; gap: 15px; 
+            padding: 15px; 
+            background-color: #FFFDE7; 
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .item-row {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%;
+        }
+        
+        .item-icons-wrapper {
+            flex-grow: 1; 
+            overflow-x: auto; 
+            white-space: nowrap; 
+            scrollbar-width: thin; scrollbar-color: #FBC02D transparent;
+            padding-left: 5px; 
+        }
+        .item-icons {
+            display: inline-flex; gap: 5px;
+            font-size: 1.8rem; line-height: 1;
+            padding-bottom: 5px; 
+        }
+        
+        .item-count {
+            font-size: 2.0rem; font-weight: bold; 
+            color: var(--c-text-main);
+            width: 45px; text-align: center;
+            flex-shrink: 0; 
+            background: #fff; padding: 2px 0; border-radius: 5px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .formula-row {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-size: var(--font-size); flex-wrap: wrap; margin-bottom: 10px;
+        }
+        
+        .answer-sentence {
+            font-size: 1.3rem; font-weight: bold; text-align: center;
+            margin-top: 10px;
+        }
+
+        .input-cell {
+            width: 2.2em; height: 1.6em; text-align: center; font-size: var(--font-size);
+            font-family: inherit; border: 2px solid #CFD8DC; background-color: #fff; 
+            color: var(--c-text-main); outline: none; border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .input-cell:focus {
+             background-color: #FFFDE7; border-color: var(--c-primary);
+             box-shadow: 0 0 0 3px rgba(251, 192, 45, 0.3);
+        }
+        
+        /* ▼▼▼ 正誤判定のスタイル（見やすく調整） ▼▼▼ */
+        .correct-bg { 
+            background-color: #C8E6C9 !important; /* 薄緑 */
+            border-color: #4CAF50 !important;      /* 緑枠 */
+        }
+        .wrong-bg { 
+            background-color: #FFCDD2 !important; /* 薄赤 */
+            border-color: #F44336 !important;     /* 赤枠 */
+        }
+
+        button {
+            font-size: 1.3rem; padding: 12px 30px; border: none; border-radius: 30px;
+            background-color: var(--c-primary); color: #fff;
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 0 var(--c-primary-dark);
+            transition: transform 0.1s;
+        }
+        button:active { transform: translateY(4px); box-shadow: none; }
+        button:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; transform: none; }
+        
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 20px;
+            background: #ffffff; border-radius: 15px; text-align: center;
+            border: 4px solid var(--c-primary-light);
+        }
+        #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; color: var(--c-primary-dark); }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px dashed #FFF59D; padding: 8px; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border: 5px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 500px; }
+        .close-modal { color: #aaa; float: right; font-size: 32px; font-weight: bold; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; }
+        
+        @media (max-width: 500px) {
+            .problem-text { font-size: 1.1rem; }
+            .item-icons { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="せつめいを ひょうじ">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">がくしゅうの ポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> 
+        <p style="font-size:1.2rem; margin-bottom:20px;">どっちが おおいか くらべて、<br>しきと こたえを かこう。<br>（ぜんぶで 5もん）</p>
+        <button id="start-btn">スタート！</button> 
+    </div>
+    <div id="problems-section" style="display:none;">
+        <div class="section-instruction">しきと こたえを かこう</div>
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry" style="background-color:#FF9800;">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px; background:#90A4AE; height:auto; line-height:normal; box-shadow:none;">リセット</button></div>
+        <div id="dailyCountArea">きょうの クリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">ごうけい クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（さいしん 5けん）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "1nen_7_hikizan_chigai_v6", 
+        mainTitle: "７　ひきざん（１）",
+        title: "どちらが おおい",
+        page: 21, 
+        baseScore: 100,
+        targetTimePerQuestion: 40,  
+        questionCount: 5, 
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <p>２つの かずを くらべて、ちがいを もとめよう。</p>
+          <div style="background:#FFFDE7; padding:10px; border-radius:10px; border:2px solid #FBC02D; margin-bottom:10px;">
+             <strong>やりかた：</strong><br>
+             おおい ほうから、すくない ほうを ひくと、ちがいが わかるよ。<br>
+             <br>
+             れい： 8 － 3 ＝ <strong>5</strong><br>
+             〇〇の ほうが <strong>5</strong>こ おおい。
+          </div>
+        `,
+
+        problemGenerator(count = 5) {
+            const problems = [];
+            
+            const themes = [
+                { nameA:'メロン', nameB:'スイカ', counter:'こ', emojiA:'🍈', emojiB:'🍉' },
+                { nameA:'ねこ', nameB:'いぬ', counter:'ひき', emojiA:'🐱', emojiB:'🐶' },
+                { nameA:'チューリップ', nameB:'ゆり', counter:'ほん', emojiA:'🌷', emojiB:'🪷' }, 
+                { nameA:'クッキー', nameB:'チョコレート', counter:'こ', emojiA:'🍪', emojiB:'🍫' },
+                { nameA:'あか', nameB:'しろ', counter:'まい', emojiA:'🟥', emojiB:'⬜' },
+                { nameA:'くるま', nameB:'トラック', counter:'だい', emojiA:'🚗', emojiB:'🚚' },
+                { nameA:'あり', nameB:'てんとうむし', counter:'ひき', emojiA:'🐜', emojiB:'🐞' }
+            ];
+
+            for (let i = 0; i < count; i++) {
+                let numA = Math.floor(Math.random() * 6) + 5; 
+                let numB = Math.floor(Math.random() * 4) + 1; 
+                
+                const th = themes[Math.floor(Math.random() * themes.length)];
+                
+                let item1, item2;
+                if (Math.random() < 0.5) {
+                    item1 = { name: th.nameA, emoji: th.emojiA, num: numA };
+                    item2 = { name: th.nameB, emoji: th.emojiB, num: numB };
+                } else {
+                    item1 = { name: th.nameB, emoji: th.emojiB, num: numA };
+                    item2 = { name: th.nameA, emoji: th.emojiA, num: numB };
+                }
+                
+                const moreItem = (item1.num > item2.num) ? item1 : item2;
+                const lessItem = (item1.num > item2.num) ? item2 : item1;
+                const diff = moreItem.num - lessItem.num;
+                
+                const text = `${moreItem.name}の ほうが なん${th.counter} おおいですか。`;
+                
+                let row1Html = '';
+                for(let k=0; k<item1.num; k++) row1Html += `<span class="emoji-item">${item1.emoji}</span>`;
+                
+                let row2Html = '';
+                for(let k=0; k<item2.num; k++) row2Html += `<span class="emoji-item">${item2.emoji}</span>`;
+
+                problems.push({ 
+                    item1, item2, moreItem, lessItem,
+                    diff, counter: th.counter, text,
+                    row1Html, row2Html
+                });
+            }
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}てん</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        problems.forEach((p, i) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.innerHTML = `
+                <div class="problem-header-row">
+                    <div class="problem-number">${i+1}</div>
+                    <div class="problem-text">${p.text}</div>
+                </div>
+                
+                <div class="illustration-area">
+                    <div class="item-row">
+                        <div class="item-icons-wrapper">
+                            <div class="item-icons">${p.row1Html}</div>
+                        </div>
+                        <div class="item-count">${p.item1.num}</div>
+                    </div>
+                    <div class="item-row">
+                        <div class="item-icons-wrapper">
+                            <div class="item-icons">${p.row2Html}</div>
+                        </div>
+                        <div class="item-count">${p.item2.num}</div>
+                    </div>
+                </div>
+
+                <div class="formula-row">
+                    しき：
+                    <input type="tel" class="input-cell" id="inp-${i}-a" data-idx="${i}" data-part="a" maxlength="2">
+                    <span>－</span>
+                    <input type="tel" class="input-cell" id="inp-${i}-b" data-idx="${i}" data-part="b" maxlength="2">
+                    <span>＝</span>
+                    <input type="tel" class="input-cell" id="inp-${i}-ans" data-idx="${i}" data-part="ans" maxlength="2">
+                </div>
+                
+                <div class="answer-sentence">
+                    ${p.moreItem.name}の ほうが
+                    <input type="tel" class="input-cell" id="inp-${i}-final" data-idx="${i}" data-part="final" maxlength="2">
+                    ${p.counter} おおい。
+                </div>
+            `;
+            container.appendChild(wrapper);
+        });
+      }
+      
+      function scrollToProblem(el) {
+          setTimeout(() => {
+              const wrapper = el.closest('.problem-wrapper');
+              if(wrapper) {
+                  wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+          }, 10);
+      }
+
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('focusin', (e) => {
+            if (e.target.classList.contains('input-cell')) {
+                scrollToProblem(e.target);
+            }
+        });
+
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            el.value = el.value.replace(/[^0-9]/g, '');
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const idx = parseInt(el.dataset.idx);
+            const part = el.dataset.part;
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleEnter(idx, part);
+            } else if (e.key === 'Backspace' && el.value === '') {
+                e.preventDefault();
+                handleBackspace(idx, part);
+            }
+        });
+      }
+      
+      function handleEnter(idx, part) {
+          const wrongInputs = document.querySelectorAll('.input-cell.wrong-bg');
+          if (wrongInputs.length > 0) {
+              const allInputs = Array.from(document.querySelectorAll('.input-cell'));
+              const currentPos = allInputs.indexOf(document.activeElement);
+              const nextWrong = allInputs.find((el, i) => i > currentPos && el.classList.contains('wrong-bg'));
+              if (nextWrong) {
+                  nextWrong.focus({ preventScroll: true }); 
+                  nextWrong.select();
+              } else {
+                  document.querySelector('#check-answers').focus();
+              }
+              return;
+          }
+
+          if (part === 'a') {
+              document.getElementById(`inp-${idx}-b`).focus({ preventScroll: true });
+          } else if (part === 'b') {
+              document.getElementById(`inp-${idx}-ans`).focus({ preventScroll: true });
+          } else if (part === 'ans') {
+              document.getElementById(`inp-${idx}-final`).focus({ preventScroll: true });
+          } else if (part === 'final') {
+              if (idx < problems.length - 1) {
+                  document.getElementById(`inp-${idx + 1}-a`).focus({ preventScroll: true });
+              } else {
+                  document.querySelector('#check-answers').focus();
+              }
+          }
+      }
+
+      function handleBackspace(idx, part) {
+          if (part === 'final') {
+              const prev = document.getElementById(`inp-${idx}-ans`);
+              prev.focus({ preventScroll: true }); prev.select();
+          } else if (part === 'ans') {
+              const prev = document.getElementById(`inp-${idx}-b`);
+              prev.focus({ preventScroll: true }); prev.select();
+          } else if (part === 'b') {
+              const prev = document.getElementById(`inp-${idx}-a`);
+              prev.focus({ preventScroll: true }); prev.select();
+          } else if (part === 'a') {
+              if (idx > 0) {
+                  const prev = document.getElementById(`inp-${idx - 1}-final`);
+                  prev.focus({ preventScroll: true }); prev.select();
+              }
+          }
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        let correctCount = 0;
+        let firstWrongEl = null;
+
+        problems.forEach((p, i) => {
+            const elA = document.getElementById(`inp-${i}-a`);
+            const elB = document.getElementById(`inp-${i}-b`);
+            const elAns = document.getElementById(`inp-${i}-ans`);
+            const elFinal = document.getElementById(`inp-${i}-final`);
+            
+            const valA = parseInt(elA.value);
+            const valB = parseInt(elB.value);
+            const valAns = parseInt(elAns.value);
+            const valFinal = parseInt(elFinal.value);
+            
+            // ▼▼▼ 色判定の修正 ▼▼▼
+            [elA, elB, elAns, elFinal].forEach(el => el.classList.remove('correct-bg', 'wrong-bg'));
+            
+            let isProbCorrect = true;
+
+            // 各入力欄ごとに正誤判定し、色を付ける
+            if (valA === p.moreItem.num) elA.classList.add('correct-bg');
+            else { elA.classList.add('wrong-bg'); isProbCorrect = false; }
+            
+            if (valB === p.lessItem.num) elB.classList.add('correct-bg');
+            else { elB.classList.add('wrong-bg'); isProbCorrect = false; }
+            
+            if (valAns === p.diff) elAns.classList.add('correct-bg');
+            else { elAns.classList.add('wrong-bg'); isProbCorrect = false; }
+            
+            if (valFinal === p.diff) elFinal.classList.add('correct-bg');
+            else { elFinal.classList.add('wrong-bg'); isProbCorrect = false; }
+            
+            if (isProbCorrect) {
+                correctCount++;
+                elA.disabled = elB.disabled = elAns.disabled = elFinal.disabled = true;
+            } else {
+                if (!firstWrongEl) {
+                    if (elA.classList.contains('wrong-bg')) firstWrongEl = elA;
+                    else if (elB.classList.contains('wrong-bg')) firstWrongEl = elB;
+                    else if (elAns.classList.contains('wrong-bg')) firstWrongEl = elAns;
+                    else firstWrongEl = elFinal;
+                }
+            }
+        });
+        
+        const resultEl = document.querySelector('#result');
+
+        if (correctCount === problems.length) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseTime = config.targetTimePerQuestion * config.questionCount; 
+           const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+           const score = config.baseScore + bonus;
+           
+           totalClearCount++; dailyCount++;
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 ぜんもん せいかい！ すごい！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア！ やったね！ 🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#FBC02D', '#FFF9C4', '#FFEB3B'] });
+           }
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}てん</strong> <br><span style="font-size:1rem">(タイム: ${elapsed.toFixed(0)} びょう)</span>`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus({ preventScroll: true }); 
+        } else {
+           resultEl.textContent = 'おしい！ ピンクのところを なおそう！';
+           btn.disabled = false;
+           if (firstWrongEl) {
+               firstWrongEl.focus({ preventScroll: true }); 
+               firstWrongEl.select(); 
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        
+        setTimeout(() => {
+             const first = document.getElementById('inp-0-a');
+             if(first) first.focus({ preventScroll: true }); 
+        }, 100);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && startArea.style.display !== 'none') {
+                e.preventDefault();
+                startBtn.click();
+            }
+        });
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアを リセット しますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

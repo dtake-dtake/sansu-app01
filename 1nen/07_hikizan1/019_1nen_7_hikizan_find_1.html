@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1を みつけよう</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：フレッシュ・グリーン ▼▼▼ */
+        :root {
+            --c-bg-main: #E8F5E9;         
+            --c-primary: #43A047;         
+            --c-primary-dark: #1B5E20;    
+            --c-primary-light: #C8E6C9;   
+            --c-card-bg: #FFFFFF;         
+            --c-text-main: #263238;       
+            
+            --c-correct: #FF5722;         
+            --c-wrong: #546E7A;           /* ペナルティ用の色（グレー） */
+            
+            --c-history-bg: #F1F8E9;      
+            
+            --font-size-card: 2.2rem;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* 共通ヘッダーUI */
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 5px 0; }
+        h1 { font-size: 1.4rem; }
+        
+        h2 { 
+            font-size: 1.2rem; 
+            background: var(--c-primary-light); 
+            padding: 5px 15px; 
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            margin-bottom: 20px;
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+
+        /* ゲームエリア */
+        #game-area {
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 15px;
+            width: 100%; max-width: 500px;
+            margin-bottom: 20px;
+            transition: filter 0.3s; /* ペナルティ時の変化用 */
+        }
+        
+        /* ペナルティ中に画面を暗くするクラス */
+        #game-area.frozen {
+            filter: grayscale(80%) brightness(0.8);
+            pointer-events: none; /* クリック禁止 */
+        }
+
+        /* カードデザイン */
+        .card-btn {
+            position: relative;
+            background: var(--c-card-bg);
+            border: 3px solid var(--c-primary-light);
+            border-radius: 12px;
+            aspect-ratio: 1.6 / 1; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: var(--font-size-card);
+            font-weight: bold;
+            color: var(--c-text-main);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.2s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .card-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
+        
+        /* 正解時のマーク */
+        .card-btn::after {
+            content: ""; position: absolute; width: 80%; height: 70%;
+            border: 4px solid var(--c-correct); border-radius: 8px;
+            opacity: 0; transform: scale(0.8);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+        .card-btn::before {
+            content: ""; position: absolute; width: 80%; height: 70%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 87, 34, 0.1) 5px, rgba(255, 87, 34, 0.1) 10px);
+            opacity: 0; pointer-events: none; z-index: 0;
+        }
+        
+        .card-btn.solved { border-color: var(--c-correct); background-color: #FFF3E0; pointer-events: none; }
+        .card-btn.solved::after { opacity: 1; transform: scale(1); }
+        .card-btn.solved::before { opacity: 1; }
+
+        /* 不正解時のアニメーション */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border-color: var(--c-wrong); }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* 進行状況など */
+        .stage-info { font-size: 1.2rem; font-weight: bold; color: var(--c-primary-dark); margin-bottom: 10px; }
+        .target-remain { font-size: 1.0rem; color: #555; margin-bottom: 10px; }
+        
+        /* ボタン */
+        button {
+            font-size: 1.2rem; padding: 10px 25px; border: none; border-radius: 25px;
+            background-color: var(--c-primary); color: #fff;
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 3px 0 var(--c-primary-dark);
+            transition: transform 0.1s;
+        }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        
+        .hidden { display: none !important; }
+
+        /* 履歴・ステータスエリア */
+        #stats-section {
+            width: 100%; max-width: 500px;
+            margin-top: 30px; padding: 15px;
+            background: #fff; border: 2px solid var(--c-primary-light); border-radius: 15px;
+            text-align: center;
+        }
+        .status-stars { font-size: 2.0rem; color: #FFD700; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); letter-spacing: 5px; }
+        
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px; font-size: 0.9rem; }
+        #history-list li { border-bottom: 1px dashed #A5D6A7; padding: 6px; display: flex; justify-content: space-between; }
+        #history-list li:last-child { border-bottom: none; }
+        
+        /* リセットボタン */
+        .reset-btn {
+            font-size: 0.8rem; padding: 4px 12px; border: none; border-radius: 15px;
+            background-color: #90A4AE; color: #fff;
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 2px 0 #607D8B;
+            transition: transform 0.1s; margin-left: 10px; vertical-align: middle;
+        }
+        .reset-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        #start-view, #game-view, #result-view { width: 100%; display: flex; flex-direction: column; align-items: center; position: relative; }
+
+        /* ペナルティ用オーバーレイ（×マーク） */
+        .penalty-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 15rem; font-weight: bold; color: var(--c-wrong);
+            z-index: 1000; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+            text-shadow: 2px 2px 0 #fff;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-view">
+        <div style="text-align:center; margin: 20px 0;">
+            <p style="font-size:1.1rem; line-height: 1.8;">
+                こたえが <strong>1</strong> になる カードを<br>
+                ぜんぶ みつけよう！<br>
+                （まちがえると 5びょう おやすみだよ）
+            </p>
+            <div style="margin: 20px 0;">
+                <div class="card-btn solved" style="width:140px; margin:0 auto; pointer-events:none;">3 － 2</div>
+            </div>
+            <button id="start-btn" style="font-size:1.5rem; padding:15px 40px; margin-top:10px;">スタート！</button>
+        </div>
+        <div id="stats-container-start"></div> 
+    </div>
+
+    <div id="game-view" class="hidden">
+        <div class="stage-info">ステージ <span id="current-stage">1</span> / 3</div>
+        <div class="target-remain">あと <span id="remain-count" style="font-size:1.4rem; color:var(--c-correct); font-weight:bold;">0</span> まい</div>
+        
+        <div id="penalty-mark" class="penalty-overlay">×</div>
+
+        <div id="game-area">
+            </div>
+    </div>
+
+    <div id="result-view" class="hidden">
+        <h2 style="font-size:2.0rem; color:var(--c-primary); background:none; border:none; margin-bottom:10px;">クリア！</h2>
+        <div style="font-size:1.2rem; margin-bottom: 20px;">
+            タイム： <span id="final-time" style="font-size:2.2rem; font-weight:bold;">0</span> びょう
+        </div>
+        <p id="comment" style="font-size:1.1rem; color:#555; margin-bottom:20px; font-weight:bold;"></p>
+        
+        <button id="retry-btn">もういちど</button>
+        <div id="stats-container-result"></div>
+    </div>
+
+    <div id="stats-template" class="hidden">
+        <div id="stats-section">
+            <div id="overallStatusArea">ランク：<span id="overallStars" class="status-stars">―</span></div>
+            <div id="highScoreArea">ベストタイム：<span id="bestTimeValue">―</span> びょう <button id="reset-highscore" class="reset-btn">リセット</button></div>
+            <div id="dailyCountArea">きょうの クリア：<span id="dailyCountValue">0</span> かい</div>
+            <div id="clearCountArea">ごうけい クリア：<span id="clearCountValue">0</span> かい</div>
+            <div id="history-area" style="margin-top:10px; text-align:left;">
+                <span style="font-size:0.9rem; font-weight:bold;">さいしん 5かい の きろく</span>
+                <ul id="history-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        // ▼▼▼ アプリ設定 ▼▼▼
+        const config = {
+            appId: "1nen_7_hikizan_find_1", 
+            mainTitle: "７　ひきざん（１）", 
+            title: "1を みつけよう", 
+            page: 19, 
+            totalStages: 3,
+            cardsPerStage: 12, 
+            penaltyTime: 5000, // ペナルティ5秒
+            
+            rankThresholds: { s: 30, a: 50, b: 70, c: 90 } 
+        };
+
+        let currentStage = 1;
+        let startTime = 0;
+        let correctCountInStage = 0;
+        let totalTargetsInStage = 0;
+        let isProcessing = false; // 処理中フラグ（ペナルティ中も含む）
+
+        // データ保存用
+        let bestTime = null; 
+        let totalClearCount = 0;
+        let dailyCount = 0;
+        let overallRank = '―';
+
+        const ls = localStorage;
+        const KEY_BEST = `${config.appId}:bestTime`;
+        const KEY_HISTORY = `${config.appId}:history`;
+        const KEY_CLEAR = `${config.appId}:clearCount`;
+        const KEY_RANK = `${config.appId}:rank`;
+        const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+
+        // DOM要素
+        const startView = document.getElementById('start-view');
+        const gameView = document.getElementById('game-view');
+        const resultView = document.getElementById('result-view');
+        const gameArea = document.getElementById('game-area');
+        const currentStageEl = document.getElementById('current-stage');
+        const remainCountEl = document.getElementById('remain-count');
+        const statsSection = document.getElementById('stats-section');
+        const penaltyMark = document.getElementById('penalty-mark');
+
+        // --- データロード ---
+        function loadData() {
+            const savedBest = ls.getItem(KEY_BEST);
+            bestTime = savedBest ? parseFloat(savedBest) : null;
+            
+            totalClearCount = parseInt(ls.getItem(KEY_CLEAR) || '0');
+            const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+            dailyCount = parseInt(ls.getItem(todayKey) || '0');
+            
+            overallRank = ls.getItem(KEY_RANK) || '―';
+            updateStatsDisplay();
+        }
+
+        function saveData(newTime) {
+            if (bestTime === null || newTime < bestTime) {
+                bestTime = newTime;
+                ls.setItem(KEY_BEST, bestTime.toFixed(1));
+            }
+            totalClearCount++;
+            ls.setItem(KEY_CLEAR, totalClearCount);
+            
+            const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+            dailyCount++;
+            ls.setItem(todayKey, dailyCount);
+
+            let rank = '★☆☆☆☆';
+            if (newTime <= config.rankThresholds.s) rank = '★★★★★';
+            else if (newTime <= config.rankThresholds.a) rank = '★★★★☆';
+            else if (newTime <= config.rankThresholds.b) rank = '★★★☆☆';
+            else if (newTime <= config.rankThresholds.c) rank = '★★☆☆☆';
+            
+            const currentStars = (overallRank.match(/★/g) || []).length;
+            const newStars = (rank.match(/★/g) || []).length;
+            if (newStars >= currentStars) {
+                overallRank = rank;
+                ls.setItem(KEY_RANK, overallRank);
+            }
+        }
+
+        function saveHistoryEntry(time) {
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const dateStr = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            history.unshift({ date: dateStr, time: time.toFixed(1) });
+            if (history.length > 5) history.pop();
+            ls.setItem(KEY_HISTORY, JSON.stringify(history));
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('bestTimeValue').textContent = bestTime ? bestTime.toFixed(1) : '―';
+            document.getElementById('clearCountValue').textContent = totalClearCount;
+            document.getElementById('dailyCountValue').textContent = dailyCount;
+            document.getElementById('overallStars').textContent = overallRank;
+            
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const listEl = document.getElementById('history-list');
+            listEl.innerHTML = history.map(h => `<li><span>${h.date}</span> <span><strong>${h.time}</strong> びょう</span></li>`).join('');
+        }
+
+        // --- 初期化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+
+            loadData();
+            document.getElementById('stats-container-start').appendChild(statsSection);
+        });
+
+        // --- ステージ作成 ---
+        function setupStage() {
+            gameArea.innerHTML = '';
+            gameArea.classList.remove('frozen'); // フリーズ解除
+            penaltyMark.style.opacity = '0';
+            
+            currentStageEl.textContent = currentStage;
+            
+            // 正解カード（差が1になるもの）: 4〜5枚
+            const targetCount = Math.floor(Math.random() * 2) + 4; 
+            totalTargetsInStage = targetCount;
+            correctCountInStage = 0;
+            remainCountEl.textContent = totalTargetsInStage;
+
+            const cards = [];
+            
+            // 正解カード (2-1 〜 10-9)
+            for (let i = 0; i < targetCount; i++) {
+                const a = Math.floor(Math.random() * 9) + 2; 
+                const b = a - 1;
+                cards.push({ a, b, isTarget: true });
+            }
+            
+            // 不正解カード
+            while (cards.length < config.cardsPerStage) {
+                const a = Math.floor(Math.random() * 9) + 2; // 2~10
+                const b = Math.floor(Math.random() * (a + 1));
+                if (a - b !== 1) {
+                    cards.push({ a, b, isTarget: false });
+                }
+            }
+            
+            // シャッフル
+            cards.sort(() => Math.random() - 0.5);
+            
+            // 配置
+            cards.forEach(card => {
+                const btn = document.createElement('div');
+                btn.className = 'card-btn';
+                btn.textContent = `${card.a} － ${card.b}`;
+                
+                btn.onclick = () => handleCardClick(btn, card);
+                gameArea.appendChild(btn);
+            });
+        }
+
+        // --- カードクリック処理 ---
+        function handleCardClick(btn, card) {
+            if (isProcessing) return; // 処理中（ペナルティ中含む）は反応しない
+            if (btn.classList.contains('solved')) return; 
+            
+            if (card.isTarget) {
+                // 正解！
+                btn.classList.add('solved');
+                correctCountInStage++;
+                remainCountEl.textContent = totalTargetsInStage - correctCountInStage;
+                
+                if (correctCountInStage >= totalTargetsInStage) {
+                    setTimeout(() => {
+                        if (currentStage < config.totalStages) {
+                            currentStage++;
+                            setupStage();
+                        } else {
+                            finishGame();
+                        }
+                    }, 600);
+                }
+            } else {
+                // ▼▼▼ 不正解（ペナルティ発動） ▼▼▼
+                isProcessing = true; // 操作ブロック開始
+                
+                // 1. シェイクアニメ
+                btn.classList.remove('shake');
+                void btn.offsetWidth;
+                btn.classList.add('shake');
+                
+                // 2. ペナルティ表示（フリーズ）
+                setTimeout(() => {
+                    gameArea.classList.add('frozen'); // グレーアウト
+                    penaltyMark.style.opacity = '1';  // ×表示
+                    
+                    // 5秒後に解除
+                    setTimeout(() => {
+                        gameArea.classList.remove('frozen');
+                        penaltyMark.style.opacity = '0';
+                        isProcessing = false; // 解除
+                    }, config.penaltyTime);
+                    
+                }, 400); // シェイクが終わった頃にフリーズ開始
+            }
+        }
+
+        // --- ゲーム開始 ---
+        function startGame() {
+            currentStage = 1;
+            startTime = Date.now();
+            isProcessing = false;
+            
+            startView.classList.add('hidden');
+            resultView.classList.add('hidden');
+            gameView.classList.remove('hidden');
+            
+            setupStage();
+        }
+
+        function finishGame() {
+            const time = parseFloat(((Date.now() - startTime) / 1000).toFixed(1));
+            
+            gameView.classList.add('hidden');
+            resultView.classList.remove('hidden');
+            document.getElementById('stats-container-result').appendChild(statsSection);
+            
+            document.getElementById('final-time').textContent = time.toFixed(1);
+            
+            let msg = "よく がんばったね！";
+            if (time <= config.rankThresholds.s) msg = "かみさま レベル！ 1はかせ だね！";
+            else if (time <= config.rankThresholds.a) msg = "すごい！ 1を みつける めいじん だ！";
+            else if (time <= config.rankThresholds.b) msg = "いいちょうし！ そのままで いこう！";
+            
+            document.getElementById('comment').textContent = msg;
+
+            saveData(time);
+            saveHistoryEntry(time);
+            updateStatsDisplay();
+
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#43A047', '#C8E6C9', '#FFEB3B'] });
+            document.getElementById('retry-btn').focus();
+        }
+
+        // --- イベントリスナー ---
+        document.getElementById('start-btn').onclick = startGame;
+        document.getElementById('retry-btn').onclick = () => {
+            resultView.classList.add('hidden');
+            startView.classList.remove('hidden');
+            document.getElementById('stats-container-start').appendChild(statsSection);
+        };
+        
+        // エンターキー対応
+        document.addEventListener('keydown', (e) => {
+            if (!startView.classList.contains('hidden') && e.key === 'Enter') {
+                startGame();
+            } else if (!resultView.classList.contains('hidden') && e.key === 'Enter') {
+                document.getElementById('retry-btn').click();
+            }
+        });
+
+        document.getElementById('reset-highscore').onclick = () => {
+            if(confirm('ベストタイムと りれきを リセットしますか？\n（クリアかいすうは そのままです）')) {
+                ls.removeItem(KEY_BEST);
+                ls.removeItem(KEY_RANK);
+                ls.removeItem(KEY_HISTORY);
+                bestTime = null; overallRank = '―';
+                updateStatsDisplay();
+            }
+        };
+
+    })();
+    </script>
+</body>
+</html>

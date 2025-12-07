@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10に しましょう</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：スカイ・バルーン ▼▼▼ */
+        :root {
+            --c-bg-main: #E1F5FE;         /* 空色 */
+            --c-primary: #039BE5;         /* 濃い空色 */
+            --c-primary-dark: #01579B;    
+            --c-primary-light: #B3E5FC;   
+            --c-text-main: #263238;       
+            
+            --c-line: #FF1744;            /* つなぐ線の色（赤） */
+            
+            --c-history-bg: #FFFFFF;      
+            
+            --balloon-size: 70px;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; 
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+        
+        /* ▼▼▼ 共通ヘッダーUI ▼▼▼ */
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 5px 0; }
+        h1 { font-size: 1.4rem; }
+        
+        h2 { 
+            font-size: 1.2rem; 
+            background: var(--c-primary-light); 
+            padding: 5px 15px; 
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            margin-bottom: 20px;
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+
+        /* ゲームエリア */
+        #game-area {
+            position: relative;
+            width: 100%; max-width: 600px;
+            min-height: 400px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            /* 雲の背景 */
+            background-image: radial-gradient(circle, #f1f8e9 20%, transparent 20%), radial-gradient(circle, #f1f8e9 20%, transparent 20%);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+        }
+
+        /* 線を描画するSVGレイヤー */
+        #svg-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+        .connector-line {
+            stroke: var(--c-line); stroke-width: 4px; stroke-linecap: round;
+            filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.2));
+        }
+
+        /* 風船 */
+        .balloon {
+            width: var(--balloon-size); height: var(--balloon-size);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.2rem; font-weight: bold; color: #fff;
+            position: absolute;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2), 2px 5px 10px rgba(0,0,0,0.2);
+            transition: transform 0.1s, filter 0.2s, opacity 0.3s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+        }
+        
+        .balloon:active { transform: scale(0.95); }
+        .balloon.selected { 
+            transform: scale(1.15); 
+            filter: brightness(1.2); 
+            box-shadow: 0 0 15px var(--c-primary);
+            z-index: 20;
+        }
+        .balloon.popped {
+            transform: scale(1.5); opacity: 0; pointer-events: none;
+        }
+        
+        /* 紐（装飾） */
+        .balloon::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            width: 2px; height: 15px; background: rgba(0,0,0,0.3);
+            transform: translateX(-50%);
+        }
+
+        /* アニメーション */
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* 情報表示 */
+        .stage-info { font-size: 1.2rem; font-weight: bold; color: var(--c-primary-dark); margin-bottom: 5px; }
+        .instruction-text { font-size: 1.1rem; color: #555; margin-bottom: 15px; }
+
+        button {
+            font-size: 1.2rem; padding: 10px 30px; border: none; border-radius: 30px;
+            background-color: var(--c-primary); color: #fff;
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 0 var(--c-primary-dark);
+            transition: transform 0.1s;
+        }
+        button:active { transform: translateY(4px); box-shadow: none; }
+        
+        .hidden { display: none !important; }
+
+        /* ▼▼▼ 共通化：履歴エリア ▼▼▼ */
+        #stats-section {
+            width: 100%; max-width: 500px;
+            margin-top: 30px; padding: 15px;
+            background: #fff; border: 2px solid var(--c-primary-light); border-radius: 15px;
+            text-align: center;
+        }
+        .status-stars { font-size: 2.0rem; color: #FFD700; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); letter-spacing: 5px; }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px; font-size: 0.9rem; }
+        #history-list li { border-bottom: 1px dashed #B3E5FC; padding: 6px; display: flex; justify-content: space-between; }
+        #history-list li:last-child { border-bottom: none; }
+        
+        #start-view, #game-view, #result-view { width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-view">
+        <div style="text-align:center; margin: 20px 0;">
+            <p style="font-size:1.1rem; line-height: 1.8;">
+                あわせて <strong>10</strong> になる<br>
+                ふうせんを つなごう。<br>
+                （ステージは 3つ）
+            </p>
+            <button id="start-btn" style="margin-top:10px;">スタート！</button>
+        </div>
+        <div id="stats-container-start"></div> 
+    </div>
+
+    <div id="game-view" class="hidden">
+        <div class="stage-info">ステージ <span id="current-stage">1</span> / 3</div>
+        <div class="instruction-text">のこり <span id="remain-count" style="font-size:1.4rem; color:var(--c-primary); font-weight:bold;">0</span> ペア</div>
+        
+        <div id="game-area">
+            <svg id="svg-layer"></svg>
+            </div>
+    </div>
+
+    <div id="result-view" class="hidden">
+        <h2 style="font-size:2.0rem; color:var(--c-primary); background:none; border:none; margin-bottom:10px;">クリア！</h2>
+        <div style="font-size:1.2rem; margin-bottom: 20px;">
+            タイム： <span id="final-time" style="font-size:2.2rem; font-weight:bold;">0</span> びょう
+        </div>
+        <p id="comment" style="font-size:1.1rem; color:#555; margin-bottom:20px; font-weight:bold;"></p>
+        
+        <button id="retry-btn">もういちど</button>
+        <div id="stats-container-result"></div>
+    </div>
+
+    <div id="stats-template" class="hidden">
+        <div id="stats-section">
+            <div id="overallStatusArea">ランク：<span id="overallStars" class="status-stars">―</span></div>
+            <div id="highScoreArea">ベストタイム：<span id="bestTimeValue">―</span> びょう <button id="reset-highscore" style="font-size:0.7rem; padding:2px 8px; background:#90A4AE; box-shadow:none;">リセット</button></div>
+            <div id="dailyCountArea">きょうの クリア：<span id="dailyCountValue">0</span> かい</div>
+            <div id="clearCountArea">ごうけい クリア：<span id="clearCountValue">0</span> かい</div>
+            <div id="history-area" style="margin-top:10px; text-align:left;">
+                <span style="font-size:0.9rem; font-weight:bold;">さいしん 5かい の きろく</span>
+                <ul id="history-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        // ▼▼▼ アプリ設定 ▼▼▼
+        const config = {
+            appId: "1nen_12_make10_balloon", 
+            mainTitle: "たしざん（１）", 
+            title: "10に しましょう", 
+            page: 12, 
+            totalStages: 3,
+            pairsPerStage: 5, // 10個の風船
+            
+            // タイム評価（秒）
+            rankThresholds: { s: 30, a: 50, b: 70, c: 90 } 
+        };
+
+        // 風船の色パレット（教科書風の明るい色）
+        const colors = [
+            '#EF5350', // 赤
+            '#42A5F5', // 青
+            '#66BB6A', // 緑
+            '#FFA726', // オレンジ
+            '#AB47BC', // 紫
+            '#26C6DA', // 水色
+            '#EC407A', // ピンク
+            '#78909C', // グレー
+            '#8D6E63', // 茶色
+            '#FFCA28'  // 黄色
+        ];
+
+        let currentStage = 1;
+        let startTime = 0;
+        let remainPairs = 0;
+        let selectedBalloon = null; // 選択中の風船
+        let isProcessing = false;
+
+        // データ保存用
+        let bestTime = null; 
+        let totalClearCount = 0;
+        let dailyCount = 0;
+        let overallRank = '―';
+
+        // ローカルストレージ
+        const ls = localStorage;
+        const KEY_BEST = `${config.appId}:bestTime`;
+        const KEY_HISTORY = `${config.appId}:history`;
+        const KEY_CLEAR = `${config.appId}:clearCount`;
+        const KEY_RANK = `${config.appId}:rank`;
+        const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+
+        // DOM要素
+        const startView = document.getElementById('start-view');
+        const gameView = document.getElementById('game-view');
+        const resultView = document.getElementById('result-view');
+        const gameArea = document.getElementById('game-area');
+        const svgLayer = document.getElementById('svg-layer');
+        const currentStageEl = document.getElementById('current-stage');
+        const remainCountEl = document.getElementById('remain-count');
+        const statsSection = document.getElementById('stats-section');
+
+        // --- データロード ---
+        function loadData() {
+            const savedBest = ls.getItem(KEY_BEST);
+            bestTime = savedBest ? parseFloat(savedBest) : null;
+            
+            totalClearCount = parseInt(ls.getItem(KEY_CLEAR) || '0');
+            const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+            dailyCount = parseInt(ls.getItem(todayKey) || '0');
+            
+            overallRank = ls.getItem(KEY_RANK) || '―';
+            updateStatsDisplay();
+        }
+
+        function saveData(newTime) {
+            if (bestTime === null || newTime < bestTime) {
+                bestTime = newTime;
+                ls.setItem(KEY_BEST, bestTime.toFixed(1));
+            }
+            totalClearCount++;
+            ls.setItem(KEY_CLEAR, totalClearCount);
+            const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+            dailyCount++;
+            ls.setItem(todayKey, dailyCount);
+
+            let rank = '★☆☆☆☆';
+            if (newTime <= config.rankThresholds.s) rank = '★★★★★';
+            else if (newTime <= config.rankThresholds.a) rank = '★★★★☆';
+            else if (newTime <= config.rankThresholds.b) rank = '★★★☆☆';
+            else if (newTime <= config.rankThresholds.c) rank = '★★☆☆☆';
+            
+            const currentStars = (overallRank.match(/★/g) || []).length;
+            const newStars = (rank.match(/★/g) || []).length;
+            if (newStars >= currentStars) {
+                overallRank = rank;
+                ls.setItem(KEY_RANK, overallRank);
+            }
+        }
+
+        function saveHistoryEntry(time) {
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const dateStr = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            history.unshift({ date: dateStr, time: time.toFixed(1) });
+            if (history.length > 5) history.pop();
+            ls.setItem(KEY_HISTORY, JSON.stringify(history));
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('bestTimeValue').textContent = bestTime ? bestTime.toFixed(1) : '―';
+            document.getElementById('clearCountValue').textContent = totalClearCount;
+            document.getElementById('dailyCountValue').textContent = dailyCount;
+            document.getElementById('overallStars').textContent = overallRank;
+            
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const listEl = document.getElementById('history-list');
+            listEl.innerHTML = history.map(h => `<li><span>${h.date}</span> <span><strong>${h.time}</strong> びょう</span></li>`).join('');
+        }
+
+        // --- 初期化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+
+            loadData();
+            document.getElementById('stats-container-start').appendChild(statsSection);
+        });
+
+        // --- ステージ作成 ---
+        function setupStage() {
+            // 風船の全削除
+            const balloons = document.querySelectorAll('.balloon');
+            balloons.forEach(b => b.remove());
+            // 線の削除
+            svgLayer.innerHTML = '';
+            
+            currentStageEl.textContent = currentStage;
+            remainPairs = config.pairsPerStage;
+            remainCountEl.textContent = remainPairs;
+            selectedBalloon = null;
+
+            // ペアの作成 (足して10)
+            const numbers = [];
+            for(let i=0; i<config.pairsPerStage; i++) {
+                const a = Math.floor(Math.random() * 9) + 1; // 1~9
+                const b = 10 - a;
+                numbers.push(a, b);
+            }
+            // シャッフル
+            numbers.sort(() => Math.random() - 0.5);
+
+            // 配置 (重ならないように少し工夫するか、グリッドベースにする)
+            // 1年生向けに見やすくするため、グリッドレイアウト（Flexbox）で配置
+            // ただし少しだけランダムな余白を入れて「浮いている」感を出す
+            
+            // 親コンテナ（gameArea）のサイズに合わせて配置する
+            // 縦横のグリッド（例：4列 x 3行など）を計算して配置
+            
+            // コンテナの中身をいったんクリア（SVGは残す）
+            // HTML要素として風船を追加
+            numbers.forEach((num, index) => {
+                const b = document.createElement('div');
+                b.className = 'balloon';
+                b.textContent = num;
+                b.dataset.value = num;
+                b.dataset.id = index;
+                
+                // 色を割り当て
+                b.style.backgroundColor = colors[index % colors.length];
+                
+                // 位置決定 (簡易的なランダム配置)
+                // gameArea: width max 600, height 400
+                // balloon: 70x70
+                // 重なりすぎないようにグリッドセルの中でランダムにずらす
+                const cols = 4;
+                const rows = 3;
+                const cellW = 100 / cols; 
+                const cellH = 100 / rows;
+                
+                // 10個なので、12セルあるうちの10箇所を使う
+                // 順番に詰めていくが、セル内での位置をランダムに
+                // index 0~9
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+                
+                // top/leftを％で指定
+                // 各セル(25% x 33%)の中心から±5%程度ずらす
+                const top = (row * 33) + 5 + Math.random() * 15;
+                const left = (col * 25) + 5 + Math.random() * 10;
+                
+                b.style.top = top + '%';
+                b.style.left = left + '%';
+                
+                b.onclick = () => handleBalloonClick(b);
+                gameArea.appendChild(b);
+            });
+        }
+
+        // --- 描画：線をつなぐ ---
+        function drawLine(el1, el2) {
+            const rect1 = el1.getBoundingClientRect();
+            const rect2 = el2.getBoundingClientRect();
+            const containerRect = gameArea.getBoundingClientRect();
+
+            // 中心座標（コンテナ相対）
+            const x1 = rect1.left + rect1.width/2 - containerRect.left;
+            const y1 = rect1.top + rect1.height/2 - containerRect.top;
+            const x2 = rect2.left + rect2.width/2 - containerRect.left;
+            const y2 = rect2.top + rect2.height/2 - containerRect.top;
+
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", x1);
+            line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2);
+            line.setAttribute("y2", y2);
+            line.setAttribute("class", "connector-line");
+            
+            svgLayer.appendChild(line);
+            return line;
+        }
+
+        // --- クリック処理 ---
+        function handleBalloonClick(balloon) {
+            if (isProcessing) return;
+            if (balloon.classList.contains('popped')) return;
+            
+            // 既に選択されているものをクリック→解除
+            if (balloon === selectedBalloon) {
+                balloon.classList.remove('selected');
+                selectedBalloon = null;
+                return;
+            }
+
+            balloon.classList.add('selected');
+
+            if (selectedBalloon === null) {
+                // 1つ目の選択
+                selectedBalloon = balloon;
+            } else {
+                // 2つ目の選択
+                isProcessing = true;
+                const val1 = parseInt(selectedBalloon.dataset.value);
+                const val2 = parseInt(balloon.dataset.value);
+                
+                if (val1 + val2 === 10) {
+                    // 正解！
+                    // 線を引く
+                    const line = drawLine(selectedBalloon, balloon);
+                    
+                    setTimeout(() => {
+                        // 線を消す
+                        line.remove();
+                        // 割れるアニメーション
+                        selectedBalloon.classList.add('popped');
+                        balloon.classList.add('popped');
+                        
+                        // 選択解除
+                        selectedBalloon.classList.remove('selected');
+                        balloon.classList.remove('selected');
+                        selectedBalloon = null;
+                        
+                        remainPairs--;
+                        remainCountEl.textContent = remainPairs;
+                        isProcessing = false;
+                        
+                        if (remainPairs === 0) {
+                            setTimeout(nextStage, 500);
+                        }
+                    }, 500); // 線が見える時間
+                    
+                } else {
+                    // 不正解
+                    setTimeout(() => {
+                        selectedBalloon.classList.add('shake');
+                        balloon.classList.add('shake');
+                        
+                        setTimeout(() => {
+                            selectedBalloon.classList.remove('shake', 'selected');
+                            balloon.classList.remove('shake', 'selected');
+                            selectedBalloon = null;
+                            isProcessing = false;
+                        }, 400);
+                    }, 200);
+                }
+            }
+        }
+
+        function nextStage() {
+            if (currentStage < config.totalStages) {
+                currentStage++;
+                setupStage();
+            } else {
+                finishGame();
+            }
+        }
+
+        // --- ゲーム開始 ---
+        function startGame() {
+            currentStage = 1;
+            startTime = Date.now();
+            
+            startView.classList.add('hidden');
+            resultView.classList.add('hidden');
+            gameView.classList.remove('hidden');
+            
+            setupStage();
+        }
+
+        function finishGame() {
+            const time = parseFloat(((Date.now() - startTime) / 1000).toFixed(1));
+            
+            gameView.classList.add('hidden');
+            resultView.classList.remove('hidden');
+            document.getElementById('stats-container-result').appendChild(statsSection);
+            
+            document.getElementById('final-time').textContent = time.toFixed(1);
+            
+            let msg = "よく がんばったね！";
+            if (time <= config.rankThresholds.s) msg = "かみさま レベル！ 10はかせ だね！";
+            else if (time <= config.rankThresholds.a) msg = "すごい！ つなぐ めいじん だ！";
+            else if (time <= config.rankThresholds.b) msg = "いいちょうし！ そのままで いこう！";
+            
+            document.getElementById('comment').textContent = msg;
+
+            saveData(time);
+            saveHistoryEntry(time);
+            updateStatsDisplay();
+
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#4FC3F7', '#FFEB3B', '#FFF'] });
+            
+            document.getElementById('retry-btn').focus({ preventScroll: true });
+        }
+
+        // --- イベントリスナー ---
+        document.getElementById('start-btn').onclick = startGame;
+        document.getElementById('retry-btn').onclick = () => {
+            resultView.classList.add('hidden');
+            startView.classList.remove('hidden');
+            document.getElementById('stats-container-start').appendChild(statsSection);
+        };
+        
+        // エンターキー対応
+        document.addEventListener('keydown', (e) => {
+            if (!startView.classList.contains('hidden') && e.key === 'Enter') {
+                startGame();
+            } else if (!resultView.classList.contains('hidden') && e.key === 'Enter') {
+                document.getElementById('retry-btn').click();
+            }
+        });
+
+        document.getElementById('reset-highscore').onclick = () => {
+            if(confirm('ベストタイムと りれきを リセットしますか？\n（クリアかいすうは そのままです）')) {
+                ls.removeItem(KEY_BEST);
+                ls.removeItem(KEY_RANK);
+                ls.removeItem(KEY_HISTORY);
+                bestTime = null; overallRank = '―';
+                updateStatsDisplay();
+            }
+        };
+
+    })();
+    </script>
+</body>
+</html>
