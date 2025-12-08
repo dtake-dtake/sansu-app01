@@ -177,7 +177,7 @@
         title: "たしざんの けいさん",
         page: 9, 
         baseScore: 100,
-        targetTimePerQuestion: 25,  // 変更：15秒→25秒（合計250秒）
+        targetTimePerQuestion: 25, 
         questionCount: 10, 
         starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
         
@@ -267,8 +267,8 @@
         });
       }
       
+      // ▼▼▼ 修正: 遅延を200msに変更 ▼▼▼
       function scrollToProblem(el) {
-          // 遅延を10msに設定
           setTimeout(() => {
               const wrapper = el.closest('.problem-wrapper');
               if(wrapper) {
@@ -280,21 +280,20 @@
       function setupEventListeners() {
         const container = document.getElementById('problems-container');
         
-        // フォーカス時の自動スクロール
         container.addEventListener('focusin', (e) => {
             if (e.target.classList.contains('input-cell')) {
                 scrollToProblem(e.target);
+                // ▼▼▼ 修正: フォーカス時に全選択 ▼▼▼
+                e.target.select();
             }
         });
 
-        // 入力時の処理：数字以外削除のみ。自動遷移は削除。
         container.addEventListener('input', (e) => {
             if (!e.target.classList.contains('input-cell')) return;
             const el = e.target;
             el.value = el.value.replace(/[^0-9]/g, '');
         });
 
-        // キー操作の処理：EnterとBackspace
         container.addEventListener('keydown', (e) => {
             if (!e.target.classList.contains('input-cell')) return;
             const el = e.target;
@@ -304,25 +303,28 @@
                 e.preventDefault();
                 handleEnterNavigation(idx);
             } else if (e.key === 'Backspace' && el.value === '') {
-                // バックスペースで空欄の場合、前の問題へ戻る
                 e.preventDefault();
                 moveFocus(idx - 1);
             }
         });
       }
       
+      // ▼▼▼ 修正: 間違いのみをナビゲートするロジックに変更 ▼▼▼
       function handleEnterNavigation(currentIdx) {
-          const wrongInputs = Array.from(document.querySelectorAll('.input-cell.wrong-bg'));
+          const inputs = Array.from(document.querySelectorAll('.input-cell'));
+          const wrongInputs = inputs.filter(el => el.classList.contains('wrong-bg'));
           
           if (wrongInputs.length > 0) {
-              const nextWrong = wrongInputs.find(el => parseInt(el.dataset.probIdx) > currentIdx);
-              if (nextWrong) {
-                  nextWrong.focus();
-                  nextWrong.select(); 
+              // 間違いがある場合：現在の位置より後ろにある「間違いセル」を探す
+              let nextWrong = wrongInputs.find(el => parseInt(el.dataset.probIdx) > currentIdx);
+              if (!nextWrong) {
+                 // 後ろになければ完了とみなしてボタンへ
+                 document.querySelector('#check-answers').focus();
               } else {
-                  document.querySelector('#check-answers').focus();
+                 nextWrong.focus();
               }
           } else {
+              // 初回入力時などは単純に次の問題へ
               moveFocus(currentIdx + 1);
           }
       }
@@ -332,7 +334,6 @@
               const nextEl = document.getElementById(`ans-${nextIdx}`);
               if(nextEl) {
                   nextEl.focus();
-                  nextEl.select(); // 戻ったときや進んだときに全選択する（上書きしやすくする）
               }
           } else if (nextIdx >= problems.length) {
               document.querySelector('#check-answers').focus();
@@ -367,8 +368,6 @@
         if (correctCount === problems.length) {
            const elapsed = (Date.now() - startTime) / 1000;
            const baseTime = config.targetTimePerQuestion * config.questionCount; 
-           
-           // 変更：ボーナス最大100点に変更
            const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
            const score = config.baseScore + bonus;
            totalClearCount++; dailyCount++;
@@ -390,6 +389,7 @@
         } else {
            resultEl.textContent = 'おしい！ ピンクのところを なおそう！';
            btn.disabled = false;
+           // ▼▼▼ 修正: 間違いがあれば最初の間違いにフォーカス＆全選択 ▼▼▼
            if (firstWrongEl) {
                firstWrongEl.focus();
                firstWrongEl.select(); 

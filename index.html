@@ -35,29 +35,6 @@
     font-family: 'Kiwi Maru', serif;
     text-shadow: 3px 3px 0px #fff, 5px 5px 0px rgba(0,0,0,0.1);
   }
-  
-  /* 検索ボックスエリア */
-  .search-container {
-    max-width: 600px;
-    margin: 0 auto 30px;
-    position: relative;
-  }
-  .search-input {
-    width: 100%;
-    padding: 15px 20px 15px 50px; /* アイコン分の左余白 */
-    font-size: 1.1em;
-    border: 3px solid #bce0fd;
-    border-radius: 50px;
-    outline: none;
-    box-sizing: border-box;
-    font-family: inherit;
-    transition: 0.3s;
-    background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%234facfe" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 20px center;
-  }
-  .search-input:focus {
-    border-color: #4facfe;
-    box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
-  }
 
   /* 学年タブ */
   #grade-tabs { 
@@ -94,6 +71,7 @@
     gap: 15px; 
     max-width: 800px;
     margin: 0 auto; 
+    min-height: 50vh; /* スクロール位置復元時のガタつき軽減のため */
   }
 
   .unit-card { 
@@ -102,8 +80,6 @@
     transition: all 0.3s ease;
     overflow: hidden;
   }
-  /* 検索で非表示にする用 */
-  .unit-card.hidden { display: none; }
 
   .unit-header {
     background: #fff;
@@ -136,7 +112,6 @@
   .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
   .unit-title-text { font-size: 1.2em; font-weight: 800; }
   
-  /* 追加：アプリ数のバッジ */
   .app-count-badge {
     background: #eef9ff;
     color: #4facfe;
@@ -146,7 +121,6 @@
     font-weight: 700;
     white-space: nowrap;
   }
-  /* 開いている時は色反転 */
   .unit-card.open .app-count-badge {
     background: rgba(255,255,255,0.2);
     color: #fff;
@@ -170,7 +144,7 @@
   }
 
   .unit-card.open .unit-content {
-    max-height: 2000px; /* 少し余裕をもたせる */
+    max-height: 3000px; /* コンテンツ量に応じて余裕を持たせる */
     border: 2px solid #bce0fd;
     border-top: none;
     transition: max-height 0.5s ease-in-out;
@@ -184,8 +158,6 @@
     text-decoration: none; color: #555; border-radius: 10px; 
     transition: all 0.2s; border: 1px solid #eef;
   }
-  /* 検索で非表示にする用 */
-  .app-link.hidden { display: none; }
 
   .app-link:hover { background: #e6f7ff; transform: translateX(5px); }
   
@@ -218,10 +190,6 @@
 
 <h1>✏️ わくわく 算数ドリル</h1>
 
-<div class="search-container">
-  <input type="text" id="search-input" class="search-input" placeholder="さがしたい ドリルを いれてね">
-</div>
-
 <div id="grade-tabs"></div>
 <div id="units-container"></div>
 
@@ -229,18 +197,18 @@
 const LAST_SELECTED_GRADE_KEY = 'sansu-app-last-selected-grade';
 const ALL_GRADES = ["1", "2", "3", "4", "5", "6"];
 let gradeMap = new Map();
+let currentGrade = "1"; // 現在表示中の学年を保持
 
+// データ整形（ページ順ソート）
 function sanitizeAppData(data) {
   if (!Array.isArray(data)) return [];
   
   const cleanData = data.filter(g => g && typeof g.grade === 'string' && Array.isArray(g.units));
 
-  // ▼▼▼ 追加：ページ順にソートする処理 ▼▼▼
   cleanData.forEach(gradeData => {
     gradeData.units.forEach(unit => {
       if (Array.isArray(unit.apps)) {
         unit.apps.sort((a, b) => {
-          // pageプロパティがない場合は0扱い、数値変換して比較
           const pageA = parseFloat(a.page) || 0;
           const pageB = parseFloat(b.page) || 0;
           return pageA - pageB;
@@ -248,23 +216,53 @@ function sanitizeAppData(data) {
       }
     });
   });
-  // ▲▲▲ 追加終わり ▲▲▲
 
   return cleanData;
 }
 
+// 星と回数の表示更新
 function updateAppStatus(appId) {
   const starsEl = document.getElementById(`stars-${appId}`);
   const countEl = document.getElementById(`count-${appId}`);
   if (!starsEl || !countEl) return;
   
-  // 以前のアプリで保存されたキーと一致させる
   const totalClearCount = localStorage.getItem(`${appId}:clearCount`) || '0';
   const overallStatusStars = localStorage.getItem(`${appId}:status`) || '―';
   
   starsEl.innerHTML = overallStatusStars;
   countEl.textContent = `${totalClearCount}回`;
 }
+
+// ▼▼▼ 学年ごとの設定保存・復元ロジック ▼▼▼
+
+function getOpenUnitsKey(grade) {
+    return `sansu-app-open-units-${grade}`;
+}
+
+function getScrollKey(grade) {
+    return `sansu-app-scrollY-${grade}`;
+}
+
+// ユニットの開閉状態を保存
+function saveUnitState(unitName, isOpen, grade) {
+    const key = getOpenUnitsKey(grade);
+    let openUnits = JSON.parse(localStorage.getItem(key) || '[]');
+    
+    if (isOpen) {
+        if (!openUnits.includes(unitName)) openUnits.push(unitName);
+    } else {
+        openUnits = openUnits.filter(name => name !== unitName);
+    }
+    localStorage.setItem(key, JSON.stringify(openUnits));
+}
+
+// 現在のスクロール位置を保存
+function saveCurrentScrollPosition() {
+    const key = getScrollKey(currentGrade);
+    localStorage.setItem(key, window.scrollY);
+}
+
+// ▼▼▼ UI描画ロジック ▼▼▼
 
 function renderGradeTabs(activeGrade) {
   const tabsContainer = document.getElementById('grade-tabs');
@@ -273,66 +271,57 @@ function renderGradeTabs(activeGrade) {
     const tab = document.createElement('button');
     tab.className = 'grade-tab' + (grade === activeGrade ? ' active' : '');
     tab.textContent = `${grade}年`;
-    tab.onclick = () => {
+    
+    tab.onclick = async () => {
+      // 1. 切り替え前の学年のスクロール位置を保存
+      saveCurrentScrollPosition();
+
+      // 2. 新しい学年に切り替え
+      currentGrade = grade;
       localStorage.setItem(LAST_SELECTED_GRADE_KEY, grade);
       renderGradeTabs(grade);
-      displayGrade(grade);
-      document.getElementById('search-input').value = '';
+      
+      // 3. 表示更新
+      await displayGrade(grade);
+      
+      // 4. 新しい学年のスクロール位置を復元
+      const savedY = localStorage.getItem(getScrollKey(grade));
+      if (savedY !== null) {
+          window.scrollTo(0, parseInt(savedY, 10));
+      } else {
+          window.scrollTo(0, 0);
+      }
     };
     tabsContainer.appendChild(tab);
   });
 }
 
-function toggleUnit(headerElement, forceOpen = false) {
+function toggleUnit(headerElement) {
   const card = headerElement.parentElement;
-  if (forceOpen) {
-    card.classList.add('open');
-  } else {
-    card.classList.toggle('open');
-  }
+  card.classList.toggle('open');
+  
+  // 開閉状態を保存 (現在の学年に対して)
+  const unitName = headerElement.querySelector('.unit-title-text').textContent;
+  const isOpen = card.classList.contains('open');
+  saveUnitState(unitName, isOpen, currentGrade);
 }
-
-// 検索機能のロジック
-document.getElementById('search-input').addEventListener('input', (e) => {
-  const keyword = e.target.value.toLowerCase().trim();
-  const units = document.querySelectorAll('.unit-card');
-
-  units.forEach(unit => {
-    const unitTitle = unit.querySelector('.unit-title-text').textContent.toLowerCase();
-    const appLinks = unit.querySelectorAll('.app-link');
-    
-    let hasVisibleApp = false;
-    let unitMatch = unitTitle.includes(keyword);
-
-    appLinks.forEach(link => {
-      const appTitle = link.querySelector('.app-title').textContent.toLowerCase();
-      if (keyword === '' || appTitle.includes(keyword) || unitMatch) {
-        link.classList.remove('hidden');
-        if (appTitle.includes(keyword) && keyword !== '') hasVisibleApp = true;
-      } else {
-        link.classList.add('hidden');
-      }
-    });
-
-    if (keyword === '') {
-      unit.classList.remove('hidden');
-      unit.classList.remove('open');
-    } else if (unitMatch || hasVisibleApp) {
-      unit.classList.remove('hidden');
-      if (hasVisibleApp) unit.classList.add('open');
-    } else {
-      unit.classList.add('hidden');
-    }
-  });
-});
 
 async function displayUnits(grade, units) {
   const unitsContainer = document.getElementById('units-container');
   unitsContainer.innerHTML = '';
 
+  // 現在の学年の「開いている単元リスト」を取得
+  const openUnitsKey = getOpenUnitsKey(grade);
+  const openUnits = JSON.parse(localStorage.getItem(openUnitsKey) || '[]');
+
   for (const unit of units) {
     const unitCard = document.createElement('div');
     unitCard.className = 'unit-card';
+
+    // 保存リストにあれば開いた状態にする
+    if (openUnits.includes(unit.name)) {
+        unitCard.classList.add('open');
+    }
     
     const appCount = unit.apps.length;
 
@@ -368,6 +357,9 @@ async function displayUnits(grade, units) {
         link.href = app.path;
         link.className = 'app-link';
         
+        // リンククリック時にも現在の位置を保存しておく（戻ってきたとき用）
+        link.onclick = () => saveCurrentScrollPosition();
+
         link.innerHTML = `
           <div style="display:flex; align-items:center;">
              <span class="app-title">${app.title}</span>
@@ -387,7 +379,6 @@ async function displayUnits(grade, units) {
     unitsContainer.appendChild(unitCard);
   }
 
-  // DOM生成後にステータスを更新
   units.forEach(unit => {
     unit.apps.forEach(app => updateAppStatus(app.id));
   });
@@ -403,18 +394,28 @@ async function displayGrade(grade) {
   await displayUnits(String(grade), units);
 }
 
-function initializeUI(){
+async function initializeUI(){
   const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
   const active = (ALL_GRADES.includes(last) ? last : "1");
+  currentGrade = active; // 現在の学年を更新
+
   renderGradeTabs(active);
-  displayGrade(active);
+  await displayGrade(active);
+
+  // 初期ロード時：その学年の保存された位置へ復元
+  const savedY = localStorage.getItem(getScrollKey(active));
+  if (savedY !== null) {
+      // 少し待ってからスクロール（画像の読み込みなどを考慮）
+      setTimeout(() => window.scrollTo(0, parseInt(savedY, 10)), 0);
+  }
 }
 
+// 履歴バックなどでのスクロール自動復元を無効化（自前で制御するため）
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-window.addEventListener('beforeunload', () => localStorage.setItem('scrollY', window.scrollY));
-window.addEventListener('load', () => {
-  const y = localStorage.getItem('scrollY');
-  if (y !== null) window.scrollTo(0, parseInt(y,10));
+
+// ブラウザを閉じる/更新する直前にも保存
+window.addEventListener('beforeunload', () => {
+    saveCurrentScrollPosition();
 });
 
 async function loadAppData(){
@@ -422,9 +423,11 @@ async function loadAppData(){
     const res = await fetch('app_data.json?v=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data  = await res.json();
-    const clean = sanitizeAppData(data); // ここでソートされます
+    const clean = sanitizeAppData(data);
     gradeMap = new Map(clean.map(g => [g.grade, g]));
-    initializeUI();
+    
+    await initializeUI();
+    
   } catch(e) { console.error(e); }
 }
 

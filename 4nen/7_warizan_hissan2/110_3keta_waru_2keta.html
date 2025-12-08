@@ -655,13 +655,15 @@
             
             if (probIdx !== currentProblemIndex) {
                 currentProblemIndex = probIdx;
+                // ▼▼▼ 修正: 遅延を200msに変更 ▼▼▼
                 setTimeout(() => {
                     const wrapper = document.getElementById(`problem-wrapper-${probIdx}`);
                     if(wrapper) {
                         wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
-                }, 100);
+                }, 10);
             }
+            // ▼▼▼ 修正: フォーカス時に全選択 ▼▼▼
             el.select();
         });
 
@@ -688,10 +690,54 @@
             }
             else if (e.key === 'Enter') {
                 e.preventDefault();
+                // ▼▼▼ 修正: 間違いのみをナビゲートするロジックに変更（筆算用） ▼▼▼
                 if (incorrectCells.length > 0) {
-                    document.querySelector('#check-answers').focus();
+                    // 現在のフォーカス位置より後にある「間違ったセル」を探す
+                    // inputOrder順に探すのが最も確実
+                    const currentOrderIdx = inputOrder.indexOf(cellKey);
+                    
+                    // 同じ問題内での次の間違いを探す
+                    let foundInProblem = false;
+                    for (let j = currentOrderIdx + 1; j < inputOrder.length; j++) {
+                        const nextKey = inputOrder[j];
+                        const nextElId = `ans-${probIdx}-${nextKey}`;
+                        if (incorrectCells.includes(nextElId)) {
+                             document.getElementById(nextElId).focus();
+                             foundInProblem = true;
+                             break;
+                        }
+                    }
+                    
+                    if (!foundInProblem) {
+                        // 次の問題以降の間違いを探す
+                        let foundNext = false;
+                        for (let pIdx = probIdx + 1; pIdx < problems.length; pIdx++) {
+                            const pNext = problems[pIdx];
+                             for (const k of pNext.inputOrder) {
+                                 const nextElId = `ans-${pIdx}-${k}`;
+                                 if (incorrectCells.includes(nextElId)) {
+                                     document.getElementById(nextElId).focus();
+                                     foundNext = true;
+                                     break;
+                                 }
+                             }
+                             if (foundNext) break;
+                        }
+                        
+                        if (!foundNext) {
+                            // もし前の問題に間違いが残っていても、とりあえず完了としてボタンへ
+                            document.querySelector('#check-answers').focus();
+                        }
+                    }
+
                 } else {
-                    if (probIdx < problems.length - 1) {
+                    // 通常の移動（次の入力欄へ）
+                    const currentIndex = inputOrder.indexOf(cellKey);
+                    if (currentIndex < inputOrder.length - 1) {
+                         const nextCellKey = inputOrder[currentIndex + 1];
+                         const nextEl = document.querySelector(`#ans-${probIdx}-${nextCellKey}`);
+                         if(nextEl) nextEl.focus();
+                    } else if (probIdx < problems.length - 1) {
                         const nextProbIdx = probIdx + 1;
                         const nextFirstKey = problems[nextProbIdx].inputOrder[0];
                         const nextEl = document.querySelector(`#ans-${nextProbIdx}-${nextFirstKey}`);
@@ -774,8 +820,11 @@
         } else {
            resultEl.textContent = 'おしい！まちがいを直そう！';
            btn.disabled = false;
+           // ▼▼▼ 修正: 間違いがあれば最初の間違いにフォーカス＆全選択 ▼▼▼
            if (incorrectCells.length > 0) {
-               document.getElementById(incorrectCells[0]).focus();
+               const firstWrong = document.getElementById(incorrectCells[0]);
+               firstWrong.focus();
+               firstWrong.select();
            }
         }
       }
