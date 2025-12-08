@@ -71,7 +71,7 @@
     gap: 15px; 
     max-width: 800px;
     margin: 0 auto; 
-    min-height: 50vh; /* スクロール位置復元時のガタつき軽減のため */
+    min-height: 50vh; 
   }
 
   .unit-card { 
@@ -144,7 +144,7 @@
   }
 
   .unit-card.open .unit-content {
-    max-height: 3000px; /* コンテンツ量に応じて余裕を持たせる */
+    max-height: 3000px; 
     border: 2px solid #bce0fd;
     border-top: none;
     transition: max-height 0.5s ease-in-out;
@@ -152,37 +152,67 @@
 
   .apps-wrapper { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
 
+  /* アプリリンクのスタイル調整 */
   .app-link { 
-    display: flex; align-items: center; justify-content: space-between; 
-    background: #f8fbff; padding: 12px 15px; 
-    text-decoration: none; color: #555; border-radius: 10px; 
-    transition: all 0.2s; border: 1px solid #eef;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; /* 左右に配置 */
+    background: #f8fbff; 
+    padding: 12px 15px; 
+    text-decoration: none; 
+    color: #555; 
+    border-radius: 10px; 
+    transition: all 0.2s; 
+    border: 1px solid #eef;
   }
 
   .app-link:hover { background: #e6f7ff; transform: translateX(5px); }
   
-  .app-link::before {
-    content: '★'; color: #ddd; margin-right: 10px; font-size: 0.8em;
+  /* 左側の情報エリア（ページ番号＋タイトル） */
+  .app-info-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 10px; /* ページ番号とタイトルの間隔 */
   }
-  .app-link:hover::before { color: #ffc107; }
 
-  /* ページ番号バッジのスタイル */
+  /* ページ番号バッジのスタイル変更 */
   .app-page {
-    margin-left: 10px;
+    /* 幅を固定してタイトル位置を揃える */
+    width: 55px; 
+    flex-shrink: 0; /* 縮まないように */
+    text-align: center;
+    
     font-size: 0.85em;
     color: #fff;
     background-color: #90a4ae;
-    padding: 2px 8px;
+    padding: 2px 0; /* 左右paddingはwidthで制御するので0に */
     border-radius: 10px;
     font-weight: bold;
     white-space: nowrap;
   }
 
-  .status-container { font-size: 0.9em; display:flex; align-items:center; gap:5px;}
+  /* ページ番号がない場合のプレースホルダー（透明） */
+  .app-page.empty {
+    background-color: transparent;
+    color: transparent;
+    border: 1px solid transparent; /* 高さ確保のため */
+  }
+
+  /* タイトルのスタイル */
+  .app-title {
+    font-weight: bold;
+  }
+
+  .app-link::before {
+    display: none; /* 古い星アイコン（左側）は削除 */
+  }
+
+  .status-container { font-size: 0.9em; display:flex; align-items:center; gap:5px; flex-shrink: 0; }
   .clear-count { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+  .status-stars { color: #ffc107; font-size: 1.1em; letter-spacing: 1px;}
 
   .app-link.preparation { color: #aaa; justify-content: center; border-style: dashed; pointer-events: none; }
-  .app-link.preparation::before { display: none; }
 
 </style>
 </head>
@@ -197,9 +227,9 @@
 const LAST_SELECTED_GRADE_KEY = 'sansu-app-last-selected-grade';
 const ALL_GRADES = ["1", "2", "3", "4", "5", "6"];
 let gradeMap = new Map();
-let currentGrade = "1"; // 現在表示中の学年を保持
+let currentGrade = "1";
 
-// データ整形（ページ順ソート）
+// データ整形
 function sanitizeAppData(data) {
   if (!Array.isArray(data)) return [];
   
@@ -220,7 +250,7 @@ function sanitizeAppData(data) {
   return cleanData;
 }
 
-// 星と回数の表示更新
+// ステータス更新
 function updateAppStatus(appId) {
   const starsEl = document.getElementById(`stars-${appId}`);
   const countEl = document.getElementById(`count-${appId}`);
@@ -233,8 +263,7 @@ function updateAppStatus(appId) {
   countEl.textContent = `${totalClearCount}回`;
 }
 
-// ▼▼▼ 学年ごとの設定保存・復元ロジック ▼▼▼
-
+// 設定保存・復元ロジック
 function getOpenUnitsKey(grade) {
     return `sansu-app-open-units-${grade}`;
 }
@@ -243,7 +272,6 @@ function getScrollKey(grade) {
     return `sansu-app-scrollY-${grade}`;
 }
 
-// ユニットの開閉状態を保存
 function saveUnitState(unitName, isOpen, grade) {
     const key = getOpenUnitsKey(grade);
     let openUnits = JSON.parse(localStorage.getItem(key) || '[]');
@@ -256,14 +284,12 @@ function saveUnitState(unitName, isOpen, grade) {
     localStorage.setItem(key, JSON.stringify(openUnits));
 }
 
-// 現在のスクロール位置を保存
 function saveCurrentScrollPosition() {
     const key = getScrollKey(currentGrade);
     localStorage.setItem(key, window.scrollY);
 }
 
-// ▼▼▼ UI描画ロジック ▼▼▼
-
+// UI描画ロジック
 function renderGradeTabs(activeGrade) {
   const tabsContainer = document.getElementById('grade-tabs');
   tabsContainer.innerHTML = '';
@@ -273,18 +299,12 @@ function renderGradeTabs(activeGrade) {
     tab.textContent = `${grade}年`;
     
     tab.onclick = async () => {
-      // 1. 切り替え前の学年のスクロール位置を保存
       saveCurrentScrollPosition();
-
-      // 2. 新しい学年に切り替え
       currentGrade = grade;
       localStorage.setItem(LAST_SELECTED_GRADE_KEY, grade);
       renderGradeTabs(grade);
-      
-      // 3. 表示更新
       await displayGrade(grade);
       
-      // 4. 新しい学年のスクロール位置を復元
       const savedY = localStorage.getItem(getScrollKey(grade));
       if (savedY !== null) {
           window.scrollTo(0, parseInt(savedY, 10));
@@ -300,7 +320,6 @@ function toggleUnit(headerElement) {
   const card = headerElement.parentElement;
   card.classList.toggle('open');
   
-  // 開閉状態を保存 (現在の学年に対して)
   const unitName = headerElement.querySelector('.unit-title-text').textContent;
   const isOpen = card.classList.contains('open');
   saveUnitState(unitName, isOpen, currentGrade);
@@ -310,7 +329,6 @@ async function displayUnits(grade, units) {
   const unitsContainer = document.getElementById('units-container');
   unitsContainer.innerHTML = '';
 
-  // 現在の学年の「開いている単元リスト」を取得
   const openUnitsKey = getOpenUnitsKey(grade);
   const openUnits = JSON.parse(localStorage.getItem(openUnitsKey) || '[]');
 
@@ -318,7 +336,6 @@ async function displayUnits(grade, units) {
     const unitCard = document.createElement('div');
     unitCard.className = 'unit-card';
 
-    // 保存リストにあれば開いた状態にする
     if (openUnits.includes(unit.name)) {
         unitCard.classList.add('open');
     }
@@ -351,19 +368,22 @@ async function displayUnits(grade, units) {
     } else {
       for (const app of unit.apps) {
         const appId = app.id;
-        const pageHtml = app.page ? `<span class="app-page">P.${app.page}</span>` : '';
+        
+        // ▼▼▼ 修正箇所：ページ番号を生成（ない場合は透明なプレースホルダー） ▼▼▼
+        const pageHtml = app.page 
+            ? `<span class="app-page">P.${app.page}</span>` 
+            : `<span class="app-page empty">P.00</span>`; 
 
         const link = document.createElement('a');
         link.href = app.path;
         link.className = 'app-link';
-        
-        // リンククリック時にも現在の位置を保存しておく（戻ってきたとき用）
         link.onclick = () => saveCurrentScrollPosition();
 
+        // HTML構造変更：左側にページ番号とタイトルをまとめる
         link.innerHTML = `
-          <div style="display:flex; align-items:center;">
-             <span class="app-title">${app.title}</span>
+          <div class="app-info-left">
              ${pageHtml}
+             <span class="app-title">${app.title}</span>
           </div>
           <div class="status-container">
             <span class="status-stars" id="stars-${appId}">―</span>
@@ -397,23 +417,19 @@ async function displayGrade(grade) {
 async function initializeUI(){
   const last = localStorage.getItem(LAST_SELECTED_GRADE_KEY);
   const active = (ALL_GRADES.includes(last) ? last : "1");
-  currentGrade = active; // 現在の学年を更新
+  currentGrade = active;
 
   renderGradeTabs(active);
   await displayGrade(active);
 
-  // 初期ロード時：その学年の保存された位置へ復元
   const savedY = localStorage.getItem(getScrollKey(active));
   if (savedY !== null) {
-      // 少し待ってからスクロール（画像の読み込みなどを考慮）
       setTimeout(() => window.scrollTo(0, parseInt(savedY, 10)), 0);
   }
 }
 
-// 履歴バックなどでのスクロール自動復元を無効化（自前で制御するため）
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
-// ブラウザを閉じる/更新する直前にも保存
 window.addEventListener('beforeunload', () => {
     saveCurrentScrollPosition();
 });
