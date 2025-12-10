@@ -102,7 +102,36 @@
       },
       {
         "name": "８　　かずしらべ",
-        "apps": []
+        "apps": [
+          {
+            "id": "10_to_ikutsu_v7_final",
+            "title": "10と いくつ",
+            "path": "1nen/08_kazu_shirabe/035_10_to_ikutsu.html"
+          },
+          {
+            "id": "kazu_shirabe_v4",
+            "title": "かずしらべ",
+            "path": "1nen/08_kazu_shirabe/027_kazu_shirabe.html"
+          },
+          {
+            "id": "1nen_p39_calc_simple",
+            "title": "たしざんと ひきざん（２）",
+            "path": "1nen/08_kazu_shirabe/039_tashizan_hikizan_2.html",
+            "page": "39"
+          },
+          {
+            "id": "1nen_p38_calc_simple",
+            "title": "たしざんと ひきざん（シンプル）",
+            "path": "1nen/08_kazu_shirabe/038_tashizan_hikizan.html",
+            "page": "38"
+          },
+          {
+            "id": "fukushu_calc_p42",
+            "title": "ふくしゅう（けいさん）",
+            "path": "1nen/08_kazu_shirabe/042_fukushu_calc_triangle2.html",
+            "page": "42"
+          }
+        ]
       },
       {
         "name": "９　　10より おおきい かず",
@@ -157,19 +186,22 @@
         "name": "１２　3つの かずの けいさん",
         "apps": [
           {
-            "id": "57-7_3ttuno_kazuno_tasihiki",
-            "title": "３つのかずのけいさん",
-            "path": "1nen/12_3kazu_keisan/57-7_3ttuno_kazuno_tasihiki.html"
+            "id": "1nen_p58_mix_fixed_v3",
+            "title": "３つの かずの けいさん",
+            "path": "1nen/12_3kazu_keisan/058_3nums_mix.html",
+            "page": "58"
           },
           {
-            "id": "55-2_3ttuno_kazu_tasizan",
-            "title": "３つのかずのけいさん⑴",
-            "path": "1nen/12_3kazu_keisan/55-2_3ttuno_kazu_tasizan.html"
+            "id": "1nen_p55_3nums_add_v2",
+            "title": "３つの かずの たしざん",
+            "path": "1nen/12_3kazu_keisan/055_3tsu_no_kazu.html",
+            "page": "55"
           },
           {
-            "id": "56-4_3ttuno_kazuno_hikizan",
-            "title": "３つのかずのひき算⑴",
-            "path": "1nen/12_3kazu_keisan/56-4_3ttuno_kazuno_hikizan.html"
+            "id": "1nen_p56_3nums_sub_final",
+            "title": "３つの かずの ひきざん",
+            "path": "1nen/12_3kazu_keisan/056_3nums_sub.html",
+            "page": "56"
           }
         ]
       },
@@ -360,29 +392,29 @@
         "name": "５　　たし算とひき算の筆算⑴",
         "apps": [
           {
-            "id": "48_kuriagari_nasi",
-            "title": "くりあがりのない たし算",
-            "path": "2nen/05_hissan_th1/48_kuriagari_nasi.html"
-          },
-          {
-            "id": "50_tasu_to_over10_rank1",
-            "title": "一のくらいが くりあがる たし算",
-            "path": "2nen/05_hissan_th1/50_tasu_to_over10_rank1.html"
-          },
-          {
-            "id": "51_2keta_hissan_sum",
-            "title": "十のくらいが くりあがる たし算",
+            "id": "g2_add_kuriagari_o1_2digit",
+            "title": "２けたまでのたし算のひっ算",
             "path": "2nen/05_hissan_th1/51_2keta_hissan_sum.html"
           },
           {
-            "id": "51-7,9_iroirona_tasizanno_hissan",
-            "title": "いろいろなたし算",
+            "id": "g2_51_7_9_iroirona_tasizanno_hissan",
+            "title": "いろいろなたし算のひっ算",
             "path": "2nen/05_hissan_th1/51-7,9_iroirona_tasizanno_hissan.html"
           },
           {
-            "id": "55-3_kurisagarinonai_2ketano_hissan ",
-            "title": "くり下がりのないひき算",
+            "id": "g2_add_nocarry_2digit",
+            "title": "くり上がりのない２けたのひっ算",
+            "path": "2nen/05_hissan_th1/48_kuriagari_nasi.html"
+          },
+          {
+            "id": "g2_sub_noborrow_2digit",
+            "title": "くり上がりのない２けたのひっ算",
             "path": "2nen/05_hissan_th1/55-3_kurisagarinonai_2ketano_hissan .html"
+          },
+          {
+            "id": "g2_add_kuriagari_o1_2digit",
+            "title": "一の位がたして１０をこえるひっ算",
+            "path": "2nen/05_hissan_th1/50_tasu_to_over10_rank1.html"
           }
         ]
       },

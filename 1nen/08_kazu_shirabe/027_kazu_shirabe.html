@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>かずしらべ</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：フルーツ・パフェ ▼▼▼ */
+        :root {
+            --c-bg-main: #FFF8E1;         
+            --c-primary: #FF6F00;         
+            --c-primary-light: #FFECB3;   
+            --c-accent: #8BC34A;
+            --c-text-main: #333333;       
+            --c-card-bg: #ffffff;
+            
+            --c-btn-default: #ffffff;
+            --c-btn-hover: #FFF3E0;
+            --c-btn-active: #FFE0B2;
+            --c-btn-selected: #FFCC80;
+            --c-btn-border: #FFB74D;
+
+            --c-correct: #C8E6C9;
+            --c-wrong: #FFCDD2;
+
+            --font-main: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--c-bg-main);
+            color: var(--c-text-main);
+            margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1 { font-size: 1.4rem; color: var(--c-primary); margin: 0 0 10px 0; text-align: center; }
+        .sub-header { 
+            background: var(--c-primary-light); color: var(--c-primary);
+            padding: 5px 15px; border-radius: 20px; font-weight: bold;
+            font-size: 1.0rem; display: inline-block; margin-bottom: 20px;
+        }
+
+        #app-container {
+            width: 100%; max-width: 800px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .card {
+            background: var(--c-card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+        }
+
+        .section-title {
+            font-size: 1.1rem; font-weight: bold; color: var(--c-primary);
+            border-bottom: 2px solid var(--c-primary-light);
+            padding-bottom: 5px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .step-badge {
+            background: var(--c-primary); color: #fff; 
+            font-size: 0.9rem; padding: 2px 8px; border-radius: 10px;
+        }
+
+        /* --- ステップ1：3x9 グリッド表示エリア --- */
+        .scatter-container {
+            background-color: #FFFDE7;
+            border: 2px dashed #FFD54F;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex; justify-content: center;
+        }
+
+        /* 9列のグリッド */
+        .scatter-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr); /* 9列 */
+            grid-template-rows: repeat(3, 1fr);    /* 3行 */
+            gap: 5px;
+            width: 100%; max-width: 600px;
+        }
+
+        .scatter-cell {
+            aspect-ratio: 1; /* 正方形 */
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.8rem;
+            background: rgba(255,255,255,0.5);
+            border-radius: 8px;
+        }
+        .scatter-cell.empty { background: none; }
+
+        /* --- ステップ2：グラフを作る --- */
+        .graph-wrapper {
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .graph-container {
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); /* 4種類なので4列 */
+            gap: 15px;
+            min-width: 300px; 
+            align-items: end; justify-items: center;
+            padding: 10px 5px; background: #FAFAFA; border-radius: 8px;
+        }
+        .graph-column {
+            display: flex; flex-direction: column; align-items: center; width: 100%;
+        }
+        
+        .stack-area {
+            display: flex; flex-direction: column-reverse; /* 下から積み上げ */
+            gap: 2px; margin-bottom: 5px;
+            padding-bottom: 5px; border-bottom: 3px solid #E0E0E0;
+            width: 100%; align-items: center;
+        }
+        .stack-icon {
+            width: 44px; height: 44px; /* 大きめに */
+            font-size: 1.8rem;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 50%;
+            cursor: pointer;
+            filter: grayscale(100%) opacity(0.2);
+            transition: all 0.2s ease;
+            border: 1px solid #eee;
+        }
+        .stack-icon.filled {
+            filter: grayscale(0%) opacity(1);
+            transform: scale(1.1);
+            background-color: #fff;
+            border-color: var(--c-primary-light);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .fruit-label { font-weight: bold; font-size: 1.0rem; color: #555; text-align: center; }
+
+        /* --- ステップ3：質問 --- */
+        .question-block {
+            margin-bottom: 15px; padding: 10px; border-radius: 8px;
+            background: #F9F9F9;
+        }
+        .q-text {
+            font-size: 1.0rem; font-weight: bold; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .q-mark {
+            display: inline-block; width: 24px; height: 24px; line-height: 24px;
+            text-align: center; border-radius: 50%; background: #ED6C02; color: #fff;
+            font-size: 0.8rem; flex-shrink: 0;
+        }
+        
+        .choice-group { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); /* 4列 */
+            gap: 10px; 
+        }
+        
+        .choice-btn {
+            padding: 10px 0;
+            background: var(--c-btn-default);
+            border: 1px solid var(--c-btn-border);
+            border-radius: 8px;
+            font-size: 1.8rem; cursor: pointer;
+            transition: all 0.2s; position: relative;
+        }
+        .choice-btn:hover { background: var(--c-btn-hover); }
+        .choice-btn.selected {
+            background: var(--c-btn-selected);
+            border-color: var(--c-primary);
+            box-shadow: 0 0 0 2px var(--c-primary) inset;
+            transform: translateY(-2px);
+        }
+
+        .correct-bg { background: var(--c-correct) !important; border-color: #4CAF50 !important; }
+        .wrong-bg { background: var(--c-wrong) !important; border-color: #F44336 !important; }
+
+        .btn-area { text-align: center; margin-top: 20px; }
+        .action-btn {
+            font-size: 1.2rem; font-weight: bold; color: #fff;
+            background: var(--c-primary); border: none; border-radius: 30px;
+            padding: 12px 30px; cursor: pointer;
+            box-shadow: 0 4px 0 #E65100; transition: all 0.1s;
+        }
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        #result-area {
+            margin-top: 20px; text-align: center;
+        }
+        #result-msg {
+            font-size: 1.6rem; font-weight: bold; 
+            margin-bottom: 15px; color: var(--c-primary);
+            min-height: 1.6em;
+        }
+        .stats-container {
+            display: flex; justify-content: center; gap: 20px;
+            margin-bottom: 10px;
+        }
+        .stat-box {
+            background: #fff; border: 2px solid var(--c-primary-light);
+            border-radius: 10px; padding: 10px 20px;
+            text-align: center;
+        }
+        .stat-label { font-size: 0.9rem; color: #666; display: block; margin-bottom: 5px; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--c-primary); }
+        .stat-unit { font-size: 1rem; color: #333; }
+
+        @media (max-width: 600px) {
+            .scatter-grid { gap: 2px; }
+            .scatter-cell { font-size: 1.4rem; border-radius: 4px; }
+            .stack-icon { width: 36px; height: 36px; font-size: 1.4rem; }
+            .choice-btn { font-size: 1.5rem; }
+            .stats-container { gap: 10px; }
+            .stat-box { padding: 8px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title"></h1>
+    <div class="sub-header" id="sub-title"></div>
+
+    <div class="stats-container">
+        <div class="stat-box">
+            <span class="stat-label">今日のクリア</span>
+            <span id="dailyCountValue" class="stat-value">0</span>
+            <span class="stat-unit">かい</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">合計クリア</span>
+            <span id="clearCountValue" class="stat-value">0</span>
+            <span class="stat-unit">かい</span>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div class="card">
+            <div class="section-title"><span class="step-badge">1</span> かずを かぞえて グラフを ぬろう</div>
+            <div class="scatter-container">
+                <div class="scatter-grid" id="scatter-area"></div>
+            </div>
+            <p style="text-align:center; margin:10px 0; font-size:0.9rem;">↓ 下から じゅんばんに クリックして ぬりましょう。</p>
+            <div class="graph-wrapper">
+                <div class="graph-container" id="graph-area"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title"><span class="step-badge">2</span> グラフをみて こたえよう</div>
+
+            <div class="question-block" id="q-block-max">
+                <div class="q-text"><span class="q-mark">あ</span> いちばん おおい ものは どれですか。</div>
+                <div class="choice-group" id="choices-max"></div>
+            </div>
+
+            <div class="question-block" id="q-block-min">
+                <div class="q-text"><span class="q-mark">い</span> いちばん すくない ものは どれですか。</div>
+                <div class="choice-group" id="choices-min"></div>
+            </div>
+
+            <div class="question-block" id="q-block-same">
+                <div class="q-text"><span class="q-mark">う</span> おなじ かずの ものは どれと どれですか。<br><span style="font-size:0.85em; color:#666; font-weight:normal;">（２つ えらんでね）</span></div>
+                <div class="choice-group" id="choices-same"></div>
+            </div>
+        </div>
+
+        <div id="result-area">
+            <div id="result-msg"></div>
+            <button id="btn-check" class="action-btn">まるつけ</button>
+            <button id="btn-retry" class="action-btn" style="display:none; background:#8BC34A; box-shadow: 0 4px 0 #558B2F;">もういちど</button>
+        </div>
+
+    </div>
+
+    <script>
+    (function(){
+        // ▼▼▼ コンフィグ：設定を一箇所に集約 ▼▼▼
+        const config = {
+            appId: "kazu_shirabe_v4",
+            mainTitle: "かずしらべ",
+            subTitle: "よく見て かぞえよう",
+            
+            // ロジック設定
+            settings: {
+                maxStack: 9,      // グラフの高さ
+                cols: 9,          // バラバラ表示の列数
+                rows: 3,          // バラバラ表示の行数
+                targetCount: 4,   // 出題する果物の種類数
+                
+                // 数値生成ルール
+                pairMin: 3,       // ペアの最小個数
+                pairMax: 6,       // ペアの最大個数
+            },
+
+            // 固定データ：果物リスト
+            fruitsPool: [
+                { id: 'apple',  name: 'りんご', emoji: '🍎' },
+                { id: 'orange', name: 'みかん', emoji: '🍊' },
+                { id: 'banana', name: 'ばなな', emoji: '🍌' },
+                { id: 'melon',  name: 'めろん', emoji: '🍈' },
+                { id: 'grape',  name: 'ぶどう', emoji: '🍇' },
+                { id: 'peach',  name: 'もも',   emoji: '🍑' },
+                { id: 'pineapple', name: 'パイン', emoji: '🍍' },
+                { id: 'strawberry', name: 'いちご', emoji: '🍓' }
+            ]
+        };
+        // ▲▲▲ コンフィグ終了 ▲▲▲
+
+        // 内部変数
+        let currentProblem = null;
+        let targetFruits = []; 
+        let userAnswers = {
+            counts: {}, 
+            qMax: null,
+            qMin: null,
+            qSame: [] 
+        };
+        let totalClearCount = 0;
+        let dailyCount = 0;
+
+        // --- 初期化処理 ---
+        function initApp() {
+            // タイトル設定
+            document.title = config.mainTitle;
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('sub-title').textContent = config.subTitle;
+
+            loadData();
+            startNewProblem();
+
+            // イベントリスナ登録
+            document.getElementById('btn-check').onclick = checkAnswers;
+            document.getElementById('btn-retry').onclick = startNewProblem;
+        }
+
+        // --- データ保存・読込 ---
+        function loadData() {
+            const ls = localStorage;
+            totalClearCount = +(ls.getItem(`${config.appId}:total`) || 0);
+            const todayKey = `${config.appId}:daily-${new Date().toISOString().slice(0, 10)}`;
+            dailyCount = +(ls.getItem(todayKey) || 0);
+            updateStatsDisplay();
+        }
+
+        function saveData() {
+            const ls = localStorage;
+            ls.setItem(`${config.appId}:total`, totalClearCount);
+            const todayKey = `${config.appId}:daily-${new Date().toISOString().slice(0, 10)}`;
+            ls.setItem(todayKey, dailyCount);
+            updateStatsDisplay();
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('dailyCountValue').textContent = dailyCount;
+            document.getElementById('clearCountValue').textContent = totalClearCount;
+        }
+
+        // --- 問題生成処理 ---
+        function startNewProblem() {
+            // UIリセット
+            document.getElementById('btn-check').style.display = 'inline-block';
+            document.getElementById('btn-retry').style.display = 'none';
+            document.getElementById('result-msg').textContent = '';
+            document.querySelectorAll('.question-block').forEach(el => el.classList.remove('correct-bg', 'wrong-bg'));
+
+            userAnswers = { counts: {}, qMax: null, qMin: null, qSame: [] };
+            currentProblem = generateProblemData();
+            renderProblem();
+        }
+
+        function generateProblemData() {
+            let counts = {};
+            let isValid = false;
+            let attempts = 0;
+            const s = config.settings;
+            const totalSlots = s.cols * s.rows;
+
+            // 1. 今回使用する果物をランダム選出
+            const shuffledAll = [...config.fruitsPool].sort(() => Math.random() - 0.5);
+            targetFruits = shuffledAll.slice(0, s.targetCount);
+
+            while(!isValid && attempts < 200) {
+                attempts++;
+                
+                // 数値決定ロジック
+                const sVal = Math.floor(Math.random() * (s.pairMax - s.pairMin + 1)) + s.pairMin; 
+                const lVal = Math.floor(Math.random() * (sVal - 1)) + 1;
+                const hVal = Math.floor(Math.random() * (s.maxStack - sVal)) + (sVal + 1);
+
+                let nums = [sVal, sVal, lVal, hVal];
+                let sum = nums.reduce((a,b) => a+b, 0);
+                
+                if (sum <= totalSlots) {
+                    isValid = true;
+                    nums.sort(() => Math.random() - 0.5);
+                    targetFruits.forEach((f, idx) => {
+                        counts[f.id] = nums[idx];
+                    });
+                }
+            }
+
+            // 安全策（生成失敗時）
+            if (!isValid) {
+                const fixed = [3, 3, 1, 5]; 
+                targetFruits.forEach((f, idx) => counts[f.id] = fixed[idx]);
+            }
+
+            const problemData = {
+                items: [], 
+                fruitCounts: counts,
+                ansMax: null,
+                ansMin: null,
+                ansSame: []
+            };
+
+            // バラバラ配置用アイテム
+            targetFruits.forEach(f => {
+                const c = counts[f.id];
+                for(let k=0; k<c; k++) problemData.items.push(f.emoji);
+            });
+            problemData.items.sort(() => Math.random() - 0.5);
+
+            // 正解判定ロジック
+            let maxC = -1, minC = 99;
+            for(let id in counts) {
+                if(counts[id] > maxC) maxC = counts[id];
+                if(counts[id] < minC) minC = counts[id];
+            }
+            
+            const countMap = {};
+            targetFruits.forEach(f => {
+                const c = counts[f.id];
+                if(c === maxC) problemData.ansMax = f.id;
+                if(c === minC) problemData.ansMin = f.id;
+                
+                if(!countMap[c]) countMap[c] = [];
+                countMap[c].push(f.id);
+            });
+            for(let c in countMap) {
+                if(countMap[c].length === 2) {
+                    problemData.ansSame = countMap[c]; 
+                }
+            }
+
+            return problemData;
+        }
+
+        // --- 描画処理 ---
+        function renderProblem() {
+            // 1. バラバラエリア
+            const scatterEl = document.getElementById('scatter-area');
+            scatterEl.innerHTML = '';
+            const totalSlots = config.settings.cols * config.settings.rows;
+            
+            for(let i=0; i<totalSlots; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'scatter-cell';
+                if (i < currentProblem.items.length) {
+                    cell.textContent = currentProblem.items[i];
+                } else {
+                    cell.classList.add('empty');
+                }
+                scatterEl.appendChild(cell);
+            }
+
+            // 2. グラフエリア
+            const graphEl = document.getElementById('graph-area');
+            graphEl.innerHTML = '';
+            targetFruits.forEach(f => {
+                const col = document.createElement('div');
+                col.className = 'graph-column';
+
+                let stackHtml = '<div class="stack-area">';
+                for(let h=1; h<=config.settings.maxStack; h++) {
+                    stackHtml += `<div class="stack-icon" id="icon-${f.id}-${h}" onclick="handleGraphClick('${f.id}', ${h})">${f.emoji}</div>`;
+                }
+                stackHtml += '</div>';
+                stackHtml += `<div class="fruit-label">${f.name}</div>`;
+                col.innerHTML = stackHtml;
+                graphEl.appendChild(col);
+            });
+
+            // 3. 質問ボタン
+            renderChoices('choices-max', 'max', false);
+            renderChoices('choices-min', 'min', false);
+            renderChoices('choices-same', 'same', true); 
+        }
+
+        function renderChoices(containerId, qType, isMulti) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            targetFruits.forEach(f => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = f.emoji;
+                btn.id = `btn-${qType}-${f.id}`;
+                btn.onclick = () => handleChoiceClick(qType, f.id, isMulti);
+                container.appendChild(btn);
+            });
+        }
+
+        // --- インタラクション ---
+        window.handleGraphClick = (fruitId, height) => {
+            const currentH = userAnswers.counts[fruitId] || 0;
+            let newH = height;
+            if (currentH === height) newH = 0; 
+            updateGraphState(fruitId, newH);
+        };
+
+        function updateGraphState(fruitId, height) {
+            userAnswers.counts[fruitId] = height;
+            for(let h=1; h<=config.settings.maxStack; h++) {
+                const icon = document.getElementById(`icon-${fruitId}-${h}`);
+                if(h <= height) {
+                    icon.classList.add('filled');
+                } else {
+                    icon.classList.remove('filled');
+                }
+            }
+        }
+
+        window.handleChoiceClick = (qType, fruitId, isMulti) => {
+            const btn = document.getElementById(`btn-${qType}-${fruitId}`);
+            if (!isMulti) {
+                if (userAnswers[`q${capitalize(qType)}`] === fruitId) {
+                    userAnswers[`q${capitalize(qType)}`] = null;
+                    btn.classList.remove('selected');
+                } else {
+                    userAnswers[`q${capitalize(qType)}`] = fruitId;
+                    document.querySelectorAll(`#choices-${qType} .choice-btn`).forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                }
+            } else {
+                const list = userAnswers.qSame;
+                const idx = list.indexOf(fruitId);
+                if (idx >= 0) {
+                    list.splice(idx, 1);
+                    btn.classList.remove('selected');
+                } else {
+                    if (list.length < 2) {
+                        list.push(fruitId);
+                        btn.classList.add('selected');
+                    } else {
+                        const oldId = list.shift(); 
+                        document.getElementById(`btn-${qType}-${oldId}`).classList.remove('selected');
+                        list.push(fruitId);
+                        btn.classList.add('selected');
+                    }
+                }
+            }
+        };
+
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        // --- まるつけ処理 ---
+        function checkAnswers() {
+            const p = currentProblem;
+            let correctCount = 0;
+            let totalChecks = 0;
+
+            // 1. グラフ判定
+            let isGraphPerfect = true;
+            targetFruits.forEach(f => {
+                const userCount = userAnswers.counts[f.id] || 0;
+                const correctCountVal = p.fruitCounts[f.id];
+                const label = document.querySelector(`#icon-${f.id}-1`).parentElement.nextElementSibling;
+                
+                if(userCount !== correctCountVal) {
+                    isGraphPerfect = false;
+                    label.style.color = "red";
+                    label.textContent = "×";
+                } else {
+                    label.style.color = "green";
+                    label.textContent = "○";
+                }
+            });
+
+            // 2. 質問(あ) Max
+            const qMaxBlock = document.getElementById('q-block-max');
+            if(userAnswers.qMax === p.ansMax) {
+                qMaxBlock.classList.add('correct-bg');
+                correctCount++;
+            } else {
+                qMaxBlock.classList.add('wrong-bg');
+            }
+            totalChecks++;
+
+            // 3. 質問(い) Min
+            const qMinBlock = document.getElementById('q-block-min');
+            if(userAnswers.qMin === p.ansMin) {
+                qMinBlock.classList.add('correct-bg');
+                correctCount++;
+            } else {
+                qMinBlock.classList.add('wrong-bg');
+            }
+            totalChecks++;
+
+            // 4. 質問(う) Same
+            const qSameBlock = document.getElementById('q-block-same');
+            const userSame = userAnswers.qSame.sort(); 
+            const correctSame = p.ansSame.sort();
+            const isSameCorrect = (JSON.stringify(userSame) === JSON.stringify(correctSame));
+            
+            if(isSameCorrect) {
+                qSameBlock.classList.add('correct-bg');
+                correctCount++;
+            } else {
+                qSameBlock.classList.add('wrong-bg');
+            }
+            totalChecks++;
+
+            const msgEl = document.getElementById('result-msg');
+            const btnCheck = document.getElementById('btn-check');
+            const btnRetry = document.getElementById('btn-retry');
+
+            if(correctCount === totalChecks && isGraphPerfect) {
+                msgEl.innerHTML = "🎉 やったね！ ぜんもん せいかい！ 🎉";
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                totalClearCount++;
+                dailyCount++;
+                saveData();
+            } else {
+                msgEl.textContent = "おしい！ 赤いところを 直してみよう。";
+            }
+
+            btnCheck.style.display = 'none';
+            btnRetry.style.display = 'inline-block';
+        }
+
+        // アプリ起動
+        initApp();
+
+    })();
+    </script>
+</body>
+</html>

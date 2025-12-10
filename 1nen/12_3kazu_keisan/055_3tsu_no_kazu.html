@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>３つの かずの たしざん</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：黒板グリーン ▼▼▼ */
+        :root {
+            --c-bg-main: #E8F5E9;         /* 背景：薄い緑 */
+            --c-primary: #2E7D32;         /* メイン：濃い緑 */
+            --c-primary-dark: #1B5E20;    /* 濃い緑（文字など） */
+            --c-primary-light: #A5D6A7;   /* 明るい緑 */
+            --c-accent: #FF9800;          /* アクセント：オレンジ（ブロックの色） */
+            
+            --c-button-bg: #43A047;       
+            --c-button-hover: #2E7D32;    
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #F1F8E9;      
+            
+            --c-text-main: #333333;       
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #C8E6C9; /* 正解：薄い緑 */
+            --c-feedback-wrong-bg: #FFCDD2;   /* 不正解：薄い赤 */
+            
+            --font-size: 2.2rem;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--c-primary-dark);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 3px solid var(--c-primary);
+            font-weight: bold; font-size: 1.2rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: grid; grid-template-columns: 1fr; gap: 20px;
+            width: 100%; max-width: 600px; margin-top: 20px;
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: center; justify-content: flex-start;
+            background: var(--c-problem-row-bg); border-radius: 15px; padding: 15px 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-weight: bold;
+            scroll-margin-block: 200px; /* スクロール時の余白 */
+            border-left: 6px solid var(--c-accent);
+        }
+        
+        .problem-number {
+            font-size: 1.4rem; margin-right: 10px; margin-left: 10px;
+            color: var(--c-primary); min-width: 30px;
+        }
+
+        /* 計算式レイアウト */
+        .calc-row {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-size: var(--font-size);
+            flex-grow: 1;
+            flex-wrap: wrap; /* 画面が狭いときは折り返し */
+        }
+        
+        .number { min-width: 0.8em; text-align: center; }
+        .symbol { color: var(--c-primary-dark); }
+
+        .input-cell {
+            width: 2.2em; height: 1.6em; text-align: center; font-size: var(--font-size);
+            font-family: inherit; border: 3px solid #A5D6A7; background-color: #fff; 
+            color: var(--c-text-main); outline: none; border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .input-cell:focus {
+             background-color: #E8F5E9; 
+             border-color: var(--c-accent);
+             box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2);
+             transform: scale(1.05);
+        }
+        
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; border-color: var(--c-primary) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; border-color: #ef5350 !important; }
+
+        button {
+            font-size: 1.3rem; padding: 12px 36px; border: none; border-radius: 30px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: background-color 0.2s, transform 0.1s; font-weight: bold;
+            box-shadow: 0 4px 0 var(--c-primary-dark);
+        }
+        button:hover { background-color: var(--c-button-hover); transform: translateY(2px); box-shadow: 0 2px 0 var(--c-primary-dark); }
+        button:active { transform: translateY(4px); box-shadow: none; }
+        button:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; transform: none; }
+        
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 20px;
+            background: var(--c-result-area-bg); border-radius: 15px; text-align: center;
+            border: 4px solid var(--c-primary-light);
+        }
+        #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; color: var(--c-primary-dark); }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px dashed #A5D6A7; padding: 8px; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 5px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 32px; font-weight: bold; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.2rem; }
+        
+        @media (max-width: 400px) {
+            :root { --font-size: 1.8rem; }
+            .problem-wrapper { padding: 10px 5px; }
+        }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="せつめいを ひょうじ">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">がくしゅうの ポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> 
+        <p style="font-size:1.2rem; margin-bottom:20px;">もんだいは ぜんぶで 10もん だよ！</p>
+        <button id="start-btn">スタート！</button> 
+    </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry" style="background-color:#FBC02D; color:#fff; text-shadow:0 1px 1px rgba(0,0,0,0.2);">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px; background:#90A4AE; height:auto; line-height:normal; box-shadow:none;">リセット</button></div>
+        <div id="dailyCountArea">きょうの クリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">ごうけい クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（さいしん 5けん）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "1nen_p55_3nums_add_v2", 
+        mainTitle: "３つのかずのけいさん",
+        title: "３つの かずの たしざん",
+        page: 55, 
+        baseScore: 100,
+        targetTimePerQuestion: 25, 
+        questionCount: 10, 
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <p>３つの かずの たしざんです。</p>
+          <div style="background:#E8F5E9; padding:15px; border-radius:15px; border:2px solid #A5D6A7; margin-bottom:10px;">
+             <strong>やりかた：</strong><br>
+             ひだり（まえ）から じゅんばんに けいさんしよう。<br>
+             <br>
+             <div style="text-align:center; font-weight:bold; font-size:1.3rem;">
+                5 ＋ 3 ＋ 2 ＝ 10
+             </div>
+             <div style="text-align:center; font-size:1rem; color:#555;">
+                ① (5たす3は 8)<br>
+                ② (8たす2は 10)
+             </div>
+          </div>
+        `,
+
+        problemGenerator(count = 10) {
+            const problems = [];
+            const generatedKeys = new Set();
+            
+            while(problems.length < count) {
+                // ▼▼▼ 変更点: 答え(6~20)を先に決めてから分解する ▼▼▼
+                const answer = Math.floor(Math.random() * (20 - 6 + 1)) + 6;
+
+                // 3つの数に分解する (A + B + C = answer)
+                // 条件: すべて1以上の整数。
+                // 1年生向けなので、それぞれの数字が大きすぎない(10以下)ように制御する
+                
+                // 1. Aを決める (1 〜 answer-2)
+                // ただし Aは10以下が望ましい
+                const maxA = Math.min(10, answer - 2);
+                const minA = 1;
+                const a = Math.floor(Math.random() * (maxA - minA + 1)) + minA;
+                
+                // 残り
+                const remaining = answer - a;
+                
+                // 2. Bを決める (1 〜 remaining-1)
+                // Bも10以下が望ましい
+                const maxB = Math.min(10, remaining - 1);
+                const minB = 1;
+                const b = Math.floor(Math.random() * (maxB - minB + 1)) + minB;
+                
+                // 3. Cは残り
+                const c = remaining - b;
+                
+                // 念のためCもチェック（Cが10を超えていたら作り直し）
+                if (c > 10) continue;
+
+                const key = `${a}+${b}+${c}`;
+                // 重複チェック
+                if (generatedKeys.has(key)) continue;
+
+                generatedKeys.add(key);
+                problems.push({ key, a, b, c, answer });
+            }
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let isRetryMode = false; 
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}てん</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        problems.forEach((p, i) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.innerHTML = `
+                <div class="problem-number">${i + 1}</div>
+                <div class="calc-row">
+                    <span class="number">${p.a}</span>
+                    <span class="symbol">＋</span>
+                    <span class="number">${p.b}</span>
+                    <span class="symbol">＋</span>
+                    <span class="number">${p.c}</span>
+                    <span class="symbol">＝</span>
+                    <input type="tel" inputmode="numeric" id="ans-${i}" class="input-cell" data-prob-idx="${i}" maxlength="2" autocomplete="off">
+                </div>
+            `;
+            container.appendChild(wrapper);
+        });
+      }
+      
+      function scrollToProblem(el) {
+          setTimeout(() => {
+              const wrapper = el.closest('.problem-wrapper');
+              if(wrapper) {
+                  wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+          }, 100); 
+      }
+
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('focusin', (e) => {
+            if (e.target.classList.contains('input-cell')) {
+                scrollToProblem(e.target);
+                if (e.target.classList.contains('wrong-bg')) {
+                    e.target.select();
+                }
+            }
+        });
+
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            el.value = el.value.replace(/[^0-9]/g, '');
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const idx = parseInt(el.dataset.probIdx);
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleEnterNavigation(idx);
+            } else if (e.key === 'Backspace' && el.value === '') {
+                if (idx > 0) {
+                     e.preventDefault();
+                     document.getElementById(`ans-${idx - 1}`).focus();
+                }
+            }
+        });
+      }
+      
+      function handleEnterNavigation(currentIdx) {
+          const inputs = Array.from(document.querySelectorAll('.input-cell'));
+          
+          if (isRetryMode) {
+              let nextWrong = null;
+              for (let i = currentIdx + 1; i < inputs.length; i++) {
+                  if (inputs[i].classList.contains('wrong-bg')) {
+                      nextWrong = inputs[i];
+                      break;
+                  }
+              }
+              
+              if (nextWrong) {
+                  nextWrong.focus();
+              } else {
+                  document.querySelector('#check-answers').focus();
+              }
+              
+          } else {
+              if (currentIdx < problems.length - 1) {
+                  document.getElementById(`ans-${currentIdx + 1}`).focus();
+              } else {
+                  document.querySelector('#check-answers').focus();
+              }
+          }
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        let correctCount = 0;
+        let firstWrongEl = null;
+
+        problems.forEach((p, i) => {
+            const el = document.getElementById(`ans-${i}`);
+            const userAnswer = parseInt(el.value);
+            
+            el.classList.remove('correct-bg', 'wrong-bg');
+            
+            if (userAnswer === p.answer) {
+                el.classList.add('correct-bg');
+                el.disabled = true;
+                correctCount++;
+            } else {
+                el.classList.add('wrong-bg');
+                if (!firstWrongEl) firstWrongEl = el; 
+            }
+        });
+        
+        const resultEl = document.querySelector('#result');
+
+        if (correctCount === problems.length) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseTime = config.targetTimePerQuestion * config.questionCount; 
+           const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+           const score = config.baseScore + bonus;
+           totalClearCount++; dailyCount++;
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 ぜんもん せいかい！ すごい！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア！ やったね！ 🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#43A047', '#A5D6A7', '#FF9800'] });
+           }
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}てん</strong> <br><span style="font-size:1rem">(タイム: ${elapsed.toFixed(0)} びょう)</span>`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+           isRetryMode = false;
+        } else {
+           resultEl.textContent = 'おしい！ 赤いところを なおそう！';
+           btn.disabled = false;
+           isRetryMode = true;
+           
+           if (firstWrongEl) {
+               setTimeout(() => {
+                   firstWrongEl.focus();
+                   firstWrongEl.select();
+               }, 100);
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        isRetryMode = false;
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        
+        setTimeout(() => {
+             const first = document.getElementById('ans-0');
+             if(first) first.focus();
+        }, 300);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && startArea.style.display !== 'none') {
+                e.preventDefault();
+                startBtn.click();
+            }
+        });
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアを リセット しますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>
