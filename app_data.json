@@ -625,19 +625,52 @@
         "name": "１　　九九の表とかけ算",
         "apps": [
           {
-            "id": "13-5_0no_kakezan",
-            "title": "0のかけ算",
-            "path": "3nen/1_kuku_hyo_kakezan/14-3_0no_kakezan.html"
+            "id": "0_no_kakezan",
+            "title": "０のかけ算",
+            "path": "3nen/1_kuku_hyo_kakezan/014_0_no_kakezan.html",
+            "page": "14"
           },
           {
-            "id": "13-2,3_10no_kakezan",
-            "title": "10のかけ算",
-            "path": "3nen/1_kuku_hyo_kakezan/13-2,3_10no_kakezan.html"
+            "id": "10_no_kakezan",
+            "title": "１０のかけ算",
+            "path": "3nen/1_kuku_hyo_kakezan/013_10_no_kakezan.html",
+            "page": "13"
           },
           {
-            "id": "15-2_sikakuno_kakezan",
-            "title": "□のかけ算",
-            "path": "3nen/1_kuku_hyo_kakezan/15-2_sikakuno_kakezan.html"
+            "id": "kakezan_shiki_box",
+            "title": "□にあてはまる数",
+            "path": "3nen/1_kuku_hyo_kakezan/015_kakezan_box.html",
+            "page": "15"
+          },
+          {
+            "id": "warizan_step_problems_v2",
+            "title": "じゅんに考えて",
+            "path": "3nen/1_kuku_hyo_kakezan/027_junni_kangaete.html",
+            "page": "27"
+          },
+          {
+            "id": "warizan_shiki_to_kotae",
+            "title": "わり算の式と答え",
+            "path": "3nen/1_kuku_hyo_kakezan/026_warizan_bunshodai.html",
+            "page": "26"
+          },
+          {
+            "id": "warizan_kuku",
+            "title": "わり算（九九を使って）",
+            "path": "3nen/1_kuku_hyo_kakezan/024_warizan_kuku.html",
+            "page": "24"
+          },
+          {
+            "id": "warizan_over_10_v2",
+            "title": "答えが10をこえるわり算",
+            "path": "3nen/1_kuku_hyo_kakezan/029_warizan_over10.html",
+            "page": "29"
+          },
+          {
+            "id": "warizan_tens_zero_simple",
+            "title": "答えが九九にないわり算",
+            "path": "3nen/1_kuku_hyo_kakezan/028_warizan_tens_zero.html",
+            "page": "28"
           }
         ]
       },
