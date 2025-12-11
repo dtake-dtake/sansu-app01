@@ -257,8 +257,10 @@ function updateAppStatus(appId) {
   if (!starsEl || !countEl) return;
   
   const totalClearCount = localStorage.getItem(`${appId}:clearCount`) || '0';
-  const overallStatusStars = localStorage.getItem(`${appId}:status`) || '―';
-  
+  // status がなければ rank を探し、それでもなければ ― にする
+  const overallStatusStars = localStorage.getItem(`${appId}:status`) 
+                          || localStorage.getItem(`${appId}:rank`) 
+                          || '―';
   starsEl.innerHTML = overallStatusStars;
   countEl.textContent = `${totalClearCount}回`;
 }
