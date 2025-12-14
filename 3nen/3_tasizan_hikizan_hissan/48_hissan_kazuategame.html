@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>筆算の数あてゲーム</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：ミステリー・ディテクティブ（シンプル統一版） ▼▼▼ */
+        :root {
+            --c-bg-main: #F3E5F5;         
+            --c-primary: #7B1FA2;         
+            --c-primary-dark: #4A148C;    
+            --c-primary-light: #E1BEE7;   
+            --c-button-bg: #8E24AA;       
+            --c-button-hover: #6A1B9A;    
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #F3E5F5;      
+            
+            --c-text-main: #37474F;       
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #C8E6C9; 
+            --c-feedback-wrong-bg: #FFCDD2;   
+            
+            --cell-size: 50px;
+            --font-size: 2.2rem;
+            
+            --border-color: #BA68C8;      
+            --symbol-color: #4A148C;
+            --symbol-stroke-width: 2px;
+            
+            --mask-bg-color: #FF7043; /* 統一カラー（オレンジ） */
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            color: #4A148C;
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px 20px;
+            width: 100%; max-width: 650px; margin-top: 20px;
+        }
+        @media (max-width: 650px) {
+            #problems-container { grid-template-columns: 1fr; }
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: flex-start; justify-content: center;
+            background: var(--c-problem-row-bg); border-radius: 10px; padding: 20px 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            scroll-margin-block: 150px; 
+            position: relative;
+        }
+        
+        .problem-number {
+            font-size: 1.6rem; font-weight: bold; margin-right: 12px;
+            color: var(--c-primary); margin-top: 10px;
+        }
+
+        /* 4列 x 3行 (メモ行なし) */
+        .box-grid {
+            display: grid; 
+            grid-template-columns: repeat(4, var(--cell-size)); 
+            grid-template-rows: repeat(3, var(--cell-size));    
+            border: none;
+            background-color: transparent;
+            position: relative; 
+        }
+        
+        .cell {
+            border-right: 1px dashed var(--border-color); 
+            border-bottom: 1px dashed var(--border-color);
+            display: flex; justify-content: center; align-items: center;
+            font-size: var(--font-size); box-sizing: border-box;
+            position: relative; 
+            z-index: 1;
+        }
+
+        .box-grid > .cell:nth-child(4n) { border-right: none; } 
+        .box-grid > .cell:nth-last-child(-n+4) { border-bottom: none; } 
+        
+        /* 筆算の横線 */
+        .box-grid > .cell:nth-child(n+5):nth-child(-n+8) {
+            border-bottom: var(--symbol-stroke-width) solid var(--symbol-color) !important;
+        }
+
+        .plus-symbol {
+            font-family: sans-serif;
+            font-size: 2.0rem; font-weight: normal; color: var(--symbol-color);
+            padding-right: 5px;
+        }
+        
+        .input-cell {
+            width: 100%; height: 100%; text-align: center; font-size: var(--font-size);
+            font-family: inherit; border: none; background-color: transparent; padding: 0;
+            color: var(--c-text-main); outline: none; border-radius: 0;
+            z-index: 2; 
+        }
+        
+        /* 隠された数字（マスク） */
+        .input-cell.masked-cell {
+            background-color: var(--mask-bg-color);
+            color: #fff;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            margin: auto;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+        .input-cell.masked-cell:focus {
+            background-color: #fff;
+            color: var(--c-text-main);
+            border: 2px solid var(--c-primary);
+            box-shadow: 0 0 0 2px var(--c-primary-light);
+        }
+        .input-cell.masked-cell:not(:placeholder-shown) {
+            background-color: #fff;
+            color: var(--c-text-main);
+            border: 2px solid var(--mask-bg-color);
+        }
+        
+        /* 色のバリエーション（偶数番目の変更）を削除し統一しました */
+
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+
+        button {
+            font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: background-color 0.2s; font-weight: bold;
+        }
+        button:hover { background-color: var(--c-button-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 15px;
+            background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+        }
+        #result { font-size: 1.6rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; }
+        #hint-message { color: #D81B60; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px solid #BA68C8; padding: 5px; }
+
+        #bulb-btn {
+            position: fixed; top: 20px; right: 20px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #FFF59D; border: 3px solid #FBC02D; 
+            font-size: 2.0rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 15px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="ヒントを表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">名探偵のヒント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="hint-message"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px;">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（最新５件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "48_hissan_kazuategame_v3",
+        mainTitle: "筆算の数あてゲーム",
+        title: "数あてゲーム", 
+        page: 48, 
+        baseScore: 100,
+        targetTimePerQuestion: 90, 
+        questionCount: 4,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <div style="background:#F3E5F5; padding:10px; border-radius:8px; border:1px solid #BA68C8; margin-bottom:10px;">
+             <strong>ルール：</strong><br>
+             筆算の隠れている数字（<span style="color:#FF7043; font-weight:bold;">●</span>）を推理して当てよう！<br><br>
+             <strong>コツ：</strong><br>
+             くり上がりやくり下がりに気をつけて、頭の中で計算してみてね。<br>
+             困ったら右上の「💡」ボタンを押してね。
+          </div>
+        `,
+
+        problemGenerator(count = 4) {
+            const problems = [];
+            const generated = new Set();
+            let guard = 0;
+
+            while(problems.length < count && guard < 5000) {
+                guard++;
+                
+                let n1, n2, type, hiddenPos = [];
+                let ansVal;
+                let hintText = "";
+                
+                const idx = problems.length; // 0 to 3
+                
+                if (idx === 0) {
+                    // Level 1: Add, Hide Ones
+                    type = 'ADD';
+                    n1 = Math.floor(Math.random() * 800) + 100;
+                    n2 = Math.floor(Math.random() * 800) + 100;
+                    if (n1 + n2 >= 1000) continue;
+                    
+                    let d1_1 = n1 % 10;
+                    let d2_1 = n2 % 10;
+                    if (d1_1 + d2_1 < 10) continue; // Ensure carry
+                    
+                    hiddenPos = ['c14']; // Hide N1 Ones (Row 1, Col 4)
+                    if (Math.random() < 0.5) hiddenPos = ['c24']; // Or N2
+                    
+                    ansVal = n1 + n2;
+                    const ansOnes = ansVal % 10;
+                    const visibleDigit = hiddenPos[0]==='c14' ? d2_1 : d1_1;
+                    hintText = `一の位を見てみよう。<br>? + ${visibleDigit} = ${ansOnes} ではなく、<br>? + ${visibleDigit} = 1${ansOnes} (10以上) になる数だよ。`;
+
+                } else if (idx === 1) {
+                    // Level 2: Add, Hide Tens
+                    type = 'ADD';
+                    n1 = Math.floor(Math.random() * 800) + 100;
+                    n2 = Math.floor(Math.random() * 800) + 100;
+                    if (n1 + n2 >= 1000) continue;
+                    
+                    let d1_1 = n1 % 10;
+                    let d2_1 = n2 % 10;
+                    if (d1_1 + d2_1 < 10) continue; // Ensure carry from ones
+                    
+                    hiddenPos = ['c23']; // Hide N2 Tens
+                    
+                    ansVal = n1 + n2;
+                    let ansTens = Math.floor((ansVal % 100)/10);
+                    let d1_10 = Math.floor((n1 % 100)/10);
+                    hintText = `一の位からのくり上がり(1)があるよ。<br>1 + ${d1_10} + ? = ${ansTens} (または1${ansTens}) になる数は？`;
+
+                } else if (idx === 2) {
+                    // Level 3: Sub, Hide Minuend (N1)
+                    type = 'SUB';
+                    n1 = Math.floor(Math.random() * 800) + 200;
+                    n2 = Math.floor(Math.random() * (n1 - 100)) + 50;
+                    
+                    let d1_1 = n1 % 10;
+                    let d2_1 = n2 % 10;
+                    if (d1_1 >= d2_1) continue; // Need borrow at ones
+                    
+                    hiddenPos = ['c13']; // Hide N1 Tens (Row 1, Col 3)
+                    
+                    ansVal = n1 - n2;
+                    hintText = `一の位でひけないから、十の位から借りてきたんだね。<br>一つ減った数から引いていることに注意しよう。`;
+                    
+                } else {
+                    // Level 4: Sub, Hide Subtrahend (N2)
+                    type = 'SUB';
+                    n1 = Math.floor(Math.random() * 800) + 200;
+                    n2 = Math.floor(Math.random() * (n1 - 100)) + 50;
+                    
+                    let d1_1 = n1 % 10;
+                    let d2_1 = n2 % 10;
+                    if (d1_1 >= d2_1) continue; // Need borrow
+                    
+                    hiddenPos = ['c23']; // Hide N2 Tens (Row 2, Col 3)
+                    
+                    ansVal = n1 - n2;
+                    hintText = `一の位で借りてきたから、十の位は1つ減っているよ。<br>そこから ? を引くと答えになるね。`;
+                }
+
+                const key = `${n1}${type}${n2}`;
+                if (generated.has(key)) continue;
+                generated.add(key);
+                
+                const answers = {};
+                const inputOrder = [];
+                
+                const n1_str = String(n1).padStart(3, '0');
+                const n2_str = String(n2).padStart(3, '0');
+                
+                hiddenPos.forEach(pos => {
+                    const r = parseInt(pos.charAt(1));
+                    const c = parseInt(pos.charAt(2)); 
+                    
+                    let val;
+                    if (r === 1) val = n1_str[c-2];
+                    if (r === 2) val = n2_str[c-2];
+                    
+                    answers[pos] = val;
+                    inputOrder.push(pos);
+                });
+                
+                problems.push({ num1: n1, num2: n2, type, ans: ansVal, answers, inputOrder, hiddenPos, hintText });
+            }
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let currentProblemIndex = -1;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let incorrectCells = [];
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}点</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④'];
+        
+        problems.forEach((p, i) => {
+            const problemId = `problem-${i}`;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `problem-wrapper-${i}`; 
+            
+            wrapper.innerHTML = `<span class="problem-number">${circledNumbers[i]}</span><div class="box-grid" id="${problemId}-grid"></div>`;
+            const grid = wrapper.querySelector('.box-grid');
+            
+            for (let r = 1; r <= 3; r++) { 
+                for (let c = 1; c <= 4; c++) { 
+                    const cell = document.createElement('div');
+                    cell.id = `${problemId}-c${r}${c}`;
+                    cell.className = 'cell';
+                    grid.appendChild(cell);
+                }
+            }
+            container.appendChild(wrapper);
+            
+            const getCell = (r, c) => document.getElementById(`${problemId}-c${r}${c}`);
+            
+            const n1_str = String(p.num1);
+            const n2_str = String(p.num2);
+            const ans_str = String(p.ans);
+            
+            // Row 1: N1
+            for(let k=0; k<n1_str.length; k++) {
+                const col = 4 - (n1_str.length - 1 - k);
+                const cellKey = `c1${col}`; 
+                if (!p.hiddenPos.includes(cellKey)) {
+                    getCell(1, col).textContent = n1_str[k];
+                }
+            }
+            // Row 2: N2
+            getCell(2, 1).classList.add('plus-symbol');
+            getCell(2, 1).textContent = (p.type === 'ADD') ? '+' : '-';
+            for(let k=0; k<n2_str.length; k++) {
+                const col = 4 - (n2_str.length - 1 - k);
+                const cellKey = `c2${col}`; 
+                if (!p.hiddenPos.includes(cellKey)) {
+                    getCell(2, col).textContent = n2_str[k];
+                }
+            }
+            // Row 3: Answer
+            for(let k=0; k<ans_str.length; k++) {
+                const col = 4 - (ans_str.length - 1 - k);
+                getCell(3, col).textContent = ans_str[k];
+                getCell(3, col).style.fontWeight = 'bold';
+            }
+
+            // Create Inputs
+            p.inputOrder.forEach(key => {
+                const r = parseInt(key.charAt(1));
+                const c = parseInt(key.charAt(2));
+                const targetCell = getCell(r, c);
+                
+                const extraClass = 'masked-cell'; // Unified style
+
+                if (targetCell) {
+                    const inputHtml = `<input type="tel" inputmode="numeric" id="ans-${i}-${key}" class="input-cell ${extraClass}" data-prob-idx="${i}" data-cell-key="${key}" data-target-cell="${targetCell.id}" maxlength="1">`;
+                    targetCell.insertAdjacentHTML('beforeend', inputHtml);
+                }
+            });
+        });
+      }
+      
+      function updateHint() {
+          if (currentProblemIndex === -1) currentProblemIndex = 0;
+          const p = problems[currentProblemIndex];
+          if (p) {
+              const html = `
+                  <strong>問題 ${currentProblemIndex + 1} のヒント:</strong><br><br>
+                  ${p.hintText}
+              `;
+              document.getElementById('instruction-content').innerHTML = html;
+          }
+      }
+
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            el.value = el.value.replace(/[^0-9]/g, '');
+            if (el.value === '') return;
+            
+            // Auto-advance
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            const cellKey = el.dataset.cellKey;
+            const inputOrder = problems[probIdx].inputOrder;
+            const currentIndex = inputOrder.indexOf(cellKey);
+            if (currentIndex > -1 && currentIndex < inputOrder.length - 1) {
+                const nextCellKey = inputOrder[currentIndex + 1];
+                const nextEl = document.querySelector(`#ans-${probIdx}-${nextCellKey}`);
+                if(nextEl) nextEl.focus();
+            }
+        });
+
+        container.addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            
+            setTimeout(() => {
+                const wrapper = document.getElementById(`problem-wrapper-${probIdx}`);
+                if(wrapper) {
+                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+            
+            el.select();
+            currentProblemIndex = probIdx;
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                if (incorrectCells.length > 0) {
+                    const currentId = el.id;
+                    const listIdx = incorrectCells.indexOf(currentId);
+                    
+                    if (listIdx !== -1 && listIdx < incorrectCells.length - 1) {
+                        const nextId = incorrectCells[listIdx + 1];
+                        document.getElementById(nextId).focus();
+                    } else if (listIdx === incorrectCells.length - 1) {
+                        document.querySelector('#check-answers').focus();
+                    } else {
+                        if(incorrectCells.length > 0) document.getElementById(incorrectCells[0]).focus();
+                    }
+                } else {
+                    if (probIdx < problems.length - 1) {
+                         const nextOrder = problems[probIdx+1].inputOrder;
+                         if (nextOrder.length > 0) {
+                             document.querySelector(`#ans-${probIdx+1}-${nextOrder[0]}`).focus();
+                         }
+                    } else { 
+                        document.querySelector('#check-answers').focus(); 
+                    }
+                }
+            }
+        });
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        let allCorrect = true;
+        let newIncorrectCells = [];
+
+        problems.forEach((p, i) => {
+          let problemCorrect = true;
+          
+          p.inputOrder.forEach(cellKey => {
+             const el = document.querySelector(`#ans-${i}-${cellKey}`);
+             const parent = el.closest('.cell');
+             
+             parent.classList.remove('correct-bg', 'wrong-bg');
+             
+             const userAnswer = el.value;
+             const correctAnswer = String(p.answers[cellKey]);
+             
+             if (userAnswer !== correctAnswer) {
+                 problemCorrect = false;
+                 parent.classList.add('wrong-bg');
+                 newIncorrectCells.push(el.id);
+             } else {
+                 if (!parent.classList.contains('wrong-bg')) {
+                    parent.classList.add('correct-bg');
+                 }
+             }
+          });
+          
+          if (problemCorrect) {
+               p.inputOrder.forEach(cellKey => {
+                  const el = document.querySelector(`#ans-${i}-${cellKey}`);
+                  el.disabled = true;
+              });
+          } else {
+              allCorrect = false;
+          }
+        });
+        
+        incorrectCells = newIncorrectCells;
+        
+        const resultEl = document.querySelector('#result');
+        const hintEl = document.querySelector('#hint-message');
+        hintEl.textContent = '';
+
+        if (allCorrect) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseTime = config.targetTimePerQuestion * config.questionCount;
+           const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+           const score = config.baseScore + bonus;
+           
+           totalClearCount++; dailyCount++;
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 名探偵！全問正解！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 伝説の名探偵！ハイスコア！🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#7B1FA2', '#E1BEE7', '#FF7043'] });
+           }
+           
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           resultEl.textContent = 'おしい！推理をやりなおそう！';
+           btn.disabled = false;
+           
+           if (incorrectCells.length > 0) {
+               const firstError = document.getElementById(incorrectCells[0]);
+               if(firstError) {
+                   setTimeout(() => {
+                       firstError.focus();
+                       firstError.select(); 
+                   }, 100);
+               }
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        currentProblemIndex = -1;
+        incorrectCells = [];
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        document.querySelector('#hint-message').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        
+        currentProblemIndex = 0;
+        if (problems.length > 0) {
+            const firstInput = document.querySelector('input.input-cell');
+            if(firstInput) firstInput.focus();
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアとステータスをリセットしますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } 
+        });
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { 
+            updateHint(); 
+            modal.style.display = "block"; 
+        };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

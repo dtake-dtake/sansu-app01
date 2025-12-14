@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間のたんい</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+/* ▼▼▼ テーマ：ロイヤル・ラベンダー ▼▼▼ */
+        :root {
+            --c-bg-main: #F3E5F5;         /* 全体背景：薄いラベンダー */
+            --c-primary: #8E24AA;         /* メイン色：紫 */
+            --c-primary-dark: #4A148C;    /* タイトルなど：濃い紫 */
+            --c-primary-light: #E1BEE7;   /* サブタイトル背景：明るいラベンダー */
+            --c-button-bg: #9C27B0;       /* ボタン背景 */
+            --c-button-hover: #7B1FA2;    /* ボタンホバー時 */
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #EDE7F6;      /* 履歴エリア背景：ごく薄い紫 */
+            
+            --c-text-main: #333333;       /* メイン文字色：濃いグレー */
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #D1C4E9; /* 正解：薄い青紫 */
+            --c-feedback-wrong-bg: #FFCDD2;   /* 不正解：薄い赤 */
+            
+            --font-size: 1.8rem;
+            --input-width: 80px;
+        }
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: flex; flex-direction: column; gap: 20px;
+            width: 100%; max-width: 650px; margin-top: 20px;
+        }
+        
+        .problem-wrapper {
+            display: flex; flex-direction: column; align-items: flex-start;
+            background: var(--c-problem-row-bg); border-radius: 10px; padding: 15px 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            scroll-margin-block: 20vh;
+        }
+        
+        .problem-row {
+            display: flex; align-items: center; flex-wrap: wrap;
+            font-size: 1.6rem; line-height: 2.0; width: 100%;
+        }
+
+        .problem-number {
+            font-size: 1.6rem; font-weight: bold; margin-right: 10px;
+            color: var(--c-primary); white-space: nowrap;
+        }
+
+        .input-wrapper {
+            display: inline-flex; align-items: center; margin: 0 5px;
+        }
+
+        .input-cell {
+            width: var(--input-width); height: 50px; text-align: center; font-size: var(--font-size);
+            font-family: inherit; border: 2px solid #ddd; background-color: #fff; padding: 0;
+            color: var(--c-text-main); outline: none; border-radius: 8px;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .input-cell:focus {
+             background-color: #FFE0B2; 
+             border-color: var(--c-primary);
+             box-shadow: 0 0 0 3px rgba(239, 108, 0, 0.2);
+        }
+        
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; border-color: #81C784 !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; border-color: #E57373 !important; }
+
+        .unit-label {
+            margin-left: 4px; margin-right: 8px; font-weight: bold;
+        }
+
+        .equals-sign {
+            margin: 0 10px; font-weight: bold;
+        }
+
+        button {
+            font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: background-color 0.2s; font-weight: bold;
+        }
+        button:hover { background-color: var(--c-button-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 15px;
+            background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+        }
+        #result { font-size: 1.6rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; }
+        #hint-message { color: #D81B60; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px solid #FFCC80; padding: 5px; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 1.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 15px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="説明を表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">学習のポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="hint-message"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px;">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（最新５件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "time_conversion_p53",
+        mainTitle: "４　時こくと時間",
+        title: "時間のたんい", 
+        page: 53, 
+        baseScore: 100,
+        targetTimePerQuestion: 60, // 短めの計算なので
+        questionCount: 6,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <p>時間や分の単位（たんい）を書きかえよう。</p>
+          <div style="background:#FFF3E0; padding:10px; border-radius:8px; border:1px solid #FFB74D; margin-bottom:10px;">
+             <strong>ポイント：</strong><br>
+             ● <strong>1時間 ＝ 60分</strong><br>
+             　（例：1時間20分 ＝ 60分＋20分 ＝ 80分）<br>
+             　（例：90分 ＝ 60分＋30分 ＝ 1時間30分）<br>
+             <br>
+             ● <strong>1分 ＝ 60秒</strong><br>
+             　（例：1分30秒 ＝ 60秒＋30秒 ＝ 90秒）<br>
+             　（例：80秒 ＝ 60秒＋20秒 ＝ 1分20秒）
+          </div>
+        `,
+
+        problemGenerator(count = 6) {
+            const problems = [];
+            
+            // パターン定義
+            // 1: H時間M分 -> [ ]分
+            // 2: [ ]分 -> H時間M分
+            // 3: M分S秒 -> [ ]秒
+            // 4: [ ]秒 -> M分S秒
+            
+            for(let i=0; i<count; i++) {
+                // 時間の問題と秒の問題をバランスよく
+                // 偶数回は時間(パターン1,2)、奇数回は秒(パターン3,4)など
+                let type;
+                if (i % 2 === 0) {
+                    type = Math.random() < 0.5 ? 1 : 2; // 時間系
+                } else {
+                    type = Math.random() < 0.5 ? 3 : 4; // 秒系
+                }
+                
+                let problem = {};
+                
+                if (type === 1) { // H時間M分 -> [ ]分
+                    const h = Math.floor(Math.random() * 2) + 1; // 1 or 2
+                    const m = Math.floor(Math.random() * 50) + 10;
+                    const totalM = h * 60 + m;
+                    
+                    problem = {
+                        leftParts: [{val: h, unit: '時間'}, {val: m, unit: '分'}],
+                        rightParts: [{key: 'total', unit: '分', ans: totalM}]
+                    };
+                } 
+                else if (type === 2) { // [ ]分 -> H時間M分
+                    const h = Math.floor(Math.random() * 2) + 1; // 1 or 2
+                    const m = Math.floor(Math.random() * 50) + 10;
+                    const totalM = h * 60 + m;
+
+                    problem = {
+                        leftParts: [{val: totalM, unit: '分'}],
+                        rightParts: [{key: 'h', unit: '時間', ans: h}, {key: 'm', unit: '分', ans: m}]
+                    };
+                }
+                else if (type === 3) { // M分S秒 -> [ ]秒
+                    const m = Math.floor(Math.random() * 2) + 1; // 1 or 2
+                    const s = Math.floor(Math.random() * 50) + 10;
+                    const totalS = m * 60 + s;
+                    
+                    problem = {
+                        leftParts: [{val: m, unit: '分'}, {val: s, unit: '秒'}],
+                        rightParts: [{key: 'total', unit: '秒', ans: totalS}]
+                    };
+                }
+                else { // [ ]秒 -> M分S秒
+                    const m = Math.floor(Math.random() * 2) + 1; 
+                    const s = Math.floor(Math.random() * 50) + 10;
+                    const totalS = m * 60 + s;
+
+                    problem = {
+                        leftParts: [{val: totalS, unit: '秒'}],
+                        rightParts: [{key: 'm', unit: '分', ans: m}, {key: 's', unit: '秒', ans: s}]
+                    };
+                }
+
+                problems.push(problem);
+            }
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let currentProblemIndex = -1;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let incorrectCells = [];
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}点</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④', '⑤', '⑥'];
+        
+        problems.forEach((p, i) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `problem-wrapper-${i}`; 
+            
+            const row = document.createElement('div');
+            row.className = 'problem-row';
+            
+            // 問題番号
+            const numSpan = document.createElement('span');
+            numSpan.className = 'problem-number';
+            numSpan.textContent = circledNumbers[i];
+            row.appendChild(numSpan);
+            
+            // 左辺 (Question)
+            p.leftParts.forEach(part => {
+                const span = document.createElement('span');
+                span.textContent = `${part.val}${part.unit}`;
+                // 見やすくするために少し余白
+                span.style.marginRight = "5px";
+                row.appendChild(span);
+            });
+            
+            // イコール
+            const eq = document.createElement('span');
+            eq.className = 'equals-sign';
+            eq.textContent = '＝';
+            row.appendChild(eq);
+            
+            // 右辺 (Answer inputs)
+            p.rightParts.forEach((part, idx) => {
+                const inputId = `ans-${i}-${idx}`;
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = 'input-wrapper';
+                
+                const inputEl = document.createElement('input');
+                inputEl.type = "tel";
+                inputEl.inputMode = "numeric";
+                inputEl.id = inputId;
+                inputEl.className = "input-cell";
+                inputEl.dataset.probIdx = i;
+                inputEl.dataset.itemIdx = idx;
+                inputEl.dataset.correctVal = part.ans;
+                inputEl.maxLength = 3; // 120分など3桁ありうる
+
+                const unitSpan = document.createElement('span');
+                unitSpan.className = 'unit-label';
+                unitSpan.textContent = part.unit;
+
+                wrapperDiv.appendChild(inputEl);
+                wrapperDiv.appendChild(unitSpan);
+                row.appendChild(wrapperDiv);
+            });
+
+            wrapper.appendChild(row);
+            container.appendChild(wrapper);
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            
+            let val = el.value.replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
+            el.value = val.replace(/[^0-9]/g, '');
+        });
+
+        // 自動スクロール & 全選択
+        container.addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            
+            el.select();
+
+            if (probIdx !== currentProblemIndex) {
+                currentProblemIndex = probIdx;
+                setTimeout(() => {
+                    const wrapper = document.getElementById(`problem-wrapper-${probIdx}`);
+                    if(wrapper) {
+                        wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 10);
+            }
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            const itemIdx = parseInt(el.dataset.itemIdx, 10);
+            
+            // Enterキーでの移動
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                if (incorrectCells.length > 0) {
+                    const currentId = el.id;
+                    const idxInIncorrect = incorrectCells.indexOf(currentId);
+                    
+                    if (idxInIncorrect !== -1 && idxInIncorrect < incorrectCells.length - 1) {
+                        const nextId = incorrectCells[idxInIncorrect + 1];
+                        document.getElementById(nextId).focus();
+                    } else if (idxInIncorrect === incorrectCells.length - 1) {
+                        document.querySelector('#check-answers').focus();
+                    } else {
+                        document.getElementById(incorrectCells[0]).focus();
+                    }
+                } else {
+                    moveToNextInput(el);
+                }
+            }
+            // Backspaceキーでの戻り
+            else if (e.key === 'Backspace' && el.value === '') {
+                e.preventDefault();
+                
+                // 同じ問題内の前の欄
+                let prevEl = document.getElementById(`ans-${probIdx}-${itemIdx - 1}`);
+                if (!prevEl) {
+                    // 前の問題の最後の欄
+                    const prevProbIdx = probIdx - 1;
+                    if (prevProbIdx >= 0) {
+                        const prevInputs = document.querySelectorAll(`[data-prob-idx="${prevProbIdx}"]`);
+                        if (prevInputs.length > 0) {
+                            prevEl = prevInputs[prevInputs.length - 1];
+                        }
+                    }
+                }
+                if (prevEl) {
+                    prevEl.focus();
+                }
+            }
+        });
+      }
+      
+      function moveToNextInput(currentEl) {
+          const probIdx = parseInt(currentEl.dataset.probIdx, 10);
+          const itemIdx = parseInt(currentEl.dataset.itemIdx, 10);
+          
+          const nextInProb = document.querySelector(`#ans-${probIdx}-${itemIdx + 1}`);
+          if (nextInProb) {
+              nextInProb.focus();
+              return;
+          }
+          
+          const nextProbFirst = document.querySelector(`#ans-${probIdx + 1}-0`);
+          if (nextProbFirst) {
+              nextProbFirst.focus();
+          } else {
+              document.querySelector('#check-answers').focus();
+          }
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        incorrectCells = [];
+        let allCorrect = true;
+        
+        problems.forEach((p, i) => {
+           // 右辺の入力のみチェック
+           p.rightParts.forEach((part, idx) => {
+               const el = document.getElementById(`ans-${i}-${idx}`);
+               const correctVal = parseInt(el.dataset.correctVal, 10);
+               const userVal = parseInt(el.value, 10); 
+               
+               el.classList.remove('correct-bg', 'wrong-bg');
+               
+               if (userVal === correctVal) {
+                   el.classList.add('correct-bg');
+                   el.disabled = true;
+               } else {
+                   allCorrect = false;
+                   el.classList.add('wrong-bg');
+                   incorrectCells.push(el.id);
+               }
+           });
+        });
+        
+        const resultEl = document.querySelector('#result');
+        const hintEl = document.querySelector('#hint-message');
+        hintEl.textContent = '';
+
+        if (allCorrect) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseTime = config.targetTimePerQuestion * config.questionCount;
+           const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+           const score = config.baseScore + bonus;
+           
+           totalClearCount++; dailyCount++;
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 全問正解！おめでとう！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア達成！すごい！🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#EF6C00', '#FFB74D', '#FFFFFF'] });
+           }
+           
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           resultEl.textContent = 'おしい！まちがいを直そう！';
+           btn.disabled = false;
+           if (incorrectCells.length > 0) {
+               const firstWrong = document.getElementById(incorrectCells[0]);
+               firstWrong.focus();
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        currentProblemIndex = -1;
+        incorrectCells = [];
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        document.querySelector('#hint-message').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        
+        if (problems.length > 0) {
+            const firstInput = document.getElementById('ans-0-0');
+            if(firstInput) firstInput.focus();
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアとステータスをリセットしますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } 
+        });
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

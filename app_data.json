@@ -699,6 +699,12 @@
             "page": "41"
           },
           {
+            "id": "45_4keta_hissan",
+            "title": "４けたの筆算",
+            "path": "3nen/3_tasizan_hikizan_hissan/45_4keta_hissan.html",
+            "page": "45"
+          },
+          {
             "id": "tashizan_hissan_3keta_carry2_final",
             "title": "くり上がりが２回ある筆算",
             "path": "3nen/3_tasizan_hikizan_hissan/38_tashizan_hissan_2kai.html",
@@ -721,12 +727,43 @@
             "title": "百の位にくり上がりがある筆算",
             "path": "3nen/3_tasizan_hikizan_hissan/39_tashizan_hissan_answer4keta.html",
             "page": "39"
+          },
+          {
+            "id": "48_hissan_kazuategame_v3",
+            "title": "筆算の数あてゲーム",
+            "path": "3nen/3_tasizan_hikizan_hissan/48_hissan_kazuategame.html",
+            "page": "48"
+          },
+          {
+            "id": "46_kufu_tashizan_v4",
+            "title": "計算のくふう",
+            "path": "3nen/3_tasizan_hikizan_hissan/46_kufu_tashizan.html",
+            "page": "46"
           }
         ]
       },
       {
         "name": "４　　時こくと時間",
-        "apps": []
+        "apps": [
+          {
+            "id": "time_conversion_p53",
+            "title": "時間のたんい",
+            "path": "3nen/4_jikoku_jikan/53_jikan_no_tani.html",
+            "page": "53"
+          },
+          {
+            "id": "jikan_o_modosu_p52",
+            "title": "時間を もどすとき",
+            "path": "3nen/4_jikoku_jikan/52_jikan_o_modosu.html",
+            "page": "52"
+          },
+          {
+            "id": "jikoku_to_jikan_p51_v4",
+            "title": "時間をすすめた時こく",
+            "path": "3nen/4_jikoku_jikan/51_jikoku_to_jikan.html",
+            "page": "51"
+          }
+        ]
       },
       {
         "name": "５　　一万をこえる数",

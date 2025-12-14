@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>計算のくふう</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：ライム・フレッシュ ▼▼▼ */
+        :root {
+            --c-bg-main: #F9FBE7;         
+            --c-primary: #827717;         
+            --c-primary-dark: #558B2F;    
+            --c-primary-light: #DCEDC8;   
+            --c-button-bg: #9E9D24;       
+            --c-button-hover: #827717;    
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #F0F4C3;      
+            
+            --c-text-main: #33691E;       
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #C5E1A5; 
+            --c-feedback-wrong-bg: #FFCCBC;   
+            
+            --font-size-num: 2.2rem;
+            --input-width: 140px;
+            
+            --border-color: #C5E1A5;      
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: flex; flex-direction: column; gap: 20px;
+            width: 100%; 
+            max-width: 850px; 
+            margin-top: 20px;
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: center; 
+            justify-content: center; 
+            background: var(--c-problem-row-bg); border-radius: 12px; padding: 15px 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            scroll-margin-block: 150px; 
+            flex-wrap: nowrap; 
+            gap: 20px;
+        }
+        
+        .problem-number {
+            font-size: 1.4rem; font-weight: bold; 
+            color: var(--c-primary);
+            min-width: 30px; 
+            flex-shrink: 0;
+        }
+
+        .formula-area {
+            font-size: var(--font-size-num);
+            font-family: 'Courier New', Courier, monospace; 
+            font-weight: bold;
+            color: var(--c-text-main);
+            text-align: right;
+            letter-spacing: 1px;
+            white-space: nowrap; 
+            flex-shrink: 0;
+        }
+
+        .answer-input-wrapper {
+            display: flex; align-items: center; gap: 15px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .equal-symbol { font-size: var(--font-size-num); color: #999; }
+
+        .input-cell {
+            width: var(--input-width); height: 50px; 
+            text-align: center; font-size: var(--font-size-num);
+            border: 2px solid var(--border-color); border-radius: 8px;
+            background-color: #fff; color: var(--c-text-main); 
+            outline: none; font-weight: bold;
+        }
+        .input-cell:focus {
+             border-color: var(--c-primary);
+             box-shadow: 0 0 0 3px rgba(130, 119, 23, 0.2);
+        }
+        
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; transition: background-color 0.3s; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; transition: background-color 0.3s; }
+
+        button {
+            font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: background-color 0.2s; font-weight: bold;
+        }
+        button:hover { background-color: var(--c-button-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 15px;
+            background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+        }
+        #result { font-size: 1.6rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; }
+        #hint-message { color: #D81B60; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px solid #C5E1A5; padding: 5px; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 1.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 15px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="説明を表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">学習のポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="hint-message"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px;">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（最新５件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "46_kufu_tashizan_v4",
+        mainTitle: "４　計算のくふう",
+        title: "３つの数のたし算", 
+        page: 46, 
+        baseScore: 100,
+        targetTimePerQuestion: 40,
+        questionCount: 6,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+<div style="background:#F9FBE7; padding:10px; border-radius:8px; border:1px solid #C5E1A5; margin-bottom:10px;">
+             <strong>ポイント：</strong><br>
+             たし算は、たすじゅんばんをかえても、答えは同じになります。<br><br>
+             例）237 + 38 + 62<br>
+             ① 38 + 62 を先に計算すると 100 になります。<br>
+             ② 237 + 100 = 337<br><br>
+             きりのよい数（ 100 や 200 など）になるペアを見つけよう！
+          </div>
+        `,
+
+        problemGenerator(count = 6) {
+            const problems = [];
+            const generated = new Set();
+            let guard = 0;
+
+            const targets = [100, 100, 200, 300, 400, 500];
+            
+            for (let i = targets.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [targets[i], targets[j]] = [targets[j], targets[i]];
+            }
+
+            for(let i = 0; i < count; i++) {
+                const targetSum = targets[i];
+                let n1, n2, n3;
+                let attempts = 0;
+
+                while(attempts < 100) {
+                    attempts++;
+                    
+                    // n1を800以下に制限
+                    n1 = Math.floor(Math.random() * 700) + 100; // 100-799
+                    
+                    let minN2 = Math.floor(targetSum * 0.1);
+                    let maxN2 = Math.floor(targetSum * 0.9);
+                    n2 = Math.floor(Math.random() * (maxN2 - minN2)) + minN2;
+                    
+                    if (n2 % 10 === 0) n2 += 1; 
+                    n3 = targetSum - n2;
+                    
+                    if (n3 <= 0 || n3 % 10 === 0) continue;
+
+                    const key = `${n1}+${n2}+${n3}`;
+                    if (generated.has(key)) continue;
+                    generated.add(key);
+                    
+                    problems.push({ num1: n1, num2: n2, num3: n3, ans: n1 + targetSum, targetSum });
+                    break;
+                }
+            }
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let currentProblemIndex = -1;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let incorrectCells = [];
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}点</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④', '⑤', '⑥'];
+        
+        problems.forEach((p, i) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `problem-wrapper-${i}`; 
+            
+            const formulaHtml = `
+                <span class="problem-number">${circledNumbers[i]}</span>
+                <div class="formula-area">
+                    ${p.num1} + ${p.num2} + ${p.num3}
+                </div>
+                <div class="answer-input-wrapper">
+                    <span class="equal-symbol">=</span>
+                    <input type="tel" inputmode="numeric" id="ans-${i}" class="input-cell" data-prob-idx="${i}">
+                </div>
+            `;
+            
+            wrapper.innerHTML = formulaHtml;
+            container.appendChild(wrapper);
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            el.value = el.value.replace(/[^0-9]/g, '');
+        });
+
+        container.addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            
+            setTimeout(() => {
+                const wrapper = document.getElementById(`problem-wrapper-${probIdx}`);
+                if(wrapper) {
+                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+            
+            el.select();
+            currentProblemIndex = probIdx;
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                if (incorrectCells.length > 0) {
+                    const currentId = el.id;
+                    const listIdx = incorrectCells.indexOf(currentId);
+                    
+                    if (listIdx !== -1 && listIdx < incorrectCells.length - 1) {
+                        const nextId = incorrectCells[listIdx + 1];
+                        document.getElementById(nextId).focus();
+                    } else if (listIdx === incorrectCells.length - 1) {
+                        document.querySelector('#check-answers').focus();
+                    } else {
+                         if(incorrectCells.length > 0) document.getElementById(incorrectCells[0]).focus();
+                    }
+                } else {
+                    if (probIdx < problems.length - 1) {
+                         const nextEl = document.querySelector(`#ans-${probIdx+1}`);
+                         if(nextEl) nextEl.focus();
+                    } else { 
+                        document.querySelector('#check-answers').focus(); 
+                    }
+                }
+            }
+        });
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        let allCorrect = true;
+        let newIncorrectCells = [];
+
+        problems.forEach((p, i) => {
+             const el = document.querySelector(`#ans-${i}`);
+             const parent = el.closest('.problem-wrapper');
+             
+             parent.classList.remove('correct-bg', 'wrong-bg');
+             el.classList.remove('correct-bg', 'wrong-bg'); 
+             
+             const userAnswer = el.value;
+             const correctAnswer = String(p.ans);
+             
+             if (userAnswer !== correctAnswer) {
+                 allCorrect = false;
+                 parent.classList.add('wrong-bg');
+                 newIncorrectCells.push(el.id);
+             } else {
+                 if (!parent.classList.contains('wrong-bg')) {
+                    parent.classList.add('correct-bg');
+                    el.disabled = true;
+                 }
+             }
+        });
+        
+        incorrectCells = newIncorrectCells;
+        
+        const resultEl = document.querySelector('#result');
+        const hintEl = document.querySelector('#hint-message');
+        hintEl.textContent = '';
+
+        if (allCorrect) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseTime = config.targetTimePerQuestion * config.questionCount;
+           const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+           const score = config.baseScore + bonus;
+           
+           totalClearCount++; dailyCount++;
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 全問正解！おめでとう！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア達成！すごい！🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#827717', '#DCEDC8', '#F9FBE7'] });
+           }
+           
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           resultEl.textContent = 'おしい！まちがいを直そう！';
+           hintEl.textContent = 'うしろの２つを さきに たしてみよう！';
+           btn.disabled = false;
+           
+           if (incorrectCells.length > 0) {
+               const firstError = document.getElementById(incorrectCells[0]);
+               if(firstError) {
+                   setTimeout(() => {
+                       firstError.focus();
+                       firstError.select(); 
+                   }, 100);
+               }
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        currentProblemIndex = -1;
+        incorrectCells = [];
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        document.querySelector('#hint-message').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        if (problems.length > 0) {
+            const firstInput = document.querySelector(`#ans-0`);
+            if(firstInput) firstInput.focus();
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアとステータスをリセットしますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } 
+        });
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

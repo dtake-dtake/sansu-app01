@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>４けたの筆算</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：シトラス・オレンジ ▼▼▼ */
+        :root {
+            --c-bg-main: #FFF3E0;         /* 背景：薄いオレンジ */
+            --c-primary: #FF9800;         /* メイン：オレンジ */
+            --c-primary-dark: #F57C00;    /* 濃いメイン */
+            --c-primary-light: #FFE0B2;   /* 薄いメイン */
+            --c-button-bg: #FB8C00;       /* ボタン背景 */
+            --c-button-hover: #EF6C00;    /* ボタンホバー */
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #FFF8E1;      
+            
+            --c-text-main: #E65100;       /* テキスト：濃いオレンジ茶 */
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #C8E6C9; /* 正解時の背景（緑系でアクセント） */
+            --c-feedback-wrong-bg: #FFCCBC;   /* 不正解時の背景（赤系） */
+            
+            --cell-size: 44px;
+            --font-size: 1.8rem;
+            
+            --border-color: #FFCC80;      
+            --symbol-color: #E65100;
+            --symbol-stroke-width: 2px;
+            
+            --carry-note-color: #E91E63; 
+            --carry-note-border: #F48FB1;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px 15px;
+            width: 100%; max-width: 650px; margin-top: 20px;
+        }
+        @media (max-width: 650px) {
+            #problems-container { grid-template-columns: 1fr; }
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: flex-start; justify-content: center;
+            background: var(--c-problem-row-bg); border-radius: 10px; padding: 15px 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            scroll-margin-block: 150px; 
+        }
+        
+        .problem-number {
+            font-size: 1.6rem; font-weight: bold; margin-right: 12px;
+            color: var(--c-primary); margin-top: 20px;
+        }
+
+        /* 5列 x 4行 (メモ行1 + 数字行2 + 答え行1) */
+        /* 4けた同士の計算＋繰り上がりで5桁になる可能性を考慮して5列 */
+        .box-grid {
+            display: grid; 
+            grid-template-columns: repeat(5, var(--cell-size)); 
+            grid-template-rows: repeat(4, var(--cell-size));    
+            border: none;
+            background-color: transparent;
+            position: relative; 
+        }
+        
+        .cell {
+            border-right: 1px dashed var(--border-color); 
+            border-bottom: 1px dashed var(--border-color);
+            display: flex; justify-content: center; align-items: center;
+            font-size: var(--font-size); box-sizing: border-box;
+            position: relative; 
+            z-index: 1;
+        }
+
+        .box-grid > .cell:nth-child(5n) { border-right: none; } 
+        .box-grid > .cell:nth-last-child(-n+5) { border-bottom: none; } 
+        
+        /* 筆算の横線 (3行目の下 = インデックス11~15) */
+        .box-grid > .cell:nth-child(n+11):nth-child(-n+15) {
+            border-bottom: var(--symbol-stroke-width) solid var(--symbol-color) !important;
+        }
+
+        /* 斜線（スラッシュ）: 繰り下がりで消された数字用 */
+        .crossed-out {
+            background: linear-gradient(to top right, transparent 46%, var(--symbol-color) 46%, var(--symbol-color) 54%, transparent 54%);
+            background-size: 80% 80%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .plus-symbol {
+            font-family: sans-serif;
+            font-size: 2.0rem; font-weight: normal; color: var(--symbol-color);
+            padding-right: 5px;
+        }
+        
+        .answer-area { background-color: var(--c-primary-light); opacity: 0.3; position:absolute; width:100%; height:100%; z-index:-1; }
+
+        .input-cell {
+            width: 100%; height: 100%; text-align: center; font-size: var(--font-size);
+            font-family: inherit; border: none; background-color: transparent; padding: 0;
+            color: var(--c-text-main); outline: none; border-radius: 0;
+            z-index: 2; 
+        }
+        .input-cell:focus {
+             background-color: rgba(255, 255, 255, 0.9);
+             box-shadow: inset 0 0 0 2px var(--c-primary);
+        }
+        .input-cell::selection {
+            background-color: var(--c-primary-light);
+            color: var(--c-text-main);
+        }
+        
+        /* メモ (1行目) */
+        .input-cell.note-input {
+            position: absolute; 
+            width: 30px; height: 30px; 
+            font-size: 1.0rem; 
+            color: var(--carry-note-color); 
+            border: 1px dashed var(--carry-note-border);
+            border-radius: 50%;
+            background-color: #fff;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100; 
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .input-cell.answer-input { font-weight: bold; }
+        
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+
+        button {
+            font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: background-color 0.2s; font-weight: bold;
+        }
+        button:hover { background-color: var(--c-button-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 15px;
+            background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+        }
+        #result { font-size: 1.6rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; }
+        #hint-message { color: #D81B60; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px solid #FFE0B2; padding: 5px; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 1.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 15px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="説明を表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">学習のポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="hint-message"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px;">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（最新５件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "45_4keta_hissan",
+        mainTitle: "３　4けたの数の筆算",
+        title: "４けたの筆算", 
+        page: 45, 
+        baseScore: 100,
+        targetTimePerQuestion: 100, 
+        questionCount: 6,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <div style="background:#FFF3E0; padding:10px; border-radius:8px; border:1px solid #FFCC80; margin-bottom:10px;">
+             <strong>ポイント：</strong><br>
+             位をそろえて、一の位からじゅんに計算しよう。<br><br>
+             <strong>たし算：</strong> 10以上になったら、上の位に<span style="color:var(--carry-note-color);">１</span>くり上げよう。<br>
+             <strong>ひき算：</strong> ひけないときは、上の位から借りてこよう。<br>
+             （借りた位は線を引いて、残りの数をメモしよう）
+          </div>
+        `,
+
+        problemGenerator(count = 6) {
+            const problems = [];
+            const generated = new Set();
+            let guard = 0;
+            
+            // Generate a mix of 4-digit addition and subtraction
+            while(problems.length < count && guard < 5000) {
+                guard++;
+                
+                const type = Math.random() < 0.5 ? 'ADD' : 'SUB';
+                let n1, n2, operator;
+                
+                if (type === 'ADD') {
+                    operator = '+';
+                    // Pattern: 4d+4d or 4d+2d/3d
+                    if (Math.random() < 0.7) {
+                        n1 = Math.floor(Math.random() * 8000) + 1000;
+                        n2 = Math.floor(Math.random() * 8000) + 1000;
+                    } else {
+                        n1 = Math.floor(Math.random() * 9000) + 1000;
+                        n2 = Math.floor(Math.random() * 900) + 10;
+                    }
+                    if (n1 + n2 >= 20000) continue; // Keep answer reasonable
+                } else {
+                    operator = '-';
+                    // Pattern: 4d-4d or 4d-3d
+                    n1 = Math.floor(Math.random() * 8900) + 1100;
+                    if (Math.random() < 0.7) {
+                        n2 = Math.floor(Math.random() * (n1 - 1000)) + 1000;
+                    } else {
+                        n2 = Math.floor(Math.random() * 900) + 100;
+                    }
+                    if (n1 - n2 < 0) continue;
+                }
+
+                const key = `${n1}${operator}${n2}`;
+                if (generated.has(key)) continue;
+                generated.add(key);
+                
+                const answers = {};
+                const inputOrder = [];
+                const ansVal = (type === 'ADD') ? n1 + n2 : n1 - n2;
+                
+                // Align to 5 columns. (Col 1 is 10000s or borrow source of 1000s)
+                // Col 1, 2, 3, 4, 5 => 10000, 1000, 100, 10, 1
+                
+                const getDigits = (n) => {
+                    let s = String(n);
+                    let res = [0, 0, 0, 0, 0];
+                    for(let i=0; i<s.length; i++) {
+                        res[5 - s.length + i] = parseInt(s[i]);
+                    }
+                    return res;
+                };
+                
+                const d1 = getDigits(n1);
+                const d2 = getDigits(n2);
+                let carry = 0;
+                let borrows = [0, 0, 0, 0, 0]; // state of digits for subtraction
+                let current_d1 = [...d1];
+
+                // Process from Right (Col 5) to Left (Col 1)
+                for (let col = 5; col >= 1; col--) {
+                    if (type === 'ADD') {
+                        // Addition Logic
+                        let sum = current_d1[col-1] + d2[col-1] + carry;
+                        let val = sum % 10;
+                        let nextCarry = Math.floor(sum / 10);
+                        
+                        // If carry generated, input note in next col (row 1)
+                        if (nextCarry > 0) {
+                            // Only if there is a next column to write to
+                            if (col > 1) {
+                                answers[`c1${col-1}`] = nextCarry;
+                                inputOrder.push(`c1${col-1}`);
+                            }
+                        }
+                        
+                        // Input answer (except leading zero for answer)
+                        // But we usually write 0 if it's in the middle.
+                        // For the most significant digit, if it is 0, we generally don't write it unless answer is 0.
+                        // Here, we calculate full grid.
+                        
+                        // Determine if we should input this digit
+                        // If it's 0 and we haven't reached non-zero digits yet (from left), skip?
+                        // No, we process right to left.
+                        
+                        // Simple rule: Input if significant or if rightmost.
+                        // Actually, app should expect input if the column has digits or carry/borrow resulted in value.
+                        
+                        // For simplicity in this app: always input calculated digit if (n1+n2) has digit there.
+                        // n1+n2 string length check.
+                        const trueAnsStr = String(ansVal);
+                        const posFromRight = 5 - col; // 0 for col 5
+                        if (posFromRight < trueAnsStr.length) {
+                             answers[`c4${col}`] = val;
+                             inputOrder.push(`c4${col}`);
+                        }
+                        
+                        carry = nextCarry;
+                        
+                    } else {
+                        // Subtraction Logic
+                        let v1 = current_d1[col-1];
+                        let v2 = d2[col-1];
+                        
+                        if (v1 < v2) {
+                            // Need borrow
+                            // Find source
+                            let sourceCol = col - 1;
+                            while (sourceCol >= 1 && current_d1[sourceCol-1] === 0) {
+                                sourceCol--;
+                            }
+                            
+                            // Apply borrow chain
+                            if (sourceCol >= 1) {
+                                // Decrement source
+                                current_d1[sourceCol-1]--;
+                                // Input source note (new value)
+                                answers[`c1${sourceCol}`] = current_d1[sourceCol-1];
+                                // We need to insert this input requirement *before* the current answer
+                                // But we are inside the loop for `col`.
+                                // In UI, we want users to fill borrow notes first.
+                                inputOrder.push(`c1${sourceCol}`);
+                                
+                                // Propagate 9s if skipped zeros
+                                for (let k = sourceCol + 1; k < col; k++) {
+                                    current_d1[k-1] += 9; // 0 became 10 then gave 1 -> 9
+                                    // But wait, the standard logic is: 
+                                    // Borrow from 100 -> 100 becomes 0, 10s becomes 10.
+                                    // If we need to borrow from further, it ripples.
+                                    // Simple logic:
+                                    // Source decreases by 1.
+                                    // Intermediates become 9.
+                                    // Current becomes v1 + 10.
+                                    
+                                    // We need inputs for intermediates too
+                                    current_d1[k-1] = 9;
+                                    answers[`c1${k}`] = 9;
+                                    inputOrder.push(`c1${k}`);
+                                }
+                                v1 += 10;
+                            }
+                        }
+                        
+                        let diff = v1 - v2;
+                        
+                        // Input answer
+                        const trueAnsStr = String(ansVal);
+                        const posFromRight = 5 - col;
+                        if (posFromRight < trueAnsStr.length) {
+                            answers[`c4${col}`] = diff;
+                            inputOrder.push(`c4${col}`);
+                        }
+                    }
+                }
+                
+                problems.push({ num1: n1, num2: n2, operator, ans: ansVal, answers, inputOrder });
+            }
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let currentProblemIndex = -1;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let incorrectCells = [];
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}点</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④', '⑤', '⑥'];
+        
+        problems.forEach((p, i) => {
+            const problemId = `problem-${i}`;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `problem-wrapper-${i}`; 
+            
+            // 5列 x 4行
+            wrapper.innerHTML = `<span class="problem-number">${circledNumbers[i]}</span><div class="box-grid" id="${problemId}-grid"></div>`;
+            const grid = wrapper.querySelector('.box-grid');
+            
+            for (let r = 1; r <= 4; r++) { 
+                for (let c = 1; c <= 5; c++) { 
+                    const cell = document.createElement('div');
+                    cell.id = `${problemId}-c${r}${c}`;
+                    cell.className = 'cell';
+                    if (r === 4) {
+                        const bg = document.createElement('div');
+                        bg.className = 'answer-area';
+                        cell.appendChild(bg);
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+            container.appendChild(wrapper);
+            
+            const getCell = (r, c) => document.getElementById(`${problemId}-c${r}${c}`);
+            
+            // Place Numbers (Right Aligned)
+            const n1_str = String(p.num1);
+            for(let k=0; k<n1_str.length; k++) {
+                const char = n1_str[n1_str.length - 1 - k];
+                const col = 5 - k;
+                getCell(2, col).textContent = char;
+            }
+
+            const n2_str = String(p.num2);
+            getCell(3, 1).classList.add('plus-symbol');
+            getCell(3, 1).textContent = p.operator; 
+            
+            for(let k=0; k<n2_str.length; k++) {
+                const char = n2_str[n2_str.length - 1 - k];
+                const col = 5 - k;
+                getCell(3, col).textContent = char;
+            }
+            
+            p.inputOrder.forEach(key => {
+                const r = parseInt(key.charAt(1));
+                const c = parseInt(key.charAt(2));
+                const targetCell = getCell(r, c);
+                
+                let extraClass = '';
+                if (r === 1) {
+                    extraClass = 'note-input'; 
+                }
+                else if (r === 4) extraClass = 'answer-input';
+
+                if (targetCell) {
+                    const maxLen = String(p.answers[key]).length;
+                    const inputHtml = `<input type="tel" inputmode="numeric" id="ans-${i}-${key}" class="input-cell ${extraClass}" data-prob-idx="${i}" data-cell-key="${key}" data-target-cell="${targetCell.id}" maxlength="${maxLen}">`;
+                    targetCell.insertAdjacentHTML('beforeend', inputHtml);
+                }
+            });
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('input', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            
+            // Visual logic for cross-out (borrowing)
+            if (el.classList.contains('note-input')) {
+                // If this is a borrow note (subtraction), cross out the number below
+                // How to detect? Check operator.
+                const prob = problems[parseInt(el.dataset.probIdx)];
+                if (prob.operator === '-') {
+                    const c = parseInt(el.dataset.cellKey.charAt(2));
+                    const targetNumCell = document.getElementById(`problem-${el.dataset.probIdx}-c2${c}`);
+                    
+                    if (el.value.length > 0) {
+                        targetNumCell.classList.add('crossed-out');
+                    } else {
+                        targetNumCell.classList.remove('crossed-out');
+                    }
+                }
+            }
+
+            el.value = el.value.replace(/[^0-9]/g, '');
+            if (el.value === '') return;
+            
+            // Auto-advance
+            const maxLen = parseInt(el.getAttribute('maxlength'));
+            if (el.value.length >= maxLen) {
+                 const probIdx = parseInt(el.dataset.probIdx, 10);
+                 const cellKey = el.dataset.cellKey;
+                 const inputOrder = problems[probIdx].inputOrder;
+                 const currentIndex = inputOrder.indexOf(cellKey);
+                 if (currentIndex > -1 && currentIndex < inputOrder.length - 1) {
+                    const nextCellKey = inputOrder[currentIndex + 1];
+                    const nextEl = document.querySelector(`#ans-${probIdx}-${nextCellKey}`);
+                    if(nextEl) nextEl.focus();
+                 }
+            }
+        });
+
+        container.addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            
+            setTimeout(() => {
+                const wrapper = document.getElementById(`problem-wrapper-${probIdx}`);
+                if(wrapper) {
+                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+            
+            el.select();
+
+            if (probIdx !== currentProblemIndex) {
+                currentProblemIndex = probIdx;
+            }
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const probIdx = parseInt(el.dataset.probIdx, 10);
+            
+            if (e.key === 'Backspace' && el.value === '') {
+                e.preventDefault();
+                
+                // Visual reset
+                if (el.classList.contains('note-input')) {
+                     const prob = problems[probIdx];
+                     if (prob.operator === '-') {
+                        const c = parseInt(el.dataset.cellKey.charAt(2));
+                        const targetNumCell = document.getElementById(`problem-${probIdx}-c2${c}`);
+                        targetNumCell.classList.remove('crossed-out');
+                     }
+                }
+                
+                const inputOrder = problems[probIdx].inputOrder;
+                const cellKey = el.dataset.cellKey;
+                const currentIndex = inputOrder.indexOf(cellKey);
+                if (currentIndex > 0) {
+                    const prevCellKey = inputOrder[currentIndex - 1];
+                    const prevEl = document.querySelector(`#ans-${probIdx}-${prevCellKey}`);
+                    if(prevEl) prevEl.focus();
+                }
+            }
+            else if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                if (incorrectCells.length > 0) {
+                    const currentId = el.id;
+                    const listIdx = incorrectCells.indexOf(currentId);
+                    
+                    if (listIdx !== -1 && listIdx < incorrectCells.length - 1) {
+                        const nextId = incorrectCells[listIdx + 1];
+                        const nextEl = document.getElementById(nextId);
+                        if (nextEl) {
+                            nextEl.focus();
+                            setTimeout(() => nextEl.select(), 0);
+                        }
+                    } else if (listIdx === incorrectCells.length - 1) {
+                        document.querySelector('#check-answers').focus();
+                    } else {
+                        const firstId = incorrectCells[0];
+                        const firstEl = document.getElementById(firstId);
+                        if (firstEl) {
+                             firstEl.focus();
+                             setTimeout(() => firstEl.select(), 0);
+                        }
+                    }
+                } else {
+                    if (probIdx < problems.length - 1) {
+                        const nextOrder = problems[probIdx+1].inputOrder;
+                        if(nextOrder.length > 0) {
+                             document.querySelector(`#ans-${probIdx+1}-${nextOrder[0]}`).focus();
+                        }
+                    } else { 
+                        document.querySelector('#check-answers').focus(); 
+                    }
+                }
+            }
+        });
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        let allCorrect = true;
+        let newIncorrectCells = [];
+
+        problems.forEach((p, i) => {
+          let problemCorrect = true;
+          
+          p.inputOrder.forEach(cellKey => {
+             const el = document.querySelector(`#ans-${i}-${cellKey}`);
+             if (!el) return;
+             
+             const parent = el.closest('.cell');
+             parent.classList.remove('correct-bg', 'wrong-bg');
+             
+             const userAnswer = el.value;
+             const correctAnswer = String(p.answers[cellKey]);
+             
+             if (userAnswer !== correctAnswer) {
+                 problemCorrect = false;
+                 parent.classList.add('wrong-bg');
+                 newIncorrectCells.push(el.id);
+             } else {
+                 if (!parent.classList.contains('wrong-bg')) {
+                    parent.classList.add('correct-bg');
+                 }
+             }
+          });
+          
+          if (problemCorrect) {
+               p.inputOrder.forEach(cellKey => {
+                  const el = document.querySelector(`#ans-${i}-${cellKey}`);
+                  if(el) el.disabled = true;
+              });
+          } else {
+              allCorrect = false;
+          }
+        });
+        
+        incorrectCells = newIncorrectCells;
+        
+        const resultEl = document.querySelector('#result');
+        const hintEl = document.querySelector('#hint-message');
+        hintEl.textContent = '';
+
+        if (allCorrect) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseTime = config.targetTimePerQuestion * config.questionCount;
+           const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+           const score = config.baseScore + bonus;
+           
+           totalClearCount++; dailyCount++;
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 全問正解！おめでとう！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア達成！すごい！🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#FF9800', '#FFE0B2', '#FFFFFF'] });
+           }
+           
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           resultEl.textContent = 'おしい！まちがいを直そう！';
+           btn.disabled = false;
+           
+           if (incorrectCells.length > 0) {
+               const firstError = document.getElementById(incorrectCells[0]);
+               if(firstError) {
+                   setTimeout(() => {
+                       firstError.focus();
+                       firstError.select(); 
+                   }, 100);
+               }
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        currentProblemIndex = -1;
+        incorrectCells = [];
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        document.querySelector('#hint-message').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        if (problems.length > 0 && problems[0].inputOrder.length > 0) {
+            const firstInputKey = problems[0].inputOrder[0];
+            const firstInputCell = document.querySelector(`#ans-0-${firstInputKey}`);
+            if(firstInputCell) firstInputCell.focus();
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアとステータスをリセットしますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } 
+        });
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>
