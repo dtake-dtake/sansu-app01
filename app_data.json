@@ -641,36 +641,6 @@
             "title": "□にあてはまる数",
             "path": "3nen/1_kuku_hyo_kakezan/015_kakezan_box.html",
             "page": "15"
-          },
-          {
-            "id": "warizan_step_problems_v2",
-            "title": "じゅんに考えて",
-            "path": "3nen/1_kuku_hyo_kakezan/027_junni_kangaete.html",
-            "page": "27"
-          },
-          {
-            "id": "warizan_shiki_to_kotae",
-            "title": "わり算の式と答え",
-            "path": "3nen/1_kuku_hyo_kakezan/026_warizan_bunshodai.html",
-            "page": "26"
-          },
-          {
-            "id": "warizan_kuku",
-            "title": "わり算（九九を使って）",
-            "path": "3nen/1_kuku_hyo_kakezan/024_warizan_kuku.html",
-            "page": "24"
-          },
-          {
-            "id": "warizan_over_10_v2",
-            "title": "答えが10をこえるわり算",
-            "path": "3nen/1_kuku_hyo_kakezan/029_warizan_over10.html",
-            "page": "29"
-          },
-          {
-            "id": "warizan_tens_zero_simple",
-            "title": "答えが九九にないわり算",
-            "path": "3nen/1_kuku_hyo_kakezan/028_warizan_tens_zero.html",
-            "page": "28"
           }
         ]
       },
@@ -678,24 +648,34 @@
         "name": "２　　わり算",
         "apps": [
           {
-            "id": "30-2_matome",
-            "title": "まとめ",
-            "path": "3nen/2_warizan/30-2_matome.html"
+            "id": "warizan_step_problems_v2",
+            "title": "じゅんに考えて",
+            "path": "3nen/2_warizan/027_junni_kangaete.html",
+            "page": "27"
           },
           {
-            "id": "26-1_kukuni_gyakusan",
-            "title": "九九のぎゃく算",
-            "path": "3nen/2_warizan/26-1_kukuni_gyakusan.html"
+            "id": "warizan_shiki_to_kotae",
+            "title": "わり算の式と答え",
+            "path": "3nen/2_warizan/026_warizan_bunshodai.html",
+            "page": "26"
           },
           {
-            "id": "28-2_kotaega_kukuninai_warizan",
+            "id": "warizan_kuku",
+            "title": "わり算（九九を使って）",
+            "path": "3nen/2_warizan/024_warizan_kuku.html",
+            "page": "24"
+          },
+          {
+            "id": "warizan_over_10_v2",
+            "title": "答えが10をこえるわり算",
+            "path": "3nen/2_warizan/029_warizan_over10.html",
+            "page": "29"
+          },
+          {
+            "id": "warizan_tens_zero_simple",
             "title": "答えが九九にないわり算",
-            "path": "3nen/2_warizan/28-2_kotaega_kukuninai_warizan.html"
-          },
-          {
-            "id": "29-2_kotaega_kukuninai_warizan2",
-            "title": "答えが九九にないわり算⑵",
-            "path": "3nen/2_warizan/29-2_kotaega_kukuninai_warizan2.html"
+            "path": "3nen/2_warizan/028_warizan_tens_zero.html",
+            "page": "28"
           }
         ]
       },
@@ -707,59 +687,40 @@
         "name": "３　　たし算とひき算の筆算",
         "apps": [
           {
-            "id": "43-10_0ga_tudukukazu_kara_hiku_hissan",
-            "title": "０がつづく数からひく筆算",
-            "path": "3nen/3_tasizan_hikizan_hissan/43-10_0ga_tudukukazu_kara_hiku_hissan.html"
+            "id": "hikizan_hissan_3keta_2borrows_arrow_jump",
+            "title": "3けたのひき算（2回くり下がり）",
+            "path": "3nen/3_tasizan_hikizan_hissan/42_hikizan_hissan_2borrows.html",
+            "page": "42"
           },
           {
-            "id": "41-3_3ketano_hikizanno_hissan⑴",
-            "title": "３けたのひき算の筆算⑴",
-            "path": "3nen/3_tasizan_hikizan_hissan/41-3_3ketano_hikizanno_hissan⑴.html"
+            "id": "hikizan_hissan_3keta_1borrow_final",
+            "title": "3けたのひき算（くり下がり１回）",
+            "path": "3nen/3_tasizan_hikizan_hissan/41_hikizan_hissan_1borrow.html",
+            "page": "41"
           },
           {
-            "id": "41-4_3ketano_hikizanno_hissan⑵",
-            "title": "３けたのひき算の筆算⑵",
-            "path": "3nen/3_tasizan_hikizan_hissan/41-4_3ketano_hikizanno_hissan⑵.html"
+            "id": "tashizan_hissan_3keta_carry2_final",
+            "title": "くり上がりが２回ある筆算",
+            "path": "3nen/3_tasizan_hikizan_hissan/38_tashizan_hissan_2kai.html",
+            "page": "38"
           },
           {
-            "id": "45-2_4ketano_hissan",
-            "title": "４けたの筆算",
-            "path": "3nen/3_tasizan_hikizan_hissan/45-2_4ketano_hissan.html"
+            "id": "tashizan_hissan_3keta_carry1_final",
+            "title": "たし算の筆算（一の位のくり上がり）",
+            "path": "3nen/3_tasizan_hikizan_hissan/37_tashizan_hissan.html",
+            "page": "37"
           },
           {
-            "id": "42-6_junni_2kai_kuriorosu_hissan",
-            "title": "じゅんに２回くり下がる筆算",
-            "path": "3nen/3_tasizan_hikizan_hissan/42-6_junni_2kai_kuriorosu_hissan.html"
+            "id": "43_hikizan_zero_borrow_v5",
+            "title": "十の位が０のひき算",
+            "path": "3nen/3_tasizan_hikizan_hissan/43_hikizan_zero_borrow.html",
+            "page": "43"
           },
           {
-            "id": "43-9_junokuraiga_0notokino_kurisagari",
-            "title": "十の位が0のときのくり下がり",
-            "path": "3nen/3_tasizan_hikizan_hissan/43-9_junokuraiga_0notokino_kurisagari.html"
-          },
-          {
-            "id": "37-2_1nokuraiga_kuriagaru_3ketano_hissann",
-            "title": "十の位へくり上がる３けたのひっ算",
-            "path": "3nen/3_tasizan_hikizan_hissan/37-2_1nokuraiga_kuriagaru_3ketano_hissann.html"
-          },
-          {
-            "id": "39-9,10_senno_kuraihe_kuriagaru_hissan",
-            "title": "千の位へくり上がるひっ算",
-            "path": "3nen/3_tasizan_hikizan_hissan/39-9,10_senno_kuraihe_kuriagaru_hissan.html"
-          },
-          {
-            "id": "48_kazuate_geme",
-            "title": "数あてゲーム",
-            "path": "3nen/3_tasizan_hikizan_hissan/48_kazuate_geme.html"
-          },
-          {
-            "id": "38-5,6_hyakuno_kuraihe_kuriagaru_hissan",
-            "title": "百の位へくり上がるひっ算",
-            "path": "3nen/3_tasizan_hikizan_hissan/38-5,6_100nokuraihe_kuriagaru_3ketano_hissan.html"
-          },
-          {
-            "id": "46-2_3tunokazuno_tasizan",
-            "title": "計算のくふう",
-            "path": "3nen/3_tasizan_hikizan_hissan/46-2_keisanno_kuhu.html"
+            "id": "39_100nokurai_ni_kuriagari",
+            "title": "百の位にくり上がりがある筆算",
+            "path": "3nen/3_tasizan_hikizan_hissan/39_tashizan_hissan_answer4keta.html",
+            "page": "39"
           }
         ]
       },
