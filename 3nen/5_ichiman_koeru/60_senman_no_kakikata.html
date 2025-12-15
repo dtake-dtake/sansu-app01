@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>千万までの数の書き方</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        /* ▼▼▼ テーマ：わくわく深海探検（明るい青） ▼▼▼ */
+        :root {
+            --c-bg-top: #E0F7FA;
+            --c-bg-bottom: #4DD0E1;
+            
+            --c-primary: #0277BD;         /* 濃い青 */
+            --c-accent: #FF6F00;          /* オレンジ */
+            --c-text-main: #01579B;       
+            
+            --c-btn-bg: #FFFFFF;
+            --c-btn-text: #0277BD;
+            
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(180deg, var(--c-bg-top) 0%, var(--c-bg-bottom) 100%);
+            color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+            
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.4) 2px, transparent 2px),
+                radial-gradient(rgba(255,255,255,0.3) 4px, transparent 4px);
+            background-size: 40px 40px, 90px 90px;
+            background-position: 0 0, 20px 20px;
+        }
+
+        h1 { 
+            font-size: 2.0rem; margin: 10px 0; color: var(--c-primary); 
+            text-shadow: 2px 2px 0 #fff; 
+            letter-spacing: 2px;
+        }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: #fff;
+            border: 2px solid var(--c-primary);
+            padding: 8px 25px; 
+            border-radius: 25px;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--c-primary); gap: 10px; margin-bottom: 20px;
+            box-shadow: 0 4px 0 rgba(2, 119, 189, 0.2);
+            font-weight: 800;
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background-color: var(--c-primary); color: #fff;
+            font-weight: 800; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+
+        /* スタート画面 */
+        #start-area {
+            text-align: center; margin-top: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px; border-radius: 20px;
+            border: 4px solid var(--c-primary);
+            max-width: 500px; width: 100%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        #start-btn {
+            font-size: 2.0rem; padding: 15px 40px;
+            background: var(--c-accent); 
+            color: #fff; border: none; border-radius: 50px;
+            cursor: pointer; font-weight: 800;
+            box-shadow: 0 6px 0 #E65100; 
+            transition: transform 0.1s;
+            font-family: var(--font-family);
+            margin: 20px 0;
+        }
+        #start-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #E65100; }
+
+        /* ゲームエリア */
+        #game-area { 
+            display: none; width: 100%; max-width: 650px; 
+            flex-direction: column; gap: 15px; 
+        }
+
+        /* 問題表示（レーダー画面風） */
+        .radar-screen {
+            background-color: #E1F5FE; 
+            border: 4px solid var(--c-primary);
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            text-align: center;
+            box-shadow: inset 0 0 20px rgba(2, 119, 189, 0.1);
+            margin-bottom: 10px;
+            min-height: 140px; 
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        
+        .radar-label {
+            position: absolute; top: 10px; left: 15px; 
+            font-size: 1.0rem; color: var(--c-primary);
+            font-weight: bold; background: #fff; padding: 2px 8px; border-radius: 5px;
+        }
+
+        #problem-text-display {
+            font-size: 2.0rem; font-weight: 800; line-height: 1.4;
+            color: #333; 
+            margin-top: 15px;
+        }
+        .problem-structure { font-size: 1.6rem !important; text-align: left; display: inline-block;}
+
+        /* 答え入力欄 */
+        #answer-display {
+            min-height: 70px;
+            background: #fff;
+            border: 3px solid var(--c-primary);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.8rem; font-weight: 800; color: #333;
+            padding: 5px 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            text-align: center; font-family: "Helvetica Neue", Arial, sans-serif;
+            letter-spacing: 2px;
+        }
+        #answer-display.placeholder { color: #aaa; font-size: 1.5rem; letter-spacing: normal; }
+        
+        .digit-gap { margin-right: 15px; } 
+
+        /* キーボード */
+        .numpad-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;
+            max-width: 400px; margin-left: auto; margin-right: auto; width: 100%;
+        }
+
+        .key-btn {
+            aspect-ratio: 1.2; /* 基本のボタンは少し横長 */
+            background-color: #fff;
+            color: var(--c-btn-text);
+            border: 2px solid var(--c-primary); border-radius: 10px;
+            font-size: 1.8rem; font-family: "Helvetica Neue", Arial, sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #B0BEC5;
+            transition: transform 0.1s;
+            font-weight: 800;
+        }
+        .key-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .action-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; 
+            max-width: 400px; margin-left: auto; margin-right: auto; width: 100%;
+        }
+        .action-btn {
+            padding: 15px; font-size: 1.3rem; border-radius: 12px; border: none;
+            font-weight: 800; color: #fff; cursor: pointer;
+            font-family: var(--font-family);
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+        }
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-delete { background-color: #78909C; }
+        .btn-check { background-color: var(--c-accent); }
+
+        /* リザルトエリア */
+        #result-area {
+            display: none; width: 100%; max-width: 600px;
+            background: #fff; 
+            padding: 30px; border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 4px solid var(--c-primary);
+            margin-top: 20px;
+        }
+        
+        /* 履歴リスト */
+        .history-section {
+            margin-top: 25px;
+            border-top: 2px dashed #B3E5FC;
+            padding-top: 15px;
+            font-size: 1.0rem;
+            color: var(--c-text-main); text-align: left;
+        }
+
+        .history-list {
+            list-style: none; padding: 0; margin: 10px 0;
+            background: #E1F5FE;
+            border-radius: 10px;
+        }
+        .history-list li {
+            padding: 12px 15px;
+            border-bottom: 2px solid #fff;
+            display: flex; justify-content: space-between;
+            font-weight: bold;
+        }
+        .history-list li:last-child { border-bottom: none; }
+
+        .status-bar { display: flex; justify-content: space-between; width: 100%; max-width: 600px; margin-bottom: 5px; font-size: 1.0rem; color: #01579B; font-weight: bold;}
+        .star-rank { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; margin: 10px 0; }
+
+        .feedback-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; justify-content: center; align-items: center;
+            z-index: 999; opacity: 0; transition: opacity 0.3s;
+        }
+        .feedback-mark { font-size: 15rem; font-weight: 800; -webkit-text-stroke: 3px #fff; }
+        .mark-correct { color: #E91E63; } 
+        .mark-wrong { color: #1976D2; }   
+
+        #info-modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); backdrop-filter: blur(3px);}
+        .modal-content { 
+            background-color: #fff; margin: 15% auto; padding: 25px; 
+            width: 85%; max-width: 450px; color: #333; 
+            border-radius: 20px; border: 4px solid var(--c-primary); 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #fff; border: 3px solid #FFD700; color: #FFD700;
+            font-size: 1.8rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn">？</button>
+    <div id="info-modal">
+        <div class="modal-content">
+            <h3 style="text-align:center; color:var(--c-primary);">あそびかた</h3>
+            <div id="instruction-content"></div>
+            <button onclick="document.getElementById('info-modal').style.display='none'" style="width:100%; padding:12px; background:var(--c-primary); color:#fff; font-weight:bold; border:none; border-radius:50px; margin-top:20px; cursor:pointer; font-size:1.2rem;">わかった！</button>
+        </div>
+    </div>
+
+    <div class="feedback-overlay" id="feedback-overlay">
+        <div class="feedback-mark" id="feedback-mark"></div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <h3 style="color:var(--c-primary); margin-top:0; font-size:1.5rem;">深海トレジャーハンター</h3>
+        <div style="font-size:1.3rem; margin-bottom:20px; line-height: 1.8; font-weight:bold;">
+            レーダーにうつる<span style="color:#D81B60;">言葉</span>を<br>
+            <span style="color:var(--c-accent);">数字</span>になおして、お宝を見つけよう！
+        </div>
+        <button id="start-btn">海へしゅっぱつ！(Enter)</button>
+
+        <div class="history-section">
+            <div style="font-weight:bold; color:var(--c-accent); margin-bottom:5px; text-align:center;">
+                発見したお宝の数(クリア回数): <span class="clearCountValueDisplay" style="font-size:1.6rem;">0</span> こ
+            </div>
+            これまでのきろく
+            <ul class="history-list start-history-list"></ul>
+        </div>
+    </div>
+
+    <div id="game-container" style="display:none; width:100%; display:flex; flex-direction:column; align-items:center;">
+        <div class="status-bar">
+            <span>のこり：<span id="remain-count">0</span></span>
+            <span>とくてん：<span id="current-score">0</span></span>
+        </div>
+
+        <div id="game-area">
+            <div class="radar-screen">
+                <span class="radar-label">レーダー</span>
+                <div id="problem-text-display">---</div>
+            </div>
+
+            <div id="answer-display" class="placeholder">答えの数字をいれる</div>
+
+            <div class="numpad-grid">
+                <button class="key-btn" onclick="handleInput('7')">7</button>
+                <button class="key-btn" onclick="handleInput('8')">8</button>
+                <button class="key-btn" onclick="handleInput('9')">9</button>
+                <button class="key-btn" onclick="handleInput('4')">4</button>
+                <button class="key-btn" onclick="handleInput('5')">5</button>
+                <button class="key-btn" onclick="handleInput('6')">6</button>
+                <button class="key-btn" onclick="handleInput('1')">1</button>
+                <button class="key-btn" onclick="handleInput('2')">2</button>
+                <button class="key-btn" onclick="handleInput('3')">3</button>
+                <button class="key-btn" onclick="handleInput('0')" style="grid-column: span 3; aspect-ratio: 3.8;">0</button>
+            </div>
+
+            <div class="action-grid">
+                <button class="action-btn btn-delete" id="btn-delete">１もじけす</button>
+                <button class="action-btn btn-check" id="btn-check">できた！</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="color:var(--c-accent); background:none; border:none; margin:0; text-shadow:none; font-size:2rem;">たんけん終了！</h2>
+        <div id="result-stars" class="star-rank"></div>
+        <div id="final-result-msg" style="font-size:1.5rem; font-weight:bold; margin:15px 0; color:var(--c-primary);"></div>
+        <div id="score-detail" style="margin-bottom:15px; font-size:1.2rem; line-height:1.6; color:#555;"></div>
+        
+        <div class="history-section">
+            <div style="font-weight:bold; color:var(--c-primary); margin-bottom:5px;">
+                見つけたお宝の数: <span class="clearCountValueDisplay" style="font-size:1.4rem; color:var(--c-accent);">0</span> こ
+            </div>
+            これまでのきろく
+            <ul class="history-list result-history-list"></ul>
+        </div>
+
+        <button id="retry-btn" class="action-btn btn-check" style="width:100%; margin-top:20px;">もういちどあそぶ</button>
+    </div>
+
+    <script>
+    window.handleInput = null;
+
+    (function(){
+        const config = {
+            appId: "senman_kakikata", 
+            mainTitle: "５　一万をこえる数",
+            title: "千万の位までの数の書き方",
+            page: 60,
+            baseScore: 100, 
+            questionCount: 6,
+            starThresholds: { star5: 150, star4: 130, star3: 110, star2: 100 },
+            
+            instructionHtml: `
+                <p>レーダーに言葉が表示されます。</p>
+                <p>下の数字ボタンをおして、数字になおしてください。</p>
+                <div style="background:#E1F5FE; color:#0277BD; padding:15px; border-radius:10px; margin:15px 0; border:2px solid #B3E5FC; font-weight:bold; text-align:left;">
+                    （例1）七十四万二千<br>
+                    　→ <span style="font-size:1.3rem;">742000</span><br><br>
+                    （例2）1000万を3こ、1万を5こ<br>
+                    　→ <span style="font-size:1.3rem;">30050000</span>
+                </div>
+                <p>※位がないところは 0 を書くのを忘れずに！</p>
+            `
+        };
+
+        let problems = [];
+        let currentIndex = 0;
+        let userInput = "";
+        let problemStartTime = 0;
+        let totalElapsedTime = 0; 
+        let mistakeCount = 0;
+        let currentScore = 0; 
+        
+        const KEY_CLEAR = `${config.appId}:clearCount`;
+        const KEY_STATUS = `${config.appId}:status`;
+        const KEY_HISTORY = `${config.appId}:history`;
+
+        function loadData() {
+            updateHistoryDisplays();
+        }
+
+        function saveData(score, stars) {
+            const ls = localStorage;
+            const currentClearCount = parseInt(ls.getItem(KEY_CLEAR) || "0");
+            ls.setItem(KEY_CLEAR, String(currentClearCount + 1));
+            ls.setItem(KEY_STATUS, stars);
+
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            history.unshift({ date: dateStr, score: score });
+            if (history.length > 5) history.pop();
+            ls.setItem(KEY_HISTORY, JSON.stringify(history));
+        }
+
+        function updateHistoryDisplays() {
+            const ls = localStorage;
+            const count = ls.getItem(KEY_CLEAR) || "0";
+            
+            document.querySelectorAll('.clearCountValueDisplay').forEach(el => {
+                el.textContent = count;
+            });
+
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const historyHtml = history.map(h => 
+                `<li><span style="color:#555;">${h.date}</span> <span style="font-weight:bold; color:var(--c-accent);">${h.score}点</span></li>`
+            ).join('');
+
+            document.querySelector('.start-history-list').innerHTML = historyHtml;
+            document.querySelector('.result-history-list').innerHTML = historyHtml;
+        }
+
+        const toKanji4 = (n) => {
+            if(n === 0) return "";
+            const kanjiDigits = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+            let s = "";
+            
+            let th = Math.floor(n / 1000);
+            let rem = n % 1000;
+            if(th > 0) s += (th === 1 ? "" : kanjiDigits[th]) + "千";
+            
+            let hu = Math.floor(rem / 100);
+            rem %= 100;
+            if(hu > 0) s += (hu === 1 ? "" : kanjiDigits[hu]) + "百";
+            
+            let te = Math.floor(rem / 10);
+            rem %= 10;
+            if(te > 0) s += (te === 1 ? "" : kanjiDigits[te]) + "十";
+            
+            if(rem > 0) s += kanjiDigits[rem];
+            return s;
+        };
+
+        const generateKanjiProblem = (num) => {
+            const manPart = Math.floor(num / 10000);
+            const lowerPart = num % 10000;
+            
+            let text = "";
+            if (manPart > 0) {
+                let mText = toKanji4(manPart);
+                if (manPart === 1 && mText === "") mText = "一"; 
+                text += mText + "万";
+            }
+            if (lowerPart > 0) {
+                text += toKanji4(lowerPart);
+            }
+            return text;
+        };
+
+        const generateStructureProblem = (num) => {
+            let parts = [];
+            let nStr = num.toString();
+            const unitNames = ["1", "10", "100", "1000", "1万", "10万", "100万", "1000万"];
+            
+            for (let i = 0; i < nStr.length; i++) {
+                let digit = parseInt(nStr[nStr.length - 1 - i]);
+                if (digit > 0) {
+                    parts.unshift(`${unitNames[i]}を ${digit}こ`);
+                }
+            }
+            return parts.join("、") + "<br>あわせた数";
+        };
+
+        function generateProblems(count) {
+            const arr = [];
+            for(let i=0; i<count; i++){
+                let num = Math.floor(Math.random() * 99990000) + 10000;
+                
+                if(Math.random() < 0.6) {
+                    let mask = Math.random() > 0.5 ? 10000 : 1000;
+                    num = Math.floor(num / mask) * mask; 
+                    if(Math.random() < 0.5) num += Math.floor(Math.random()*9)*10 + 1; 
+                }
+
+                let type = Math.random() < 0.6 ? 0 : 1; 
+                let qText = "";
+                let isStructure = false;
+
+                if (type === 0) {
+                    qText = generateKanjiProblem(num);
+                } else {
+                    qText = generateStructureProblem(num);
+                    isStructure = true;
+                }
+
+                arr.push({ number: num, text: qText, isStructure: isStructure });
+            }
+            return arr;
+        }
+
+        function updateDisplay() {
+            const p = problems[currentIndex];
+            
+            const displayEl = document.getElementById('problem-text-display');
+            displayEl.innerHTML = p.text;
+            
+            if (p.isStructure) {
+                displayEl.className = 'problem-structure';
+                if(p.text.length > 25) displayEl.style.fontSize = "1.3rem";
+                else displayEl.style.fontSize = "1.6rem";
+            } else {
+                displayEl.className = '';
+                displayEl.style.fontSize = "2.0rem";
+            }
+
+            const ansEl = document.getElementById('answer-display');
+            if (userInput.length === 0) {
+                ansEl.textContent = "答えの数字をいれる";
+                ansEl.classList.add('placeholder');
+            } else {
+                let formatted = userInput;
+                if (userInput.length > 4) {
+                    const man = userInput.slice(0, -4);
+                    const low = userInput.slice(-4);
+                    ansEl.innerHTML = `<span style="color:#D81B60">${man}</span><span class="digit-gap"></span><span style="color:#0277BD">${low}</span>`;
+                } else {
+                    ansEl.innerHTML = `<span style="color:#0277BD">${userInput}</span>`;
+                }
+                ansEl.classList.remove('placeholder');
+            }
+
+            document.getElementById('remain-count').textContent = (config.questionCount - currentIndex);
+            document.getElementById('current-score').textContent = currentScore;
+        }
+
+        window.handleInput = function(val) {
+            if(userInput.length > 8) return; 
+            if(userInput === "0" && val !== "0") userInput = val;
+            else if(userInput === "0" && val === "0") return;
+            else userInput += val;
+            updateDisplay();
+        };
+
+        function handleDelete() {
+            userInput = userInput.slice(0, -1);
+            updateDisplay();
+        }
+
+        function showFeedback(isCorrect) {
+            const overlay = document.getElementById('feedback-overlay');
+            const mark = document.getElementById('feedback-mark');
+            overlay.style.opacity = '1';
+            
+            if(isCorrect) {
+                mark.textContent = '〇';
+                mark.className = 'feedback-mark mark-correct';
+            } else {
+                mark.textContent = '×';
+                mark.className = 'feedback-mark mark-wrong';
+            }
+            setTimeout(() => { overlay.style.opacity = '0'; }, 800);
+        }
+
+        function handleCheck() {
+            const p = problems[currentIndex];
+            if (parseInt(userInput) === p.number) {
+                showFeedback(true);
+                
+                const elapsed = (Date.now() - problemStartTime) / 1000;
+                totalElapsedTime += elapsed;
+
+                const pointPerQ = Math.floor(config.baseScore / config.questionCount);
+                const bonus = Math.max(0, Math.floor(30 - elapsed)); 
+                
+                currentScore += (pointPerQ + bonus);
+                
+                currentIndex++;
+                userInput = "";
+                
+                if (currentIndex >= problems.length) {
+                    if (mistakeCount === 0 && currentScore < 100) {
+                         currentScore = 100;
+                    }
+                    const scoreGap = 100 - (Math.floor(config.baseScore / config.questionCount) * config.questionCount);
+                    if (scoreGap > 0) currentScore += scoreGap;
+
+                    endGame();
+                } else {
+                    problemStartTime = Date.now();
+                    setTimeout(updateDisplay, 800);
+                }
+            } else {
+                showFeedback(false);
+                mistakeCount++;
+                currentScore = Math.max(0, currentScore - 5);
+                updateDisplay();
+            }
+        }
+
+        function endGame() {
+            document.getElementById('game-container').style.display = 'none';
+            const resultArea = document.getElementById('result-area');
+            resultArea.style.display = 'block';
+            
+            const finalScore = currentScore;
+            
+            let stars = "";
+            if (finalScore >= config.starThresholds.star5) stars = "★★★★★";
+            else if (finalScore >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (finalScore >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (finalScore >= config.starThresholds.star2) stars = "★★☆☆☆";
+            else stars = "★☆☆☆☆";
+            
+            document.getElementById('result-stars').textContent = stars;
+            
+            let msg = "";
+            if(mistakeCount === 0 && finalScore >= 180) msg = "伝説のトレジャーハンター！";
+            else if(mistakeCount === 0) msg = "お見事！全問せいかい！";
+            else if(finalScore >= 100) msg = "いいぞ！お宝発見！";
+            else msg = "まだまだ！再ちょうせんだ！";
+            
+            document.getElementById('final-result-msg').textContent = msg;
+            
+            document.getElementById('score-detail').innerHTML = `
+                かくとくスコア: <strong>${finalScore}</strong> 点<br>
+                タイム: ${totalElapsedTime.toFixed(1)} 秒<br>
+                <span style="font-size:0.9rem; opacity:0.8;">(ミス ${mistakeCount}回)</span>
+            `;
+            
+            saveData(finalScore, stars);
+            updateHistoryDisplays();
+            
+            if (finalScore >= 100 && typeof confetti === 'function') {
+                confetti({ particleCount: 150, spread: 180, colors:['#00BCD4', '#FFD700', '#FFFFFF'] });
+            }
+        }
+
+        function initGame() {
+            problems = generateProblems(config.questionCount);
+            currentIndex = 0;
+            userInput = "";
+            mistakeCount = 0;
+            currentScore = 0;
+            totalElapsedTime = 0; 
+            problemStartTime = Date.now();
+            
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.style.display = 'flex';
+            document.getElementById('game-area').style.display = 'flex';
+            
+            updateDisplay();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+            document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+            
+            loadData();
+
+            document.getElementById('btn-delete').addEventListener('click', handleDelete);
+            document.getElementById('btn-check').addEventListener('click', handleCheck);
+            
+            document.getElementById('start-btn').addEventListener('click', initGame);
+            document.getElementById('retry-btn').addEventListener('click', initGame);
+            
+            document.getElementById('bulb-btn').addEventListener('click', () => {
+                document.getElementById('info-modal').style.display = 'block';
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') {
+                    const startArea = document.getElementById('start-area');
+                    if (startArea.style.display !== 'none') {
+                        initGame();
+                    } else if (document.getElementById('game-container').style.display !== 'none') {
+                        handleCheck();
+                    }
+                }
+                if (document.getElementById('game-container').style.display !== 'none') {
+                    if (e.key >= '0' && e.key <= '9') {
+                        handleInput(e.key);
+                    } else if (e.key === 'Backspace') {
+                        handleDelete();
+                    }
+                }
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

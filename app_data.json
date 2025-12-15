@@ -769,19 +769,64 @@
         "name": "５　　一万をこえる数",
         "apps": [
           {
-            "id": "58-2_ichimanno_kuraino_yomikata_final",
-            "title": "一万の位の読みかた",
-            "path": "3nen/5_ichiman_koeru/58-2_ichimanno_kuraino_yomikata.html"
+            "id": "100bai_1000bai",
+            "title": "100倍、1000倍した数",
+            "path": "3nen/5_ichiman_koeru/66_100bai_1000bai.html",
+            "page": "66"
           },
           {
-            "id": "60-6_senmanno_kuraimadeno_kazuno_yomikata",
-            "title": "千万の位までの数のよみ方",
-            "path": "3nen/5_ichiman_koeru/60-6_senmanno_kuraimadeno_kazuno_yomikata.html"
+            "id": "10de_watta_kazu",
+            "title": "10でわった数",
+            "path": "3nen/5_ichiman_koeru/68_10de_watta_kazu.html",
+            "page": "68"
           },
           {
-            "id": "58-3_sujino_kakikata_final_v3",
-            "title": "数字のかき方",
-            "path": "3nen/5_ichiman_koeru/58-3_sujino_kakikata.html"
+            "id": "10bai_shita_kazu",
+            "title": "10倍した数",
+            "path": "3nen/5_ichiman_koeru/65_10bai_shita_kazu.html",
+            "page": "65"
+          },
+          {
+            "id": "okina_kazu_kakikata",
+            "title": "一万をこえる数のかき方",
+            "path": "3nen/5_ichiman_koeru/58_okina_kazu_no_kakikata.html",
+            "page": "58"
+          },
+          {
+            "id": "okina_kazu_yomikata",
+            "title": "一万をこえる数の読み方",
+            "path": "3nen/5_ichiman_koeru/58_okina_kazu_no_yomikata.html",
+            "page": "58"
+          },
+          {
+            "id": "senman_yomikata",
+            "title": "千万の位までの数の読み方",
+            "path": "3nen/5_ichiman_koeru/60_senman_no_yomikata.html",
+            "page": "60"
+          },
+          {
+            "id": "senman_kakikata",
+            "title": "千万までの数の書き方",
+            "path": "3nen/5_ichiman_koeru/60_senman_no_kakikata.html",
+            "page": "60"
+          },
+          {
+            "id": "63_okina_kazu_to_suchokusen",
+            "title": "大きな数と数直線",
+            "path": "3nen/5_ichiman_koeru/63_okina_kazu_to_suchokusen.html",
+            "page": "63"
+          },
+          {
+            "id": "64_okina_kazu_tasizan_hikizan",
+            "title": "大きな数のたし算とひき算",
+            "path": "3nen/5_ichiman_koeru/64_okina_kazu_tasizan_hikizan.html",
+            "page": "64"
+          },
+          {
+            "id": "61_okina_kazu_no_daisho",
+            "title": "大きな数の大小",
+            "path": "3nen/5_ichiman_koeru/61_okina_kazu_no_daisho.html",
+            "page": "61"
           }
         ]
       },
