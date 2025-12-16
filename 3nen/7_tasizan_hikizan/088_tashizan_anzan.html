@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>たし算ひき算</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+/* ▼▼▼ テーマ：アップル・レッド ▼▼▼ */
+        :root {
+            --c-bg-main: #FFEBEE;         /* 背景：うすいピンク */
+            --c-primary: #D32F2F;         /* メイン色：赤 */
+            --c-primary-dark: #B71C1C;    /* 文字色など：濃い赤 */
+            --c-primary-light: #FFCDD2;   /* アクセント：明るいピンク */
+            --c-button-bg: #EF5350;       /* ボタン：明るい赤 */
+            --c-button-hover: #C62828;    /* ボタン(ホバー)：少し濃い赤 */
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #FFEBEE;      /* 履歴エリアの背景 */
+            
+            --c-text-main: #263238;       
+            --c-text-on-button: #ffffff;
+            
+            /* 正解・不正解の色は視認性のため、緑と赤の区別を維持しつつ調整 */
+            --c-feedback-correct-bg: #DCEDC8; /* 正解：うすい黄緑 */
+            --c-feedback-wrong-bg: #FFCCBC;   /* 不正解：うすいオレンジ */
+            
+            --font-size: 2.2rem;
+            --input-size: 2.4rem;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: flex; flex-direction: column; gap: 20px;
+            width: 100%; max-width: 600px; margin-top: 20px;
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--c-problem-row-bg); border-radius: 15px; padding: 15px 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            font-weight: bold;
+            font-size: var(--font-size);
+            transition: transform 0.2s;
+        }
+        .problem-wrapper:focus-within {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(46, 125, 50, 0.2);
+            border: 2px solid var(--c-primary);
+        }
+        
+        .problem-text {
+            display: flex; align-items: center; gap: 10px;
+            flex: 1;
+        }
+        
+        .problem-number {
+            font-size: 1.2rem; color: var(--c-primary); margin-right: 5px;
+            min-width: 1.5em;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100px;
+        }
+
+        .input-cell {
+            width: 100%; text-align: center; font-size: var(--input-size);
+            font-family: inherit; border: 2px solid #ccc; border-radius: 8px;
+            background-color: #FAFAFA; padding: 5px;
+            color: var(--c-text-main); outline: none;
+            ime-mode: disabled; /* IE/Firefox support */
+        }
+        .input-cell:focus {
+             background-color: #fff; 
+             border-color: var(--c-primary);
+             box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
+        }
+        
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; border-color: var(--c-primary) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; border-color: #D32F2F !important; }
+
+        /* ヒント（思考プロセス）の可視化 */
+        .hint-bubble {
+            font-size: 0.9rem; color: #555; margin-top: 5px; font-weight: normal;
+            display: none;
+        }
+
+        button {
+            font-size: 1.3rem; padding: 12px 30px; border: none; border-radius: 50px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: all 0.2s; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { background-color: var(--c-button-hover); transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; transform: none; box-shadow: none;}
+        
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 20px;
+            background: var(--c-result-area-bg); border-radius: 15px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; min-height: 1.6em; }
+        
+        .status-stars { font-size: 2.5rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 5px;}
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 10px; margin-top:15px; text-align: left; padding: 15px;}
+        #history-list li { border-bottom: 1px dashed #AED581; padding: 8px 5px; display:flex; justify-content:space-between;}
+        #history-list li:last-child { border-bottom: none; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 1.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+            transition: transform 0.2s;
+        }
+        #bulb-btn:hover { transform: scale(1.1) rotate(10deg); }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 30px; border: 4px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .close-modal { color: #aaa; float: right; font-size: 32px; font-weight: bold; cursor: pointer; transition: color 0.2s;}
+        .close-modal:hover { color: var(--c-primary); }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; color: #444; }
+        
+        /* 思考プロセスの図解スタイル */
+        .step-box { background: #E8F5E9; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 5px solid var(--c-primary); }
+        .arrow-down { text-align: center; color: var(--c-primary); font-size: 1.5rem; line-height: 1; }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="説明を表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0; border-bottom: 2px solid #E8F5E9; padding-bottom:10px;">学習のポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> 
+        <p style="margin-bottom:20px; font-size:1.1rem;">暗算(あんざん)で すばやく とこう！</p>
+        <button id="start-btn">スタート！</button> 
+    </div>
+    
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry" style="display:none;">もういちど</button>
+        </div>
+    </div>
+
+    <div id="result-area" style="display:none;">
+        <div id="result"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div style="display:flex; justify-content:center; gap:20px; margin-top:10px;">
+            <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> 点</div>
+            <div id="clearCountArea">クリア：<span id="clearCountValue">0</span> 回</div>
+        </div>
+        <div style="margin-top:10px; text-align:right;">
+             <button id="reset-highscore" style="font-size:0.8rem; padding:5px 10px; background:#90A4AE;">記録リセット</button>
+        </div>
+        <div id="history-area" style="margin-top:20px; font-size:1.0rem;">
+            <strong>📝 さいきんのきろく</strong>
+            <ul id="history-list"></ul>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "tashizan_anzan",
+        mainTitle: "７　たし算とひき算",
+        title: "たし算の暗算", 
+        page: 88, 
+        baseScore: 100,
+        targetTimePerQuestion: 8, // 暗算なのでテンポよく
+        questionCount: 10,
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <p>筆算(ひっさん)を 書かないで 計算しよう。</p>
+          <div class="step-box">
+             <strong>考え方（例：35 + 24）</strong><br>
+             ① たす数 <strong>24</strong> を、<strong>20</strong> と <strong>4</strong> に 分ける。<br>
+             ② 35 に <strong>20</strong> をたす。<br>
+             　→ 35 + 20 = <strong>55</strong><br>
+             ③ その答えに <strong>4</strong> をたす。<br>
+             　→ 55 + 4 = <strong>59</strong>
+          </div>
+          <p>★頭の中で、十の位から先に計算するのがコツだよ！</p>
+        `,
+
+        problemGenerator(count = 10) {
+            const problems = [];
+            let guard = 0;
+            
+            while(problems.length < count && guard < 1000) {
+                guard++;
+                
+                // 3つのパターンを混ぜる
+                // 1. 繰り上がりなし (35 + 24)
+                // 2. 2段階目で繰り上がりあり (35 + 27 -> 55 + 7 -> 62)
+                // 3. 100を超える (73 + 42 -> 113 + 2 -> 115)
+                
+                const type = Math.random();
+                let a, b, q10, q1, ans;
+                
+                if (type < 0.4) { // パターン1: 簡単
+                    a = Math.floor(Math.random() * 80) + 10;
+                    // aの一の位 + bの一の位 < 10
+                    let maxB_ones = 9 - (a % 10);
+                    let b_ones = Math.floor(Math.random() * (maxB_ones + 1));
+                    let b_tens = Math.floor(Math.random() * 8) + 1;
+                    b = b_tens * 10 + b_ones;
+                } else if (type < 0.8) { // パターン2: 一の位で繰り上がり
+                    a = Math.floor(Math.random() * 70) + 10;
+                    // aの一の位 + bの一の位 >= 10
+                    let minB_ones = 10 - (a % 10);
+                    if (minB_ones > 9) continue;
+                    let b_ones = Math.floor(Math.random() * (9 - minB_ones + 1)) + minB_ones;
+                    let b_tens = Math.floor(Math.random() * 7) + 1;
+                    b = b_tens * 10 + b_ones;
+                } else { // パターン3: 100超え
+                    a = Math.floor(Math.random() * 40) + 60; // 60-99
+                    b = Math.floor(Math.random() * 40) + 40; // 40-79
+                }
+                
+                if (a + b > 199) continue; // 難しすぎないように制限
+                if (b < 10) continue; // 2桁で統一
+
+                ans = a + b;
+                const problemStr = `${a} + ${b}`;
+                const key = problemStr;
+                
+                // 重複排除
+                if (problems.some(p => p.question === problemStr)) continue;
+
+                problems.push({ 
+                    question: problemStr, 
+                    answer: ans,
+                    breakdown: `(${a} + ${Math.floor(b/10)*10}) + ${b%10}` // ヒント用
+                });
+            }
+            return problems;
+        },
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let incorrectCells = []; // 間違えたinput要素のIDリスト
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleDateString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li><span>${h.datetime}</span> <strong>${h.score}点</strong></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+        
+        problems.forEach((p, i) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `wrapper-${i}`;
+            
+            const numStr = (i < circledNumbers.length) ? circledNumbers[i] : (i+1)+'.';
+            
+            wrapper.innerHTML = `
+                <div class="problem-text">
+                    <span class="problem-number">${numStr}</span>
+                    <span>${p.question} = </span>
+                </div>
+                <div class="input-wrapper">
+                    <input type="tel" class="input-cell" id="ans-${i}" data-index="${i}" autocomplete="off">
+                </div>
+            `;
+            container.appendChild(wrapper);
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        // --- 1. 自動スクロール機能の実装 ---
+        container.addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            
+            // 選択状態にする
+            el.select();
+            
+            // 少し遅延させてスムーズにスクロール
+            setTimeout(() => {
+                const wrapper = document.getElementById(`wrapper-${el.dataset.index}`);
+                if(wrapper) {
+                    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100); // 10ms〜100msの遅延でUIスレッドの安定とキーボード表示を待つ
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            const idx = parseInt(el.dataset.index, 10);
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                // --- 3. エンターキーによる不正解スキップ ---
+                if (incorrectCells.length > 0) {
+                    // 間違い訂正モード
+                    // 現在のIDがincorrectCellsのどこにあるか探す
+                    const currentErrIndex = incorrectCells.indexOf(el.id);
+                    
+                    if (currentErrIndex !== -1 && currentErrIndex < incorrectCells.length - 1) {
+                        // 次の間違いへジャンプ
+                        const nextErrId = incorrectCells[currentErrIndex + 1];
+                        const nextEl = document.getElementById(nextErrId);
+                        if (nextEl) {
+                            nextEl.focus();
+                            nextEl.select(); // 2. 全選択状態
+                        }
+                    } else {
+                        // 全て修正したら、またはリストの最後ならボタンへ
+                        document.querySelector('#check-answers').focus();
+                    }
+                } else {
+                    // 通常モード（上から順に）
+                    if (idx < problems.length - 1) {
+                        const nextEl = document.getElementById(`ans-${idx+1}`);
+                        if(nextEl) nextEl.focus();
+                    } else { 
+                        document.querySelector('#check-answers').focus(); 
+                    }
+                }
+            }
+        });
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        incorrectCells = []; // クリア
+        let correctCount = 0;
+
+        problems.forEach((p, i) => {
+             const el = document.getElementById(`ans-${i}`);
+             const val = parseInt(el.value, 10);
+             const wrapper = document.getElementById(`wrapper-${i}`);
+             
+             wrapper.classList.remove('correct-bg', 'wrong-bg');
+             el.classList.remove('correct-bg', 'wrong-bg');
+             
+             if (val === p.answer) {
+                 correctCount++;
+                 el.classList.add('correct-bg');
+                 el.disabled = true; // 正解したらロック
+             } else {
+                 el.classList.add('wrong-bg');
+                 incorrectCells.push(el.id);
+             }
+        });
+        
+        const resultEl = document.querySelector('#result');
+        const resultArea = document.querySelector('#result-area');
+        resultArea.style.display = 'block';
+
+        if (correctCount === problems.length) {
+           // 全問正解
+           const elapsed = (Date.now() - startTime) / 1000;
+           // 暗算なので、スピードボーナスを重視
+           const baseTime = config.targetTimePerQuestion * config.questionCount;
+           let timeBonus = 0;
+           if (elapsed < baseTime) {
+               timeBonus = Math.floor(50 * (baseTime - elapsed) / baseTime);
+           }
+           const score = config.baseScore + timeBonus;
+           
+           totalClearCount++; 
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 全問正解！すばらしい！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア更新！神ってる！🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#4CAF50', '#81C784', '#FFEB3B'] });
+           }
+           
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong><br><span style="font-size:1rem; color:#666;">タイム: ${elapsed.toFixed(1)} 秒</span>`;
+           
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           
+           document.querySelector('#retry').style.display = 'inline-block';
+           document.querySelector('#retry').focus();
+           btn.style.display = 'none'; // まるつけボタンを隠す
+           
+           resultArea.scrollIntoView({ behavior: 'smooth' });
+
+        } else {
+           // 間違いがある場合
+           resultEl.innerHTML = `<span style="color:#D32F2F;">あと ${problems.length - correctCount} もん！<br>あきらめずに 直そう！</span>`;
+           btn.disabled = false;
+           
+           // --- 2. 間違い訂正時のナビゲーション強化 ---
+           if (incorrectCells.length > 0) {
+               const firstWrongEl = document.getElementById(incorrectCells[0]);
+               if (firstWrongEl) {
+                   setTimeout(() => {
+                       firstWrongEl.focus();
+                       firstWrongEl.select(); // 値を全選択
+                   }, 100);
+               }
+           }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        incorrectCells = [];
+        document.querySelector('#check-answers').style.display = 'inline-block';
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#retry').style.display = 'none';
+        document.querySelector('#result-area').style.display = 'none';
+        
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        
+        // 最初の問題にフォーカス
+        setTimeout(() => {
+            const first = document.getElementById('ans-0');
+            if(first) first.focus();
+        }, 100);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアとステータスをリセットしますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } 
+        });
+        
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kmの計算</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：レモネード（フレッシュな黄色とミントグリーン） ▼▼▼ */
+        :root {
+            --c-bg-main: #FFFDE7;         /* 薄いレモン色 */
+            --c-primary: #FBC02D;         /* 濃い黄色 */
+            --c-primary-dark: #F57F17;    /* オレンジ寄りの黄色 */
+            --c-primary-light: #FFF9C4;   /* クリームイエロー */
+            --c-accent: #AED581;          /* ミントの葉のような緑 */
+            
+            --c-button-bg: #FDD835;       /* 明るい黄色 */
+            --c-button-hover: #FBC02D;    
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #FFF9C4;      
+            
+            --c-text-main: #5D4037;       /* カフェ風のブラウン文字 */
+            --c-text-on-button: #5D4037;  /* ボタン文字もブラウンで見やすく */
+            
+            --c-feedback-correct-bg: #DCEDC8; /* 正解は薄いライムグリーン */
+            --c-feedback-wrong-bg: #FFCCBC;   /* 不正解は薄いピンクグレープフルーツ */
+            
+            --font-size: 1.6rem;
+            --input-width: 85px;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-text-main); margin: 10px 0; }
+        h1 { font-size: 1.5rem; color: var(--c-primary-dark); }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-accent); 
+            color: #fff;
+            padding: 6px 18px; 
+            border-radius: 20px; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-accent);
+            border: 2px solid var(--c-accent);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            display: flex; flex-direction: column; gap: 20px;
+            width: 100%; max-width: 700px; margin-top: 20px;
+        }
+        
+        .problem-wrapper {
+            display: flex; align-items: center;
+            background: var(--c-problem-row-bg); border-radius: 15px; padding: 10px 15px;
+            box-shadow: 0 4px 8px rgba(251, 192, 45, 0.15); 
+            font-size: var(--font-size);
+            line-height: 2.5rem;
+            border: 1px solid var(--c-primary-light);
+            overflow: hidden; 
+        }
+        
+        .problem-number {
+            font-size: 1.6rem; font-weight: bold; margin-right: 10px;
+            color: var(--c-primary-dark); flex-shrink: 0;
+        }
+
+        .problem-content {
+            flex-grow: 1;
+            display: flex; 
+            align-items: center; 
+            flex-wrap: nowrap; /* 一行表示 */
+            gap: 5px;
+            overflow-x: auto; /* 横スクロール */
+            white-space: nowrap; 
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 5px;
+        }
+        
+        .problem-content::-webkit-scrollbar { height: 6px; }
+        .problem-content::-webkit-scrollbar-thumb { background: #FDD835; border-radius: 3px; }
+        .problem-content::-webkit-scrollbar-track { background: transparent; }
+
+        .input-cell {
+            width: var(--input-width); height: 46px; text-align: center; font-size: var(--font-size);
+            font-family: inherit; border: 2px solid #E0E0E0; border-radius: 10px;
+            background-color: #fff; padding: 0 2px;
+            color: var(--c-text-main); outline: none; 
+            margin: 0 2px;
+            flex-shrink: 0; 
+        }
+        .input-cell:focus {
+             border-color: var(--c-primary);
+             background-color: #FFFDE7;
+             box-shadow: 0 0 0 2px rgba(253, 216, 53, 0.3);
+        }
+        
+        .unit { margin-right: 8px; font-weight: bold; font-family: sans-serif; color: var(--c-primary-dark); }
+        .math-text { white-space: nowrap; }
+
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; border-color: var(--c-accent) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; border-color: #FF7043 !important; }
+
+        button {
+            font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 25px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: transform 0.1s, background-color 0.2s; font-weight: bold;
+            box-shadow: 0 3px 0 #F9A825; 
+        }
+        button:hover { background-color: var(--c-button-hover); transform: translateY(1px); box-shadow: 0 2px 0 #F9A825; }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        button:disabled { background-color: #ccc; color: #fff; box-shadow: none; cursor: not-allowed; transform: none; }
+        
+        .button-area, #start-area { text-align: center; margin: 40px 0; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 20px;
+            background: var(--c-result-area-bg); border-radius: 15px; text-align: center;
+            border: 2px solid var(--c-primary-light);
+        }
+        #result { font-size: 1.6rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; color: var(--c-primary-dark); }
+        #hint-message { color: #E64A19; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        
+        .status-stars { font-size: 2.5rem; color: #FDD835; text-shadow: 1px 1px 0px #F57F17; }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 10px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px dashed #FBC02D; padding: 5px; color: var(--c-text-main); }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #fff; border: 2px solid #FDD835; 
+            font-size: 1.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(93, 64, 55, 0.4); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 15px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.1rem; color: var(--c-text-main); }
+        
+        .math-symbol { margin: 0 8px; color: var(--c-primary-dark); font-weight: bold; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="説明を表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary-dark); margin-top:0;">学習のポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry" style="display:none;">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="hint-message"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px; background:#BCAAA4; box-shadow:none;">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（最新５件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "099_km_calc_v3",
+        mainTitle: "８　長さ",
+        title: "kmの計算", 
+        page: 99, 
+        baseScore: 100,
+        targetTimePerQuestion: 60, 
+        questionCount: 4, 
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <p>kmとmがまじった計算をしましょう。</p>
+          <div style="background:#FFFDE7; padding:15px; border-radius:10px; border:2px solid #FBC02D; margin-bottom:10px;">
+             <strong>ポイント：</strong><br>
+             m（メートル）が 1000 になったら、<br>
+             <strong>1km</strong> に変身（くり上がり）します。<br>
+             <br>
+             m（メートル）がひけないときは、<br>
+             1km を <strong>1000m</strong> にして計算（くり下がり）しましょう。
+          </div>
+        `,
+
+        problemGenerator(count = 4) {
+            const problems = [];
+            
+            // 教科書P99 ▲5 の4パターン（たし算2種、ひき算2種）を生成
+
+            // 1. たし算（くり上がりあり・答えはkmとm）
+            const generateType1 = () => {
+                const km = Math.floor(Math.random() * 5) + 1; 
+                const m1 = (Math.floor(Math.random() * 4) + 6) * 100; // 600-900m
+                const m2 = (Math.floor(Math.random() * 4) + 5) * 100; // 500-800m
+                if (m1 + m2 < 1000) return generateType1();
+
+                const totalM = m1 + m2;
+                const ansKm = km + 1;
+                const ansM = totalM - 1000;
+                if (ansM === 0) return generateType1();
+
+                return {
+                    type: 'add_carry_mixed',
+                    display: `<span class="math-text">${km}<span class="unit">km</span>${m1}<span class="unit">m</span></span> <span class="math-symbol">+</span> <span class="math-text">${m2}<span class="unit">m</span></span> <span class="math-symbol">=</span>`,
+                    inputs: [
+                        { val: ansKm, unit: 'km' },
+                        { val: ansM, unit: 'm' }
+                    ]
+                };
+            };
+
+            // 2. たし算（くり上がりあり・答えがぴったりkm）
+            // ▼▼▼ 修正：mが0になる場合はmの入力欄を出さない ▼▼▼
+            const generateType2 = () => {
+                const km = Math.floor(Math.random() * 5) + 1;
+                const m1 = (Math.floor(Math.random() * 9) + 1) * 100; 
+                const m2 = 1000 - m1; 
+                const ansKm = km + 1;
+                
+                return {
+                    type: 'add_carry_exact',
+                    display: `<span class="math-text">${km}<span class="unit">km</span>${m1}<span class="unit">m</span></span> <span class="math-symbol">+</span> <span class="math-text">${m2}<span class="unit">m</span></span> <span class="math-symbol">=</span>`,
+                    inputs: [
+                        { val: ansKm, unit: 'km' }
+                        // mの入力欄を削除
+                    ]
+                };
+            };
+
+            // 3. ひき算（くり下がりあり・答えはkmとm）
+            const generateType3 = () => {
+                const km = Math.floor(Math.random() * 5) + 2; 
+                const m1 = (Math.floor(Math.random() * 5) + 1) * 100; 
+                const m2 = (Math.floor(Math.random() * 4) + 6) * 100; 
+                if (m1 >= m2) return generateType3();
+
+                const ansKm = km - 1;
+                const ansM = (1000 + m1) - m2;
+                
+                return {
+                    type: 'sub_borrow_mixed',
+                    display: `<span class="math-text">${km}<span class="unit">km</span>${m1}<span class="unit">m</span></span> <span class="math-symbol">−</span> <span class="math-text">${m2}<span class="unit">m</span></span> <span class="math-symbol">=</span>`,
+                    inputs: [
+                        { val: ansKm, unit: 'km' },
+                        { val: ansM, unit: 'm' }
+                    ]
+                };
+            };
+
+            // 4. ひき算（整数kmからのひき算・答えはkmとm）
+            const generateType4 = () => {
+                const km = Math.floor(Math.random() * 5) + 2; 
+                const m2 = (Math.floor(Math.random() * 9) + 1) * 100; 
+                const ansKm = km - 1;
+                const ansM = 1000 - m2;
+                
+                return {
+                    type: 'sub_borrow_int',
+                    display: `<span class="math-text">${km}<span class="unit">km</span></span> <span class="math-symbol">−</span> <span class="math-text">${m2}<span class="unit">m</span></span> <span class="math-symbol">=</span>`,
+                    inputs: [
+                        { val: ansKm, unit: 'km' },
+                        { val: ansM, unit: 'm' }
+                    ]
+                };
+            };
+
+            problems.push(generateType1());
+            problems.push(generateType2());
+            problems.push(generateType3());
+            problems.push(generateType4());
+
+            return problems.sort(() => Math.random() - 0.5);
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let incorrectCells = [];
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}点</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        const circledNumbers = ['①', '②', '③', '④'];
+        let globalInputIndex = 0;
+
+        problems.forEach((p, i) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `problem-row-${i}`;
+            
+            let html = `<span class="problem-number">${circledNumbers[i]}</span><div class="problem-content">`;
+            html += `<span>${p.display}</span>`;
+            
+            p.inputs.forEach((inp) => {
+                const inputId = `inp-${i}-${globalInputIndex++}`;
+                html += `<input type="tel" inputmode="numeric" id="${inputId}" class="input-cell" data-ans="${inp.val}" data-prob-index="${i}">`;
+                html += `<span class="unit">${inp.unit}</span>`;
+            });
+            
+            html += `</div>`;
+            wrapper.innerHTML = html;
+            container.appendChild(wrapper);
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('focusin', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            setTimeout(() => {
+                const row = el.closest('.problem-wrapper');
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 10);
+        });
+
+        container.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('input-cell')) return;
+            const el = e.target;
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const allInputs = Array.from(document.querySelectorAll('.input-cell'));
+                const currentIndex = allInputs.indexOf(el);
+                
+                if (incorrectCells.length > 0) {
+                    const currentErrorIndex = incorrectCells.indexOf(el.id);
+                    if (currentErrorIndex !== -1 && currentErrorIndex < incorrectCells.length - 1) {
+                        const nextErrorId = incorrectCells[currentErrorIndex + 1];
+                        const nextEl = document.getElementById(nextErrorId);
+                        if (nextEl) { nextEl.focus(); nextEl.select(); }
+                    } else {
+                        document.querySelector('#check-answers').focus();
+                    }
+                } else {
+                    if (currentIndex < allInputs.length - 1) {
+                        const nextEl = allInputs[currentIndex + 1];
+                        if (nextEl) nextEl.focus();
+                    } else {
+                        document.querySelector('#check-answers').focus();
+                    }
+                }
+            }
+        });
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        setTimeout(()=> btn.disabled=false, 500);
+
+        incorrectCells = [];
+        let allCorrect = true;
+        
+        const inputs = document.querySelectorAll('.input-cell');
+        
+        inputs.forEach(el => {
+            const userVal = el.value.replace(/[^0-9]/g, '');
+            const correctVal = String(el.dataset.ans);
+            
+            el.classList.remove('correct-bg', 'wrong-bg');
+            
+            if (userVal === '') {
+                allCorrect = false;
+                el.classList.add('wrong-bg');
+                incorrectCells.push(el.id);
+            } else if (parseInt(userVal) === parseInt(correctVal)) {
+                el.classList.add('correct-bg');
+            } else {
+                allCorrect = false;
+                el.classList.add('wrong-bg');
+                incorrectCells.push(el.id);
+            }
+        });
+
+        const resultEl = document.querySelector('#result');
+        const hintEl = document.querySelector('#hint-message');
+        
+        if (allCorrect) {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const baseTime = config.targetTimePerQuestion * config.questionCount;
+            const bonus = Math.max(0, Math.floor(50 * (baseTime - elapsed) / baseTime)); 
+            const score = config.baseScore + bonus;
+
+            totalClearCount++; dailyCount++;
+            
+            const s = config.starThresholds;
+            let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+            overallStatusStars = starsHtml;
+            
+            let msg = '🎉 全問正解！おめでとう！ 🎉';
+            if (score > highScore) {
+                msg = '🏆 ハイスコア達成！すごい！🏆';
+                highScore = score;
+                if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#FBC02D', '#AED581', '#FFFFFF'] });
+            }
+            
+            resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+            saveData(); saveHistoryEntry(score); updateDisplay();
+            
+            document.querySelector('#check-answers').style.display = 'none';
+            document.querySelector('#retry').style.display = 'inline-block';
+            document.querySelector('#retry').focus();
+            inputs.forEach(el => el.disabled = true);
+            document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+
+        } else {
+            resultEl.textContent = 'おしい！まちがいを直そう！';
+            hintEl.textContent = `あと ${incorrectCells.length} こ あるよ。`;
+            if (incorrectCells.length > 0) {
+                const targetEl = document.getElementById(incorrectCells[0]);
+                if (targetEl) { targetEl.focus(); targetEl.select(); }
+            }
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        incorrectCells = [];
+        document.querySelector('#result').textContent = '';
+        document.querySelector('#hint-message').textContent = '';
+        document.querySelector('#check-answers').style.display = 'inline-block';
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#retry').style.display = 'none';
+        
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+        
+        const firstInput = document.querySelector('.input-cell');
+        if (firstInput) firstInput.focus();
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('ハイスコアとステータスをリセットしますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } 
+        });
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

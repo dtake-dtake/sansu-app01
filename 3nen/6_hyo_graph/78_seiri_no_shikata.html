@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>整理のしかたのくふう</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：フレッシュ・ミント（教科書風） ▼▼▼ */
+        :root {
+            --c-bg-main: #E8F5E9;         
+            --c-primary: #2E7D32;         
+            --c-primary-light: #C8E6C9;   
+            --c-button-bg: #66BB6A;       
+            --c-button-hover: #4CAF50;    
+            
+            --c-result-area-bg: #ffffff;
+            --c-problem-row-bg: #ffffff;
+            --c-history-bg: #F1F8E9;      
+            
+            --c-text-main: #1B5E20;       
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #DCEDC8; 
+            --c-feedback-wrong-bg: #FFCDD2;   
+            
+            --c-bar-fill: #FF9800; 
+            --c-grid-line: #81D4FA;
+            --c-grid-line-bold: #0277BD; 
+            
+            --cell-width: 40px;
+            --cell-height: 20px;
+        }
+
+        body {
+            font-family: "Hiragino Kaku Gothic ProN", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2 { text-align: center; color: var(--c-primary); margin: 10px 0; }
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-primary-light); 
+            padding: 6px 18px; 
+            border-radius: 8px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; 
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-primary);
+            border: 2px solid var(--c-primary);
+            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+        }
+
+        #problems-container {
+            width: 100%; max-width: 1000px; margin-top: 20px;
+            display: flex; flex-direction: column; gap: 40px;
+        }
+        
+        .problem-wrapper {
+            background: var(--c-problem-row-bg); border-radius: 10px; padding: 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1); 
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            gap: 30px;
+            align-items: start;
+        }
+        @media (max-width: 800px) {
+            .problem-wrapper { grid-template-columns: 1fr; }
+        }
+
+        /* 左パネル */
+        .left-panel {
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        /* 1. 元データ（正の字）エリア */
+        .source-data-box {
+            border: 2px solid #81C784; border-radius: 8px; padding: 10px;
+            background-color: #F1F8E9;
+        }
+        .source-data-title { font-weight: bold; margin-bottom: 5px; color: var(--c-primary); }
+        
+        .source-list {
+            list-style: none; padding: 0; margin: 0;
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px;
+        }
+        @media (max-width: 500px) {
+            .source-list { grid-template-columns: 1fr; }
+        }
+
+        .source-item {
+            font-size: 1.1rem; border-bottom: 1px dashed #ccc; padding: 6px 4px;
+            display: flex; 
+            align-items: center; /* 垂直方向中央揃え */
+        }
+        
+        .source-name {
+            display: inline-block;
+            width: 7.5rem; /* 項目名の幅を固定 */
+            font-weight: normal;
+            flex-shrink: 0;
+        }
+
+        /* ▼▼▼ CSSで描く「正の字」 ▼▼▼ */
+        .tally-container {
+            display: flex;
+            align-items: center;
+            gap: 6px; /* 正の字同士の間隔 */
+            margin-left: 5px;
+        }
+
+        .tally-css {
+            display: inline-block;
+            width: 24px;  /* 正の字の幅 */
+            height: 24px; /* 正の字の高さ */
+            position: relative;
+            
+            /* 線の設定 */
+            --lc: #D84315; /* Line Color: 濃いオレンジ */
+            --lw: 3px;     /* Line Width: 線の太さ */
+            
+            /* グラデーションで線を描く（下から順にレイヤーが重なる） */
+            background-repeat: no-repeat;
+            background-image: 
+                /* 5画目：下横棒 */
+                linear-gradient(var(--lc), var(--lc)),
+                /* 4画目：左縦棒 */
+                linear-gradient(var(--lc), var(--lc)),
+                /* 3画目：中横棒 */
+                linear-gradient(var(--lc), var(--lc)),
+                /* 2画目：中縦棒 */
+                linear-gradient(var(--lc), var(--lc)),
+                /* 1画目：上横棒 */
+                linear-gradient(var(--lc), var(--lc));
+        }
+
+        /* 1画目: 一 */
+        .tally-css[data-val="1"] {
+            background-size: 
+                0 0, 0 0, 0 0, 0 0, 
+                100% var(--lw);
+            background-position: 
+                0 0, 0 0, 0 0, 0 0, 
+                0 0;
+        }
+
+        /* 2画目: Ｔ */
+        .tally-css[data-val="2"] {
+            background-size: 
+                0 0, 0 0, 0 0, 
+                var(--lw) 60%, 
+                100% var(--lw);
+            background-position: 
+                0 0, 0 0, 0 0, 
+                50% 0, 
+                0 0;
+        }
+
+        /* 3画目: Ｆのような形 (下のような形) */
+        .tally-css[data-val="3"] {
+            background-size: 
+                0 0, 0 0, 
+                50% var(--lw), 
+                var(--lw) 60%, 
+                100% var(--lw);
+            background-position: 
+                0 0, 0 0, 
+                50% 60%, 
+                50% 0, 
+                0 0;
+        }
+
+        /* 4画目: 止のような形 */
+        .tally-css[data-val="4"] {
+            background-size: 
+                0 0, 
+                var(--lw) 40%, 
+                50% var(--lw), 
+                var(--lw) 60%, 
+                100% var(--lw);
+            background-position: 
+                0 0, 
+                25% 60%, 
+                50% 60%, 
+                50% 0, 
+                0 0;
+        }
+
+        /* 5画目: 正 */
+        .tally-css[data-val="5"] {
+            background-size: 
+                100% var(--lw), 
+                var(--lw) 40%, 
+                50% var(--lw), 
+                var(--lw) 60%, 
+                100% var(--lw);
+            background-position: 
+                0 100%, 
+                25% 60%, 
+                50% 60%, 
+                50% 0, 
+                0 0;
+        }
+
+
+        /* 2. 表エリア */
+        .sort-table {
+            width: 100%; border-collapse: collapse; background: #fff;
+            font-size: 1.0rem;
+        }
+        .sort-table th, .sort-table td {
+            border: 1px solid var(--c-primary); padding: 5px; text-align: center;
+        }
+        .sort-table th { background-color: var(--c-primary-light); }
+        
+        .item-select {
+            width: 90%; font-size: 1.0rem; padding: 5px;
+            border: 1px solid #ccc; border-radius: 4px;
+            background: #fff;
+        }
+        .count-input {
+            width: 50px; font-size: 1.1rem; padding: 5px; text-align: right;
+            border: 1px solid #ccc; border-radius: 4px;
+        }
+        .count-input:focus { background-color: #E3F2FD; outline: 2px solid var(--c-primary); }
+
+
+        /* 右パネル：グラフエリア */
+        .right-panel {
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+
+        .graph-wrapper {
+            display: grid;
+            grid-template-columns: 40px auto; 
+            gap: 2px;
+            position: relative;
+            padding-top: 40px; 
+        }
+
+        .y-axis-area {
+            display: flex; flex-direction: column-reverse; 
+            justify-content: space-between;
+            height: calc(15 * var(--cell-height)); 
+            position: relative;
+        }
+        .y-label-group {
+            height: 0px; display: flex; align-items: center; justify-content: flex-end;
+            overflow: visible; padding-right: 5px;
+        }
+        .y-axis-num {
+            font-size: 0.9rem; transform: translateY(0%);
+        }
+
+        .graph-content { display: flex; flex-direction: column; width: fit-content; }
+
+        .graph-grid {
+            display: grid;
+            grid-template-rows: repeat(15, var(--cell-height)); 
+            grid-template-columns: repeat(4, var(--cell-width)); 
+            border-left: 2px solid var(--c-text-main);
+            border-right: 2px solid var(--c-text-main);
+            background-color: #fff;
+            background-image: 
+                linear-gradient(var(--c-grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--c-grid-line) 1px, transparent 1px);
+            background-size: 100% var(--cell-height), var(--cell-width) 100%;
+            background-position: 0 0; 
+        }
+
+        .bar-cell {
+            cursor: pointer; display: flex; justify-content: center; align-items: flex-end;
+            position: relative; box-sizing: border-box;
+        }
+        .bold-line-top { border-top: 2px solid var(--c-grid-line-bold) !important; }
+        .bold-line-bottom { border-bottom: 2px solid var(--c-grid-line-bold) !important; }
+
+        .bar-cell:hover::after {
+            content: ""; position: absolute; width: 100%; height: 100%;
+            background-color: rgba(255, 152, 0, 0.2); pointer-events: none;
+        }
+        .bar-cell.filled::before {
+            content: ""; display: block; width: 60%; height: 100%;
+            background-color: var(--c-bar-fill);
+            border-left: 1px solid #EF6C00; border-right: 1px solid #EF6C00;
+            box-sizing: border-box;
+        }
+
+        .x-axis-area {
+            display: grid; grid-template-columns: repeat(4, var(--cell-width));
+            border-left: 2px solid transparent; border-right: 2px solid transparent; 
+            padding-top: 5px; 
+        }
+        .x-axis-label {
+            display: flex; align-items: center; justify-content: flex-start; 
+            font-size: 0.8rem; line-height: 1.1; text-align: center;
+            writing-mode: vertical-rl; text-orientation: upright; 
+            min-height: 90px; width: 100%; 
+        }
+        
+        .unit-label-y { 
+            position: absolute; top: -28px; right: 2px; width: 40px;
+            text-align: center; font-size: 0.8rem; 
+        }
+        .unit-label-x { 
+            text-align: center; width: 100%; font-size: 0.8rem;
+            color: var(--c-text-main); margin-top: 5px;
+        }
+
+        .correct-bg { background-color: var(--c-feedback-correct-bg) !important; }
+        .wrong-bg { background-color: var(--c-feedback-wrong-bg) !important; }
+        .bar-error.filled::before { background-color: #FFCDD2 !important; border-color: #E57373 !important; }
+        .bar-error:not(.filled)::after { content:""; position:absolute; width:60%; height:100%; border:2px dotted #E91E63; left: 20%; }
+
+        button {
+            font-size: 1.1rem; padding: 10px 20px; border: none; border-radius: 8px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: background-color 0.2s; font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:hover { background-color: var(--c-button-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .button-area, #start-area { text-align: center; margin: 40px 0; width:100%; }
+        
+        #result-area {
+            max-width: 600px; margin: 20px auto; padding: 15px;
+            background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
+        }
+        #result { font-size: 1.4rem; font-weight: bold; margin-bottom: 10px; min-height: 1.6em; }
+        #hint-message { color: #D81B60; font-weight: bold; margin-bottom: 10px; min-height: 1.5em; }
+        
+        .status-stars { font-size: 2.0rem; color: #fdd835; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px; text-align: left; padding: 10px;}
+        #history-list li { border-bottom: 1px solid #AED581; padding: 5px; }
+
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #fff; border: 2px solid #fdd835; 
+            font-size: 1.5rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 15px; width: 85%; max-width: 450px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+        .modal-body { text-align: left; line-height: 1.8; font-size: 1.0rem; }
+
+        .sho{
+  --lc:#D84315;
+  --lw:3px;
+  width:24px;
+  height:24px;
+  display:inline-block;
+  position:relative;
+  margin:2px;
+}
+
+.sho > i{
+  position:absolute;
+  background:var(--lc);
+  border-radius:999px;
+}
+
+/* 上横 */
+.sho .s1{ left:0; top:0; width:100%; height:var(--lw); }
+
+/* 中央縦 */
+.sho .s2{ left:50%; top:0; width:var(--lw); height:100%; transform:translateX(-50%); }
+
+/* 中横（右） */
+.sho .s3{ left:50%; top:40%; width:50%; height:var(--lw); }
+
+/* 左縦 */
+.sho .s4{ left:12%; top:40%; width:var(--lw); height:60%; }
+
+/* 下横 */
+.sho .s5{ left:0; bottom:0; width:100%; height:var(--lw); }
+
+/* 表示制御 */
+.sho[data-val="1"] .s2,
+.sho[data-val="1"] .s3,
+.sho[data-val="1"] .s4,
+.sho[data-val="1"] .s5{ display:none; }
+
+.sho[data-val="2"] .s3,
+.sho[data-val="2"] .s4,
+.sho[data-val="2"] .s5{ display:none; }
+
+.sho[data-val="3"] .s4,
+.sho[data-val="3"] .s5{ display:none; }
+
+.sho[data-val="4"] .s5{ display:none; }
+
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="説明を表示">💡</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">学習のポイント</h3>
+        <div class="modal-body" id="instruction-content"></div>
+      </div>
+    </div>
+    
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+    
+    <div id="start-area"> <button id="start-btn">スタート！</button> </div>
+    <div id="problems-section" style="display:none;">
+        <div id="problems-container"></div>
+        <div class="button-area">
+            <button id="check-answers">まるつけ</button>
+            <button id="retry">もういちど</button>
+        </div>
+    </div>
+    <div id="result-area">
+        <div id="result"></div>
+        <div id="hint-message"></div>
+        <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
+        <div id="highScoreArea">ハイスコア：<span id="highScoreValue">0</span> てん <button id="reset-highscore" style="font-size:0.8rem; padding:4px 8px; margin-left:10px;">リセット</button></div>
+        <div id="dailyCountArea">今日のクリア：<span id="dailyCountValue">0</span> かい</div>
+        <div id="clearCountArea">合計クリア：<span id="clearCountValue">0</span> かい</div>
+        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">りれき（最新５件）<br><ul id="history-list"></ul></div>
+    </div>
+
+    <script>
+    (function () {
+      const config = {
+        appId: "seiri_no_shikata",
+        mainTitle: "６　表とグラフ",
+        title: "整理のしかたのくふう", 
+        page: 78, 
+        baseScore: 100,
+        targetTimePerQuestion: 120, 
+        questionCount: 1, 
+        starThresholds: { star1: 100, star2: 120, star3: 140, star4: 160, star5: 180 },
+        
+        instructionHtml: `
+          <p>正の字を数えて、多い順に表とグラフをつくりましょう。</p>
+          <div style="background:#E8F5E9; padding:10px; border-radius:8px; border:1px solid #81C784; margin-bottom:10px;">
+             <strong>ポイント：</strong><br>
+             １．数が一番多いものから順にならべます。<br>
+             ２．数が少ないものは、まとめて<strong>「その他」</strong>にします。<br>
+             ３．「その他」は、数が多くても、かならず<strong>さいご</strong>にかきます。<br>
+          </div>
+        `,
+
+        /* CSSで描画するためのHTML構造を生成する */
+        toTallyHTML(n) {
+        let html = '<div class="tally-container">';
+        const fives = Math.floor(n / 5);
+        const rem = n % 5;
+
+        for (let i = 0; i < fives; i++) {
+            html += `
+            <span class="sho" data-val="5">
+                <i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i><i class="s5"></i>
+            </span>`;
+        }
+
+        if (rem > 0) {
+            html += `
+            <span class="sho" data-val="${rem}">
+                <i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i><i class="s5"></i>
+            </span>`;
+        }
+
+        html += '</div>';
+        return html;
+        },
+
+
+        problemGenerator(count = 1) {
+            const problems = [];
+            
+            const datasets = [
+                {
+                    title: "すきな給食調べ", unit: "人",
+                    pool: ["カレー", "あげパン", "ラーメン", "ハンバーグ", "サラダ", "フルーツ", "スープ"]
+                },
+                {
+                    title: "すきな動物調べ", unit: "人",
+                    pool: ["犬", "ねこ", "パンダ", "うさぎ", "コアラ", "ハムスター", "キリン"]
+                },
+                {
+                    title: "すきな色調べ", unit: "人",
+                    pool: ["赤", "青", "水色", "ピンク", "黄色", "黒", "緑"]
+                },
+                {
+                    title: "すきな遊び調べ", unit: "人",
+                    pool: ["おにごっこ", "ドッジボール", "サッカー", "なわとび", "一輪車", "ブランコ", "てつぼう"]
+                }
+            ];
+
+            const dataset = datasets[Math.floor(Math.random() * datasets.length)];
+const items = [...dataset.pool].sort(() => Math.random() - 0.5).slice(0, 6);
+
+            const data = [];
+            // Top 3
+            data.push({ name: items[0], val: Math.floor(Math.random() * 4) + 11 }); // 11~14
+            data.push({ name: items[1], val: Math.floor(Math.random() * 4) + 7 });  // 7~10
+            data.push({ name: items[2], val: Math.floor(Math.random() * 3) + 4 });  // 4~6
+            
+            // Others candidates
+            data.push({ name: items[3], val: Math.floor(Math.random() * 2) + 1 }); // 1~2
+            data.push({ name: items[4], val: Math.floor(Math.random() * 2) + 1 }); // 1~2
+            data.push({ name: items[5], val: Math.floor(Math.random() * 2) + 1 }); // 1~2
+            
+            const rawList = [...data].sort(() => Math.random() - 0.5);
+
+            const sorted = [...data].sort((a,b) => b.val - a.val);
+            const top3 = sorted.slice(0, 3);
+            const othersList = sorted.slice(3);
+            const othersSum = othersList.reduce((acc, cur) => acc + cur.val, 0);
+            
+            const tableRows = [
+                { name: top3[0].name, val: top3[0].val },
+                { name: top3[1].name, val: top3[1].val },
+                { name: top3[2].name, val: top3[2].val },
+                { name: "その他", val: othersSum }
+            ];
+            
+            const total = tableRows.reduce((acc,cur) => acc + cur.val, 0);
+            const options = [...dataset.pool.slice(0, 6), "その他"];
+
+            problems.push({
+                title: dataset.title,
+                unit: dataset.unit,
+                // valStrとして、HTMLタグの文字列を保持させる
+                rawList: rawList.map(d => ({ name: d.name, valStr: this.toTallyHTML(d.val), val: d.val })),
+                tableRows: tableRows,
+                total: total,
+                options: options.sort()
+            });
+
+            return problems;
+        }
+      };
+
+      let problems = [], startTime = 0, highScore = 0;
+      let totalClearCount = 0, dailyCount = 0;
+      let overallStatusStars = '―';
+      let incorrectInputs = []; 
+      const ls = localStorage;
+      const KEY_HS = `${config.appId}:hs`, KEY_HISTORY = `${config.appId}:history`, KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_OVERALL_STATUS = `${config.appId}:status`;
+      const KEY_DAILY_PREFIX = `${config.appId}:dailyClear-`;
+      
+      function normalizeString(str) {
+          if (!str) return '';
+          return str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/\s+/g, '').trim();
+      }
+
+      function loadData() { 
+          highScore = +ls.getItem(KEY_HS) || 0; 
+          totalClearCount = +ls.getItem(KEY_CLEAR) || 0; 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          dailyCount = +ls.getItem(todayKey) || 0;
+          overallStatusStars = ls.getItem(KEY_OVERALL_STATUS) || '―';
+      }
+      function saveData() { 
+          ls.setItem(KEY_HS, String(highScore)); 
+          ls.setItem(KEY_CLEAR, String(totalClearCount)); 
+          const todayKey = KEY_DAILY_PREFIX + new Date().toISOString().slice(0, 10);
+          ls.setItem(todayKey, String(dailyCount)); 
+          ls.setItem(KEY_OVERALL_STATUS, overallStatusStars); 
+      }
+      function saveHistoryEntry(score) { 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          history.unshift({ datetime: new Date().toLocaleString(), score }); 
+          if (history.length > 5) history.pop(); 
+          ls.setItem(KEY_HISTORY, JSON.stringify(history)); 
+      }
+      function updateDisplay() { 
+          document.querySelector('#highScoreValue').textContent = highScore; 
+          document.querySelector('#clearCountValue').textContent = totalClearCount; 
+          document.querySelector('#dailyCountValue').textContent = dailyCount; 
+          document.querySelector('#overallStars').innerHTML = overallStatusStars; 
+          const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]'); 
+          document.querySelector('#history-list').innerHTML = history.map(h => `<li>${h.datetime} <span style="float:right; font-weight:bold;">${h.score}点</span></li>`).join(''); 
+      }
+      
+      function displayProblems() {
+        const container = document.getElementById('problems-container');
+        container.innerHTML = '';
+        
+        problems.forEach((p, probIdx) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            wrapper.id = `problem-wrapper-${probIdx}`;
+            
+            // --- 左パネル ---
+            let leftHtml = `<div class="left-panel">`;
+            
+            // 1. 元データ
+            leftHtml += `<div class="source-data-box"><div class="source-data-title">調べた数</div><ul class="source-list">`;
+            p.rawList.forEach(item => {
+                // valStrはHTML文字列になっているので、tally-wrapperに入れる
+                leftHtml += `
+                    <li class="source-item">
+                        <span class="source-name">${item.name}</span>
+                        <div class="tally-wrapper">${item.valStr}</div>
+                    </li>`;
+            });
+            leftHtml += `</ul></div>`;
+            
+            // 2. 表
+            leftHtml += `<div class="table-area"><div class="source-data-title">多い順にならべよう</div>`;
+            leftHtml += `<table class="sort-table"><tr><th>しゅるい</th><th>${p.unit}</th></tr>`;
+            
+            for(let i=0; i<3; i++) {
+                leftHtml += `
+                    <tr>
+                        <td>
+                            <select class="item-select" id="sel-${probIdx}-${i}" data-row="${i}">
+                                <option value="">(えらぶ)</option>
+                                ${p.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td><input type="tel" class="count-input" id="inp-${probIdx}-${i}"></td>
+                    </tr>
+                `;
+            }
+            leftHtml += `
+                    <tr>
+                        <td style="background:#f9f9f9;">その他</td>
+                        <td><input type="tel" class="count-input" id="inp-${probIdx}-others"></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold;">合　計</td>
+                        <td><input type="tel" class="count-input" id="inp-${probIdx}-total"></td>
+                    </tr>
+            `;
+            leftHtml += `</table></div></div>`; 
+
+            // --- 右パネル ---
+            let rightHtml = `<div class="right-panel">`;
+            
+            let yAxisHtml = `<div class="unit-label-y">(${p.unit})</div>`;
+            yAxisHtml += `<div class="y-label-group"><input type="hidden" class="y-axis-num" value="0">0</div>`;
+            yAxisHtml += `<div style="flex-grow:1"></div>`;
+            yAxisHtml += `<div class="y-label-group"><span class="y-axis-num">5</span></div>`;
+            yAxisHtml += `<div style="flex-grow:1"></div>`;
+            yAxisHtml += `<div class="y-label-group"><span class="y-axis-num">10</span></div>`;
+            yAxisHtml += `<div style="flex-grow:1"></div>`;
+            yAxisHtml += `<div class="y-label-group"><span class="y-axis-num">15</span></div>`;
+            
+            let gridHtml = '';
+            for(let r=0; r<15; r++) {
+                const value = 15 - r;
+                let extraClass = '';
+                if (r === 0) extraClass += ' bold-line-top';
+                if (r === 5) extraClass += ' bold-line-top';
+                if (r === 10) extraClass += ' bold-line-top';
+                if (r === 14) extraClass += ' bold-line-bottom';
+                
+                for(let c=0; c<4; c++) {
+                    gridHtml += `<div class="bar-cell ${extraClass}" id="cell-${probIdx}-${c}-${value}" data-prob="${probIdx}" data-col="${c}" data-val="${value}"></div>`;
+                }
+            }
+            
+            let xAxisHtml = '';
+            xAxisHtml += `<div class="x-axis-label" id="lbl-${probIdx}-0"></div>`; 
+            xAxisHtml += `<div class="x-axis-label" id="lbl-${probIdx}-1"></div>`; 
+            xAxisHtml += `<div class="x-axis-label" id="lbl-${probIdx}-2"></div>`; 
+            xAxisHtml += `<div class="x-axis-label">その他</div>`; 
+            
+            rightHtml += `
+                <div class="graph-wrapper">
+                    <div class="y-axis-area">${yAxisHtml}</div>
+                    <div class="graph-content">
+                        <div class="graph-grid" id="grid-${probIdx}">${gridHtml}</div>
+                        <div class="x-axis-area">${xAxisHtml}</div>
+                        <div class="unit-label-x">しゅるい</div>
+                    </div>
+                </div>
+            `;
+            rightHtml += `</div>`; 
+
+            wrapper.innerHTML = `
+                <div class="prob-title" style="grid-column: 1 / -1;">${p.title}</div>
+                ${leftHtml}
+                ${rightHtml}
+            `;
+            container.appendChild(wrapper);
+        });
+      }
+      
+      function setupEventListeners() {
+        const container = document.getElementById('problems-container');
+        
+        container.addEventListener('change', (e) => {
+            if(e.target.classList.contains('item-select')) {
+                const probIdx = 0; 
+                const row = e.target.dataset.row;
+                const val = e.target.value;
+                document.getElementById(`lbl-${probIdx}-${row}`).textContent = val;
+            }
+        });
+
+        container.addEventListener('click', (e) => {
+            let target = e.target;
+            if (!target.classList.contains('bar-cell')) {
+                target = target.closest('.bar-cell');
+            }
+            if (!target) return;
+            
+            const probIdx = target.dataset.prob;
+            const col = parseInt(target.dataset.col, 10);
+            const val = parseInt(target.dataset.val, 10);
+            
+            let currentHeight = 0;
+            for(let h=15; h>=1; h--) {
+                const cell = document.getElementById(`cell-${probIdx}-${col}-${h}`);
+                if (cell.classList.contains('filled')) {
+                    currentHeight = h;
+                    break;
+                }
+            }
+            let newHeight = val;
+            if (val === currentHeight) newHeight = 0; 
+
+            for(let h=1; h<=15; h++) {
+                const cell = document.getElementById(`cell-${probIdx}-${col}-${h}`);
+                if (h <= newHeight) cell.classList.add('filled');
+                else cell.classList.remove('filled');
+                cell.classList.remove('bar-error');
+            }
+        });
+
+        container.addEventListener('focusout', (e) => {
+            if (e.target.tagName === 'INPUT') {
+                e.target.value = normalizeString(e.target.value);
+            }
+        });
+      }
+      
+      function checkAnswers() {
+        const btn = document.querySelector('#check-answers');
+        btn.disabled = true;
+        
+        incorrectInputs = [];
+        let allCorrect = true;
+        
+        problems.forEach((p, probIdx) => {
+            // Check Table
+            for(let i=0; i<3; i++) {
+                const sel = document.getElementById(`sel-${probIdx}-${i}`);
+                const inp = document.getElementById(`inp-${probIdx}-${i}`);
+                
+                if (sel.value !== p.tableRows[i].name) {
+                    allCorrect = false;
+                    sel.style.backgroundColor = '#FFCDD2';
+                } else {
+                    sel.style.backgroundColor = '#DCEDC8';
+                }
+                
+                if (normalizeString(inp.value) != p.tableRows[i].val) {
+                    allCorrect = false;
+                    inp.classList.add('wrong-bg');
+                } else {
+                    inp.classList.remove('wrong-bg');
+                    inp.classList.add('correct-bg');
+                }
+            }
+            
+            const inpOthers = document.getElementById(`inp-${probIdx}-others`);
+            if (normalizeString(inpOthers.value) != p.tableRows[3].val) {
+                allCorrect = false;
+                inpOthers.classList.add('wrong-bg');
+            } else {
+                inpOthers.classList.remove('wrong-bg');
+                inpOthers.classList.add('correct-bg');
+            }
+
+            const inpTotal = document.getElementById(`inp-${probIdx}-total`);
+            if (normalizeString(inpTotal.value) != p.total) {
+                allCorrect = false;
+                inpTotal.classList.add('wrong-bg');
+            } else {
+                inpTotal.classList.remove('wrong-bg');
+                inpTotal.classList.add('correct-bg');
+            }
+
+            // Check Graph
+            for(let c=0; c<4; c++) {
+                const targetVal = p.tableRows[c].val;
+                let filledHeight = 0;
+                for(let h=15; h>=1; h--) {
+                    const cell = document.getElementById(`cell-${probIdx}-${c}-${h}`);
+                    if (cell.classList.contains('filled')) {
+                        filledHeight = h;
+                        break;
+                    }
+                }
+                if (filledHeight !== targetVal) {
+                    allCorrect = false;
+                    for(let h=1; h<=15; h++) {
+                        document.getElementById(`cell-${probIdx}-${c}-${h}`).classList.add('bar-error');
+                    }
+                }
+            }
+        });
+        
+        const resultEl = document.querySelector('#result');
+        const hintEl = document.querySelector('#hint-message');
+        hintEl.textContent = '';
+
+        if (allCorrect) {
+           const elapsed = (Date.now() - startTime) / 1000;
+           const baseTime = config.targetTimePerQuestion * config.questionCount; 
+           const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime));
+           const score = config.baseScore + bonus;
+           
+           totalClearCount++; dailyCount++;
+           
+           const s = config.starThresholds;
+           let starsHtml = (score >= s.star5) ? '★★★★★' : (score >= s.star4) ? '★★★★☆' : (score >= s.star3) ? '★★★☆☆' : (score >= s.star2) ? '★★☆☆☆' : '★☆☆☆☆';
+           overallStatusStars = starsHtml;
+           
+           let msg = '🎉 かんぺきです！ 🎉';
+           if (score > highScore) {
+            msg = '🏆 ハイスコア達成！🏆';
+            highScore = score;
+            if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 180, origin: { y: 0.6 }, colors:['#43A047', '#FF9800', '#FFFFFF'] });
+           }
+           
+           resultEl.innerHTML = `${msg}<br>スコア: <strong>${score}点</strong> (タイム: ${elapsed.toFixed(1)} 秒)`;
+           saveData(); saveHistoryEntry(score); updateDisplay();
+           document.querySelector('#result-area').scrollIntoView({ behavior: 'smooth' });
+           document.querySelector('#retry').focus();
+        } else {
+           resultEl.textContent = 'おしい！あっているかたしかめよう。';
+           hintEl.textContent = '表の順番と、グラフの高さをチェックしてね。';
+           btn.disabled = false;
+        }
+      }
+      
+      function retry() {
+        startTime = Date.now();
+        incorrectInputs = [];
+        document.querySelector('#check-answers').disabled = false;
+        document.querySelector('#result').textContent = '';
+        document.querySelector('#hint-message').textContent = '';
+        problems = config.problemGenerator(config.questionCount);
+        displayProblems();
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const startArea = document.querySelector('#start-area');
+        const startBtn = document.querySelector('#start-btn');
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+        
+        loadData(); updateDisplay();
+        
+        startBtn.onclick = () => { 
+            startArea.style.display = 'none'; 
+            document.querySelector('#problems-section').style.display = 'block'; 
+            retry(); 
+        };
+        
+        document.querySelector('#check-answers').onclick = checkAnswers;
+        document.querySelector('#retry').onclick = retry;
+        document.querySelector('#reset-highscore').onclick = () => { 
+            if (confirm('リセットしますか？')) { 
+                highScore = 0; overallStatusStars = '―'; saveData(); updateDisplay(); 
+            } 
+        };
+        document.addEventListener('keydown', e => { 
+            if (e.key === 'Enter' && startArea.style.display !== 'none') { startBtn.click(); } 
+        });
+        setupEventListeners();
+
+        const modal = document.getElementById("info-modal");
+        const btn = document.getElementById("bulb-btn");
+        const span = document.querySelector(".close-modal");
+        btn.onclick = () => { modal.style.display = "block"; };
+        span.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+      });
+    })();
+    </script>
+</body>
+</html>

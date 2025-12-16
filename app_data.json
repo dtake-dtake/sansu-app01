@@ -832,30 +832,35 @@
       },
       {
         "name": "６　　表とグラフ",
-        "apps": []
+        "apps": [
+          {
+            "id": "seiri_no_shikata",
+            "title": "整理のしかたのくふう",
+            "path": "3nen/6_hyo_graph/78_seiri_no_shikata.html",
+            "page": "78"
+          },
+          {
+            "id": "bou_graph_kakikata",
+            "title": "棒グラフのかき方",
+            "path": "3nen/6_hyo_graph/76_bougraph_kakikata.html",
+            "page": "76"
+          }
+        ]
       },
       {
         "name": "７　　たし算とひき算",
         "apps": [
           {
-            "id": "4_100_hiku_2keta",
-            "title": "１００−２けた",
-            "path": "3nen/7_tasizan_hikizan/4_100_hiku_2keta.html"
+            "id": "tashizan_anzan",
+            "title": "たし算ひき算",
+            "path": "3nen/7_tasizan_hikizan/088_tashizan_anzan.html",
+            "page": "88"
           },
           {
-            "id": "3_2keta_hiku_2keta",
-            "title": "２けた−２けた",
-            "path": "3nen/7_tasizan_hikizan/3_2keta_hiku_2keta.html"
-          },
-          {
-            "id": "1_2keta_tasu_2keta_100ika",
-            "title": "２けた＋２けた⑴",
-            "path": "3nen/7_tasizan_hikizan/1_2keta_tasu_2keta_100ika.html"
-          },
-          {
-            "id": "2_2keta_tasu_2keta_100izyou",
-            "title": "２けた＋２けた⑵",
-            "path": "3nen/7_tasizan_hikizan/2_2keta_tasu_2keta_100izyou.html"
+            "id": "hikizan_anzan",
+            "title": "ひき算の暗算",
+            "path": "3nen/7_tasizan_hikizan/089_hikizan_anzan.html",
+            "page": "89"
           }
         ]
       },
@@ -871,6 +876,18 @@
         "name": "８　　長さ",
         "apps": [
           {
+            "id": "098_km_to_m_v2",
+            "title": "kmとm",
+            "path": "3nen/8_nagasa/098_km_to_m.html",
+            "page": "98"
+          },
+          {
+            "id": "099_km_calc_v3",
+            "title": "kmの計算",
+            "path": "3nen/8_nagasa/099_km_calc.html",
+            "page": "99"
+          },
+          {
             "id": "2_nagasa_keisan",
             "title": "長さのたし算とひき算",
             "path": "3nen/8_nagasa/2_nagasa_keisan.html"
@@ -879,6 +896,12 @@
             "id": "1_nagasa_tani_henkan",
             "title": "長さのへんかん",
             "path": "3nen/8_nagasa/1_nagasa_tani_henkan.html"
+          },
+          {
+            "id": "100_length_units_v5",
+            "title": "長さの単位",
+            "path": "3nen/8_nagasa/100_length_units.html",
+            "page": "100"
           }
         ]
       },
