@@ -449,7 +449,7 @@
         if (allCorrect) {
             const elapsed = (Date.now() - startTime) / 1000;
             const baseTime = config.targetTimePerQuestion * config.questionCount;
-            const bonus = Math.max(0, Math.floor(50 * (baseTime - elapsed) / baseTime)); 
+            const bonus = Math.max(0, Math.floor(100 * (baseTime - elapsed) / baseTime)); 
             const score = config.baseScore + bonus;
 
             totalClearCount++; dailyCount++;
