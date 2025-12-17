@@ -840,6 +840,12 @@
             "page": "78"
           },
           {
+            "id": "seiri_no_shikata",
+            "title": "整理のしかたのくふう",
+            "path": "3nen/6_hyo_graph/78_seiri_no_shikata_v2.html",
+            "page": "78"
+          },
+          {
             "id": "bou_graph_kakikata",
             "title": "棒グラフのかき方",
             "path": "3nen/6_hyo_graph/76_bougraph_kakikata.html",
@@ -886,16 +892,6 @@
             "title": "kmの計算",
             "path": "3nen/8_nagasa/099_km_calc.html",
             "page": "99"
-          },
-          {
-            "id": "2_nagasa_keisan",
-            "title": "長さのたし算とひき算",
-            "path": "3nen/8_nagasa/2_nagasa_keisan.html"
-          },
-          {
-            "id": "1_nagasa_tani_henkan",
-            "title": "長さのへんかん",
-            "path": "3nen/8_nagasa/1_nagasa_tani_henkan.html"
           },
           {
             "id": "100_length_units_v5",
@@ -1012,7 +1008,13 @@
       },
       {
         "name": "〇　　わくわくプログラミング",
-        "apps": []
+        "apps": [
+          {
+            "id": "53_wakuwaku_programming",
+            "title": "わくわく　プログラミング",
+            "path": "3nen/16_programming/53_wakuwaku_programming.html"
+          }
+        ]
       },
       {
         "name": "１７　三角形",
