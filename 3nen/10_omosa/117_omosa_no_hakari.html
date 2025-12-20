@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>答えのたしかめ</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* 教科書の緑色をベースにしたカラーパレット */
+      --c-bg-main: #F0F4C3;         /* ノートのような薄い黄色 */
+      --c-primary: #558B2F;         /* 濃い緑 */
+      --c-primary-light: #AED581;   /* 明るい緑 */
+      --c-accent: #FF6F00;          /* アクセントのオレンジ */
+      --c-blackboard: #2E4E35;      /* 黒板色 */
+      --c-chalk: #FFFFFF;           /* チョーク色 */
+      
+      --c-text-main: #333333;
+      --c-button-bg: #689F38;
+      --c-button-hover: #33691E;
+      --c-feedback-correct: #FF1744; /* 丸つけの赤 */
+      --c-feedback-wrong: #1976D2;   /* 青 */
+
+      --font-main: "M PLUS Rounded 1c", sans-serif;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--c-bg-main);
+      background-image: linear-gradient(#E0E0E0 1px, transparent 1px);
+      background-size: 100% 1.5rem; /* ノートの罫線風 */
+      color: var(--c-text-main);
+      margin: 0; padding: 20px;
+      line-height: 1.6;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    h1 { 
+      color: var(--c-primary); 
+      text-shadow: 2px 2px 0 #fff; 
+      margin: 10px 0; font-size: 1.6rem; text-align: center;
+    }
+    
+    h2 {
+      font-size: 1.2rem;
+      background: #fff;
+      border: 2px solid var(--c-primary);
+      padding: 5px 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      display: inline-flex; align-items: center; gap: 10px;
+      color: var(--c-primary);
+      font-weight: bold;
+    }
+
+    .page-circle {
+      display: inline-flex; justify-content: center; align-items: center;
+      width: 1.8rem; height: 1.8rem; border-radius: 50%;
+      background-color: var(--c-primary); color: #fff;
+      font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+    }
+
+    button {
+      font-family: var(--font-main);
+      font-size: 1.2rem; font-weight: bold;
+      padding: 10px 30px; border: none; border-radius: 50px;
+      background-color: var(--c-button-bg); color: #fff;
+      cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 4px 0 var(--c-primary);
+    }
+    button:active { transform: translateY(4px); box-shadow: none; }
+    button:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    /* 入力欄のデザイン */
+    input[type="tel"] {
+      font-family: var(--font-main);
+      font-size: 1.5rem; width: 2.5em; text-align: center;
+      border: 2px solid #ccc; border-radius: 8px;
+      padding: 5px; margin: 0 2px;
+      outline: none; background: #fff;
+    }
+    input[type="tel"]:focus {
+      border-color: var(--c-accent);
+      background-color: #FFF8E1;
+      transform: scale(1.1);
+    }
+    /* 黒板内の入力欄 */
+    .blackboard input[type="tel"] {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #fff; border: 2px solid rgba(255,255,255,0.5);
+    }
+    .blackboard input[type="tel"]:focus {
+      background-color: #fff; color: #333;
+    }
+
+    #problems-wrapper { width: 100%; max-width: 700px; margin: 0 auto; }
+
+    .problem {
+      background: #fff; border-radius: 15px; padding: 15px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-left: 10px solid var(--c-primary-light);
+      position: relative;
+    }
+
+    .problem-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+      font-size: 1.5rem; font-weight: bold;
+    }
+    .problem-number {
+      background: var(--c-primary); color: #fff;
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      font-size: 1rem;
+    }
+
+    .calc-area {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+      font-size: 1.6rem; margin-bottom: 15px; padding-left: 10px;
+    }
+
+    /* 黒板風たしかめエリア */
+    .verification-area {
+      background-color: var(--c-blackboard);
+      color: var(--c-chalk);
+      padding: 15px; border-radius: 10px;
+      border: 4px solid #8D6E63; /* 木枠風 */
+      position: relative;
+    }
+    .verification-label {
+      font-size: 0.9rem; background: #8D6E63; color: #fff;
+      padding: 2px 10px; border-radius: 4px;
+      position: absolute; top: -12px; left: 20px;
+    }
+    .verification-equation {
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px;
+      font-size: 1.4rem; margin-top: 5px;
+    }
+
+    .result-icon {
+      position: absolute; top: 10px; right: 10px;
+      font-size: 4rem; font-weight: bold; opacity: 0; transform: scale(0.5); transition: 0.3s;
+      pointer-events: none;
+    }
+    .result-icon.show { opacity: 1; transform: scale(1); }
+    .correct { color: var(--c-feedback-correct); text-shadow: 2px 2px 0 rgba(255,255,255,0.8); }
+    .wrong { color: var(--c-feedback-wrong); }
+
+    #start-area, #result-area { text-align: center; margin: 20px 0; width: 100%; max-width: 600px; }
+    
+    #result-area {
+      display: none; background: #fff; padding: 30px; border-radius: 20px;
+      border: 4px solid var(--c-primary);
+    }
+    .status-stars { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; display: block; margin: 10px 0; }
+    
+    /* 履歴リスト */
+    #history-list {
+      list-style: none; padding: 0; text-align: left;
+      background: #F1F8E9; border-radius: 10px; padding: 10px;
+      max-height: 150px; overflow-y: auto;
+    }
+    #history-list li { border-bottom: 1px dashed #AED581; padding: 5px 0; font-size: 0.9rem; }
+
+    /* モーダル（ヒント用） */
+    #hint-modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); z-index: 100;
+      justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: #fff; padding: 25px; border-radius: 15px; max-width: 90%;
+      text-align: center; border: 4px solid var(--c-primary);
+    }
+    .hint-box {
+      background: var(--c-blackboard); color: #fff; padding: 15px; 
+      border-radius: 8px; margin: 15px 0; font-size: 1.2rem;
+    }
+    
+    #hint-btn {
+      position: fixed; bottom: 20px; right: 20px;
+      width: 50px; height: 50px; border-radius: 50%;
+      background: #FFCA28; font-size: 1.5rem; padding: 0;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 50;
+      cursor: pointer; border: none;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1 id="main-title"></h1>
+  <h2 id="sub-title">
+    <span id="page-circle" class="page-circle"></span>
+    <span id="sub-title-text"></span>
+  </h2>
+
+  <div id="start-area">
+    <p>計算をして、答えをたしかめましょう。</p>
+    <button id="start-btn">スタート！</button>
+    <div style="margin-top: 20px; font-size: 0.9rem; color: #555;">
+      今日のクリア: <span id="dailyCountValue">0</span> 回 / 合計: <span id="clearCountValue">0</span> 回
+    </div>
+  </div>
+
+  <div id="problems-section" style="display:none; width: 100%;">
+    <div id="problems-wrapper"></div>
+    <div style="text-align: center; margin-top: 30px;">
+      <button id="check-answers">まるつけ</button>
+      <button id="retry" style="display:none; background-color:#FFCA28; color:#333;">もういちど</button>
+    </div>
+  </div>
+
+  <div id="result-area">
+    <div id="result-msg" style="font-size: 1.5rem; font-weight: bold;"></div>
+    <div id="result-score" style="font-size: 2rem; color: var(--c-primary);"></div>
+    <div id="result-stars" class="status-stars"></div>
+    <div id="history-area">
+      <p style="font-weight:bold; margin-bottom:5px;">これまでのきろく</p>
+      <ul id="history-list"></ul>
+    </div>
+    <button id="back-to-start" style="margin-top:20px;">タイトルへ</button>
+  </div>
+
+  <button id="hint-btn">💡</button>
+  <div id="hint-modal">
+    <div class="modal-content">
+      <h3>答えのたしかめ方</h3>
+      <p>わり算の答えがあっているか、計算して調べよう。</p>
+      <div class="hint-box">
+        (わる数) × (答え) ＋ (あまり)<br>
+        ＝ (わられる数)
+      </div>
+      <p>例： 23 ÷ 5 ＝ 4 あまり 3<br>↓<br>5 × 4 ＋ 3 ＝ 23</p>
+      <button onclick="document.getElementById('hint-modal').style.display='none'" style="margin-top:10px;">とじる</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const config = {
+        appId: "108_kotae_no_tashikame",
+        mainTitle: "９　あまりのあるわり算",
+        title: "答えのたしかめ",
+        page: 108,
+        baseScore: 100,
+        targetTimePerQuestion: 40, 
+        questionCount: 5,
+        starThresholds: { star5: 180, star4: 160, star3: 140, star2: 120 },
+      };
+
+      let problems = [];
+      let startTime = 0;
+      let incorrectIndices = [];
+      
+      const ls = localStorage;
+      const KEY_HISTORY = `${config.appId}:history`;
+      const KEY_CLEAR = `${config.appId}:totalClear`;
+      const KEY_DAILY = `${config.appId}:dailyClear-${new Date().toLocaleDateString()}`;
+
+      // データ読み込み
+      function loadStats() {
+        document.getElementById('dailyCountValue').textContent = ls.getItem(KEY_DAILY) || 0;
+        document.getElementById('clearCountValue').textContent = ls.getItem(KEY_CLEAR) || 0;
+        
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        document.getElementById('history-list').innerHTML = 
+          history.map(h => `<li>${h.date} - <b>${h.score}点</b></li>`).join('');
+      }
+
+      function saveStats(score) {
+        // カウントアップ
+        const newTotal = (parseInt(ls.getItem(KEY_CLEAR) || 0) + 1);
+        const newDaily = (parseInt(ls.getItem(KEY_DAILY) || 0) + 1);
+        ls.setItem(KEY_CLEAR, newTotal);
+        ls.setItem(KEY_DAILY, newDaily);
+
+        // 履歴保存
+        const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+        const now = new Date();
+        const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+        history.unshift({ date: dateStr, score: score });
+        if(history.length > 10) history.pop();
+        ls.setItem(KEY_HISTORY, JSON.stringify(history));
+      }
+
+      // 問題生成（2桁÷1桁＝1桁あまりあり）
+      function generateProblems() {
+        const list = [];
+        while (list.length < config.questionCount) {
+          const divisor = Math.floor(Math.random() * 8) + 2; // わる数 (2-9)
+          const quotient = Math.floor(Math.random() * 9) + 1; // 答え (1-9)
+          const remainder = Math.floor(Math.random() * (divisor - 1)) + 1; // あまり (1 ～ divisor-1)
+          const dividend = divisor * quotient + remainder; // わられる数
+
+          // 2桁の問題に限定（教科書の範囲）
+          if (dividend >= 10 && dividend < 100) {
+            // 重複チェック
+            if (!list.some(p => p.dividend === dividend && p.divisor === divisor)) {
+              list.push({ dividend, divisor, quotient, remainder });
+            }
+          }
+        }
+        return list;
+      }
+
+      // 画面描画
+      function displayProblems() {
+        const wrapper = document.getElementById('problems-wrapper');
+        wrapper.innerHTML = '';
+        
+        problems.forEach((p, i) => {
+          const div = document.createElement('div');
+          div.className = 'problem';
+          div.innerHTML = `
+            <div class="result-icon" id="icon-${i}"></div>
+            <div class="problem-header">
+              <span class="problem-number">${i + 1}</span>
+              <span>計算をしましょう</span>
+            </div>
+            
+            <div class="calc-area">
+              ${p.dividend} ÷ ${p.divisor} ＝ 
+              <input type="tel" id="ans-${i}-q" placeholder="答" inputmode="numeric">
+              あまり
+              <input type="tel" id="ans-${i}-r" placeholder="余" inputmode="numeric">
+            </div>
+
+            <div class="verification-area">
+              <span class="verification-label">たしかめ</span>
+              <div class="verification-equation">
+                <input type="tel" id="ans-${i}-v1" placeholder="わる数" inputmode="numeric">
+                ×
+                <input type="tel" id="ans-${i}-v2" placeholder="答え" inputmode="numeric">
+                ＋
+                <input type="tel" id="ans-${i}-v3" placeholder="あまり" inputmode="numeric">
+                ＝
+                <input type="tel" id="ans-${i}-v4" placeholder="数" inputmode="numeric">
+              </div>
+            </div>
+          `;
+          wrapper.appendChild(div);
+
+          // Enterキーでのフォーカス移動設定
+          setupFocusMove(i);
+        });
+      }
+
+      function setupFocusMove(i) {
+        const inputs = [
+          `ans-${i}-q`, `ans-${i}-r`, 
+          `ans-${i}-v1`, `ans-${i}-v2`, `ans-${i}-v3`, `ans-${i}-v4`
+        ];
+        
+        inputs.forEach((id, idx) => {
+          const el = document.getElementById(id);
+          el.addEventListener('focus', () => {
+             // スマホでキーボードが出ても隠れないようにスクロール
+             setTimeout(() => {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
+             }, 300);
+          });
+
+          el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (idx < inputs.length - 1) {
+                // 次の入力欄へ
+                document.getElementById(inputs[idx+1]).focus();
+              } else {
+                // 次の問題の最初の入力欄へ、なければボタンへ
+                if (i < problems.length - 1) {
+                  document.getElementById(`ans-${i+1}-q`).focus();
+                } else {
+                  document.getElementById('check-answers').focus();
+                }
+              }
+            }
+          });
+        });
+      }
+
+      // 答え合わせ
+      function checkAnswers() {
+        const btn = document.getElementById('check-answers');
+        btn.style.display = 'none';
+        
+        let allCorrect = true;
+        incorrectIndices = [];
+
+        problems.forEach((p, i) => {
+          // 入力値取得
+          const q = parseInt(document.getElementById(`ans-${i}-q`).value);
+          const r = parseInt(document.getElementById(`ans-${i}-r`).value);
+          const v1 = parseInt(document.getElementById(`ans-${i}-v1`).value); // わる数
+          const v2 = parseInt(document.getElementById(`ans-${i}-v2`).value); // 答え
+          const v3 = parseInt(document.getElementById(`ans-${i}-v3`).value); // あまり
+          const v4 = parseInt(document.getElementById(`ans-${i}-v4`).value); // わられる数
+
+          // 判定ロジック
+          // 1. 計算部分
+          const isCalcCorrect = (q === p.quotient && r === p.remainder);
+
+          // 2. たしかめ部分
+          // 教科書は「(わる数)×(答え) + (あまり) = (わられる数)」
+          // p.divisor * p.quotient + p.remainder = p.dividend
+          // ただし、かけ算の順序（答え×わる数）も正解とするのが親切
+          const isMultiplicationCorrect = 
+            (v1 === p.divisor && v2 === p.quotient) || 
+            (v1 === p.quotient && v2 === p.divisor);
+          
+          const isVerifyCorrect = 
+            isMultiplicationCorrect && (v3 === p.remainder) && (v4 === p.dividend);
+
+          const icon = document.getElementById(`icon-${i}`);
+          
+          if (isCalcCorrect && isVerifyCorrect) {
+            icon.innerText = "💮";
+            icon.className = "result-icon show correct";
+            // 正解なら入力をロック
+            [`ans-${i}-q`, `ans-${i}-r`, `ans-${i}-v1`, `ans-${i}-v2`, `ans-${i}-v3`, `ans-${i}-v4`]
+              .forEach(id => document.getElementById(id).disabled = true);
+          } else {
+            icon.innerText = "🤔";
+            icon.className = "result-icon show wrong";
+            allCorrect = false;
+            incorrectIndices.push(i);
+          }
+        });
+
+        if (allCorrect) {
+          showResult();
+        } else {
+          // 間違いがある場合
+          const retryBtn = document.getElementById('retry');
+          retryBtn.style.display = 'inline-block';
+          retryBtn.onclick = () => {
+             // 間違えた最初の問題にフォーカス
+             document.getElementById(`ans-${incorrectIndices[0]}-q`).focus();
+             retryBtn.style.display = 'none';
+             btn.style.display = 'inline-block';
+          };
+          // ボタンの表示切り替え
+          btn.style.display = 'none';
+        }
+      }
+
+      function showResult() {
+        const elapsed = (Date.now() - startTime) / 1000;
+        const targetTime = config.questionCount * config.targetTimePerQuestion; // 200秒目安
+        
+        // スコア計算 (基本点 + タイムボーナス)
+        let score = config.baseScore;
+        if (elapsed < targetTime) {
+          score += Math.floor((targetTime - elapsed) / 2); // 早ければ加点
+        }
+        if (score > 200) score = 200; // 上限設定
+        
+        // 星判定
+        let stars = "★☆☆☆☆";
+        if (score >= config.starThresholds.star5) stars = "★★★★★";
+        else if (score >= config.starThresholds.star4) stars = "★★★★☆";
+        else if (score >= config.starThresholds.star3) stars = "★★★☆☆";
+        else if (score >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+        document.getElementById('problems-section').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+        
+        document.getElementById('result-msg').innerHTML = 
+          score >= config.starThresholds.star5 ? "すばらしい！かんぺきです！" : "よくがんばりました！";
+        document.getElementById('result-score').innerText = score + "点";
+        document.getElementById('result-stars').innerText = stars;
+
+        saveStats(score);
+
+        if (score >= config.starThresholds.star4) {
+          confetti({ particleCount: 150, spread: 160 });
+        }
+      }
+
+      // 初期化
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        loadStats();
+
+        // スタートボタン
+        document.getElementById('start-btn').addEventListener('click', () => {
+          document.getElementById('start-area').style.display = 'none';
+          document.getElementById('problems-section').style.display = 'block';
+          document.getElementById('result-area').style.display = 'none';
+          
+          problems = generateProblems();
+          displayProblems();
+          startTime = Date.now();
+          
+          // 最初の入力欄にフォーカス
+          document.getElementById('ans-0-q').focus();
+        });
+
+        // 丸つけボタン
+        document.getElementById('check-answers').addEventListener('click', checkAnswers);
+        
+        // タイトルへ戻る
+        document.getElementById('back-to-start').addEventListener('click', () => {
+          location.reload();
+        });
+
+        // ヒントボタン
+        document.getElementById('hint-btn').addEventListener('click', () => {
+          document.getElementById('hint-modal').style.display = 'flex';
+        });
+      });
+
+    })();
+  </script>
+</body>
+</html>

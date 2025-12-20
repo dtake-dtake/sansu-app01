@@ -2,81 +2,78 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>わくわく　プログラミング</title>
+    <title>わくわくプログラミング</title>
     <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
     <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
     <script src="https://unpkg.com/blockly/msg/ja.js"></script>
     <style>
         /* 画面全体の設定 */
-        body { font-family: "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; display: flex; height: 100vh; background-color: #eceff1; overflow: hidden; }
+        body { font-family: "Hiragino Kaku Gothic ProN", sans-serif; margin: 0; display: flex; height: 100vh; background-color: #fff9c4; overflow: hidden; }
         
         #blocklyDiv { flex-grow: 1; height: 100%; min-width: 300px; }
         
         #gutter {
-            width: 12px; background-color: #cfd8dc; cursor: col-resize;
+            width: 12px; background-color: #fbc02d; cursor: col-resize;
             display: flex; align-items: center; justify-content: center; z-index: 10;
         }
-        #gutter:hover { background-color: #b0bec5; }
+        #gutter:hover { background-color: #fdd835; }
         
-        /* ============== 【調整箇所】右側エリアのデザイン ============== */
         #gameArea { 
-            /* ★初期状態の右側の横幅を変えたい場合は、下の 500px を変更してください */
-            width: 900px; 
-            
+            width: 500px; 
             min-width: 350px; 
-            padding: 5px 10px; /* 余白を少し詰めました */
+            padding: 5px 10px;
             display: flex; flex-direction: column; align-items: center; 
             background-color: #fff; box-sizing: border-box; 
-            overflow-y: auto; /* どうしても入り切らない時だけスクロール */
-            border-left: 1px solid #ccc; position: relative;
+            overflow-y: auto; 
+            border-left: 2px solid #f9a825; position: relative;
         }
 
         .panel { width: 100%; padding: 6px; margin-bottom: 5px; border-radius: 6px; box-sizing: border-box; font-size: 14px;}
-        #questPanel { background-color: #e3f2fd; border: 2px solid #2196F3; color: #0d47a1; }
+        #questPanel { background-color: #fff3e0; border: 2px solid #ff9800; color: #e65100; }
         
         #scoreBoard { 
             width: 100%; display: flex; justify-content: space-between; align-items: center; 
             margin-bottom: 5px; font-weight: bold; color: #333; flex-wrap: wrap; gap: 5px; font-size: 14px;
         }
         .badge { padding: 3px 10px; border-radius: 12px; white-space: nowrap; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .clear-badge { color: #E91E63; background: #fce4ec; border: 1px solid #f8bbd0; }
-        .score-badge { color: #FF8F00; background: #FFF8E1; border: 1px solid #FFECB3; }
+        .clear-badge { color: #fff; background: #e91e63; }
+        .score-badge { color: #fff; background: #ff9800; }
 
         .score-hint {
-            width: 100%; font-size: 11px; color: #555; background: #f1f8e9; 
-            padding: 4px; border-radius: 4px; margin-bottom: 5px; text-align: center;
+            width: 100%; font-size: 12px; color: #555; background: #f1f8e9; 
+            padding: 5px; border-radius: 4px; margin-bottom: 5px; text-align: center;
             border: 1px dashed #81c784;
         }
-        .score-hint strong { color: #2E7D32; }
-        .score-hint .bad { color: #d32f2f; }
+        .score-hint strong { color: #2E7D32; font-weight: bold; font-size: 14px; }
 
-        #limitPanel { background-color: #fff3e0; border: 2px solid #ff9800; color: #e65100; font-weight: bold; display: flex; justify-content: space-between;}
+        #limitPanel { background-color: #eceff1; border: 2px solid #607d8b; color: #455a64; font-weight: bold; display: flex; justify-content: space-between;}
         .limit-warning { color: #d32f2f; animation: blink 1s infinite; }
         
-        /* Canvas（地図）のマージンも詰める */
-        canvas { background-color: #fff; border: 2px solid #546e7a; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 5px; max-width: 100%; height: auto; }
+        canvas { background-color: #fff; border: 2px solid #795548; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 5px; max-width: 100%; height: auto; border-radius: 4px; }
         
         .controls { display: flex; gap: 5px; width: 100%; flex-wrap: wrap; margin-bottom: 10px; }
         button { flex: 1; padding: 10px; font-size: 14px; cursor: pointer; border-radius: 20px; border: none; font-weight: bold; transition: 0.2s; white-space: nowrap; }
-        #runBtn { background-color: #4CAF50; color: white; flex-grow: 2; }
-        #runBtn:disabled { background-color: #ccc; cursor: not-allowed; }
-        #newMapBtn { background-color: #FFC107; color: black; }
+        #runBtn { background-color: #4CAF50; color: white; flex-grow: 2; box-shadow: 0 4px #2e7d32; }
+        #runBtn:active { transform: translateY(2px); box-shadow: 0 2px #2e7d32; }
+        #runBtn:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; }
+        #newMapBtn { background-color: #03A9F4; color: white; box-shadow: 0 4px #0277bd; }
+        #newMapBtn:active { transform: translateY(2px); box-shadow: 0 2px #0277bd; }
+
         #status { margin-top: 2px; font-size: 14px; font-weight: bold; height: 20px; color: #333; text-align: center;}
 
         /* リザルト画面 */
         #resultModal {
             display: none; position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
-            width: 85%; background: rgba(255, 255, 255, 0.98); border: 4px solid #4CAF50;
+            width: 85%; background: rgba(255, 255, 255, 0.98); border: 4px solid #FF9800;
             border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 100;
         }
-        #resultTitle { font-size: 20px; color: #2E7D32; margin-bottom: 5px; }
-        .result-score { font-size: 32px; color: #FF8F00; font-weight: bold; margin: 5px 0; text-shadow: 2px 2px 0px #fff; }
-        .result-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 5px 0; font-size: 13px; }
+        #resultTitle { font-size: 22px; color: #e65100; margin-bottom: 5px; }
+        .result-score { font-size: 36px; color: #e65100; font-weight: bold; margin: 5px 0; text-shadow: 2px 2px 0px #fff; }
+        .result-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 6px 0; font-size: 13px; }
         .result-label { color: #555; font-weight: bold;}
         .result-val { font-weight: bold; color: #000; }
         .score-plus { color: #2E7D32; font-size: 13px; } 
-        .score-minus { color: #d32f2f; font-size: 13px; } 
         .score-formula { font-size: 10px; color: #888; text-align: right; }
         #closeModalBtn { margin-top: 10px; background-color: #2196F3; color: white; padding: 8px 25px; border-radius: 20px; border: none; cursor: pointer; font-size: 14px; font-weight: bold; }
 
@@ -95,21 +92,21 @@
             
             <div id="scoreDisplayArea" style="display:none;">
                 <div class="result-score"><span id="finalScore">0</span> pts</div>
-                <div style="background:#f9f9f9; padding:8px; border-radius:8px; margin-bottom:8px; border:1px solid #ddd;">
+                <div style="background:#fff3e0; padding:8px; border-radius:8px; margin-bottom:8px; border:1px solid #ffe0b2;">
                     <div class="result-row">
-                        <span class="result-label">🏁 クリア報酬</span>
-                        <span class="result-val score-plus">+ 1,000</span>
+                        <span class="result-label">🚩 クリア報酬</span>
+                        <span class="result-val score-plus">+ 500</span>
                     </div>
+                    <div class="result-row">
+                        <span class="result-label">💎 集めた数 (<span id="collectedCount">0</span>個)</span>
+                        <span class="result-val score-plus">+ <span id="resItemBonus">0</span></span>
+                    </div>
+                    <div class="score-formula">1個につき +300点</div>
                     <div class="result-row">
                         <span class="result-label">🧩 ブロック節約 (<span id="savedBlocks">0</span>個)</span>
                         <span class="result-val score-plus">+ <span id="resBlockBonus">0</span></span>
                     </div>
-                    <div class="score-formula">節約1個につき +300点</div>
-                    <div class="result-row">
-                        <span class="result-label">🦶 移動コスト (<span id="totalMoves">0</span>歩)</span>
-                        <span class="result-val score-minus">- <span id="resMoveCost">0</span></span>
-                    </div>
-                    <div class="score-formula">1歩につき -10点</div>
+                    <div class="score-formula">1個につき +500点</div>
                 </div>
             </div>
 
@@ -123,8 +120,8 @@
         </div>
 
         <div class="score-hint">
-            💡 <strong>少ないブロック</strong> でゴールするとボーナス！<br>
-            でも <span class="bad">歩きすぎ</span> ると点数が減っちゃうぞ。
+            💡 <strong>中にあるアイテム</strong> を取りに行こう！<br>
+            つかったブロックの数がすくないほど、スコアがアップします！
         </div>
 
         <div id="questPanel" class="panel">
@@ -133,7 +130,7 @@
         </div>
 
         <div id="limitPanel" class="panel">
-            <span>🧩 ブロック: <span id="blockCount">0</span> / <span id="blockLimit">30</span></span>
+            <span>🧩 ブロック数: <span id="blockCount">0</span> / <span id="blockLimit">30</span></span>
             <span id="limitAlert"></span>
         </div>
 
@@ -148,34 +145,31 @@
     </div>
 
     <script>
-        // page: 53
         /* ==========================================
-           0. 設定
+           0. 設定 & スコアロジック
            ========================================== */
         const GRID_SIZE = 13;
-
-        // ★マスのサイズ調整（画面に収めるため）
-        const CELL_SIZE = 40; 
-        
+        const CELL_SIZE = 32; 
         const BLOCK_LIMIT = 30;
 
-        // スコア計算ロジック
-        const BASE_SCORE = 1000;          
-        const BONUS_PER_SAVED_BLOCK = 300; 
-        const COST_PER_MOVE = 10;          
+        // スコア設定
+        const BASE_SCORE = 500;            
+        const SCORE_PER_ITEM = 300;        
+        const SCORE_PER_SAVED_BLOCK = 500; 
 
+        // アイテム定義
         const ITEMS = {
-            4: { emoji: "★", name: "スター", color: "#FFD700" },
-            5: { emoji: "🪖", name: "ヘルメット" },
-            6: { emoji: "🛢️", name: "灯油" }, 
-            7: { emoji: "🏆", name: "トロフィー" },
-            8: { emoji: "🛞", name: "タイヤ" }
+            4: { emoji: "💎", name: "宝石", color: "#29b6f6" },      // 水色
+            5: { emoji: "💰", name: "お金袋", color: "#fdd835" },    // 金色
+            6: { emoji: "👑", name: "王冠", color: "#ffca28" },      // 濃い黄色
+            7: { emoji: "🏆", name: "トロフィー", color: "#fff176" }, // 薄い黄色
+            8: { emoji: "🔑", name: "カギ", color: "#bdbdbd" },      // 銀色
+            9: { emoji: "🎁", name: "プレゼント", color: "#ef5350" } // 赤色
         };
         const ITEM_IDS = Object.keys(ITEMS).map(Number);
 
-        // データ保存キー
-        const KEY_CLEAR_COUNT = 'progApp_clearCount_v3'; 
-        const KEY_HIGH_SCORE = 'progApp_highScore_v3';
+        const KEY_CLEAR_COUNT = 'progApp_fruit_clear'; 
+        const KEY_HIGH_SCORE = 'progApp_fruit_score';
 
         let savedMapData = [];
         let savedQuest = {};
@@ -183,13 +177,13 @@
         let car = { x: 0, y: 0, dir: 1 };
         let isRunning = false;
         let actions = [];
-        let currentQuest = { targetId: 4, requiredNum: 3, collectedNum: 0 };
+        let currentQuest = { targetId: 4, requiredNum: 5, collectedNum: 0 };
         
         let totalClearCount = 0;
         let highScore = 0;
         let isCurrentLevelCleared = false; 
 
-        let sessionStats = { moves: 0, collected: {} };
+        let sessionStats = { moves: 0, collectedTotal: 0, collectedDetails: {} };
 
         const canvas = document.getElementById('gameCanvas');
         canvas.width = GRID_SIZE * CELL_SIZE;
@@ -227,7 +221,7 @@
         window.addEventListener('mousemove', function(e) {
             if (!isResizing) return;
             let newWidth = window.innerWidth - e.clientX;
-            if (newWidth < 300) newWidth = 300; // 最小幅
+            if (newWidth < 300) newWidth = 300; 
             if (newWidth > window.innerWidth - 200) newWidth = window.innerWidth - 200;
             gameArea.style.width = newWidth + 'px';
             Blockly.svgResize(workspace);
@@ -284,8 +278,10 @@
         workspace.addChangeListener(checkBlockLimit);
 
         /* ==========================================
-           4. マップ生成
+           4. マップ生成 (外周制限の実装)
            ========================================== */
+        const MAX_EDGE_ITEMS = 4; // 外周に置ける最大数
+
         function generateNewLevel() {
             closeResult(); 
             isCurrentLevelCleared = false; 
@@ -307,16 +303,64 @@
 
             const randomItemIndex = Math.floor(Math.random() * ITEM_IDS.length);
             const targetId = ITEM_IDS[randomItemIndex];
-            const requiredNum = Math.floor(Math.random() * 4) + 5; 
+            
+            // 要求数を4〜6個に下方修正（ちょうどいい難易度）
+            const requiredNum = Math.floor(Math.random() * 3) + 4; 
             savedQuest = { targetId: targetId, requiredNum: requiredNum, collectedNum: 0 };
             
-            for(let i=0; i < requiredNum + 3; i++) placeItemRandomly(newMap, roadCells, targetId);
-            for(let i=0; i < 18; i++) {
-                 const otherId = ITEM_IDS[Math.floor(Math.random() * ITEM_IDS.length)];
-                 placeItemRandomly(newMap, roadCells, otherId);
+            let edgeItemCount = 0; // 外周アイテムカウンタ
+
+            // ミッション対象のアイテム配置 (必要数 + 予備)
+            for(let i=0; i < requiredNum + 2; i++) {
+                edgeItemCount = placeItemWithConstraint(newMap, roadCells, targetId, edgeItemCount);
             }
+            
+            // その他のアイテムを適量配置 (少し控えめに)
+            for(let i=0; i < 6; i++) {
+                const otherId = ITEM_IDS[Math.floor(Math.random() * ITEM_IDS.length)];
+                edgeItemCount = placeItemWithConstraint(newMap, roadCells, otherId, edgeItemCount);
+            }
+
             savedMapData = JSON.parse(JSON.stringify(newMap));
             resetToStart();
+        }
+
+        // 外周制限付きの配置関数
+        function placeItemWithConstraint(map, roadCells, itemId, currentEdgeCount) {
+            if(roadCells.length === 0) return currentEdgeCount;
+
+            // 候補地をフィルタリング
+            // (外周の数が上限に達していたら、外周以外のマスだけを候補にする)
+            let candidates = roadCells;
+            if (currentEdgeCount >= MAX_EDGE_ITEMS) {
+                candidates = roadCells.filter(pos => {
+                    const isEdge = (pos.x === 0 || pos.x === GRID_SIZE - 1 || pos.y === 0 || pos.y === GRID_SIZE - 1);
+                    return !isEdge; // 外周じゃない場所だけ残す
+                });
+            }
+
+            if(candidates.length === 0) return currentEdgeCount; // 置く場所がない
+
+            const idx = Math.floor(Math.random() * candidates.length);
+            const pos = candidates[idx];
+            
+            // 配置
+            if(map[pos.y][pos.x] === 0) {
+                map[pos.y][pos.x] = itemId;
+            }
+
+            // 選んだ場所が外周ならカウントアップ
+            if (pos.x === 0 || pos.x === GRID_SIZE - 1 || pos.y === 0 || pos.y === GRID_SIZE - 1) {
+                currentEdgeCount++;
+            }
+
+            // 元のroadCellsから削除（重複配置防止）
+            const originalIdx = roadCells.findIndex(p => p.x === pos.x && p.y === pos.y);
+            if(originalIdx > -1) {
+                roadCells.splice(originalIdx, 1);
+            }
+
+            return currentEdgeCount;
         }
 
         function resetToStart() {
@@ -324,24 +368,17 @@
             mapData = JSON.parse(JSON.stringify(savedMapData));
             currentQuest = { ...savedQuest, collectedNum: 0 };
             car = { x: 0, y: 0, dir: 1 };
-            sessionStats = { moves: 0, collected: {} };
-            ITEM_IDS.forEach(id => sessionStats.collected[ITEMS[id].name] = 0);
+            sessionStats = { moves: 0, collectedTotal: 0, collectedDetails: {} };
+            ITEM_IDS.forEach(id => sessionStats.collectedDetails[ITEMS[id].name] = 0);
             updateQuestUI();
             draw();
             document.getElementById("status").innerText = "準備OK";
             checkBlockLimit();
         }
 
-        function placeItemRandomly(map, roadCells, itemId) {
-            if(roadCells.length === 0) return;
-            const idx = Math.floor(Math.random() * roadCells.length);
-            const pos = roadCells[idx];
-            if(map[pos.y][pos.x] === 0) { map[pos.y][pos.x] = itemId; roadCells.splice(idx, 1); }
-        }
-
         function updateQuestUI() {
             const targetItem = ITEMS[currentQuest.targetId];
-            document.getElementById('questTarget').innerHTML = `${targetItem.name} ${currentQuest.requiredNum}個`;
+            document.getElementById('questTarget').innerHTML = `${targetItem.emoji} ${targetItem.name} ${currentQuest.requiredNum}個`;
             document.getElementById('questProgress').innerText = currentQuest.collectedNum;
             document.getElementById('questGoalCount').innerText = currentQuest.requiredNum;
         }
@@ -356,38 +393,93 @@
                     let type = mapData[y][x];
                     let px = x * CELL_SIZE; py = y * CELL_SIZE;
                     let cx = px + CELL_SIZE/2; cy = py + CELL_SIZE/2;
-                    if (type === 1) { ctx.fillStyle = "#455A64"; ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE); } 
+                    if (type === 1) { ctx.fillStyle = "#8d6e63"; ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE); } 
                     else {
-                        ctx.strokeStyle = "#e0e0e0"; ctx.lineWidth = 1; ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
-                        if(type !== 3 && type !== 2) { ctx.beginPath(); ctx.arc(cx, cy, 2, 0, Math.PI*2); ctx.fillStyle = "#ccc"; ctx.fill(); }
+                        ctx.strokeStyle = "#ffe0b2"; ctx.lineWidth = 1; ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
+                        if(type !== 3 && type !== 2) { ctx.beginPath(); ctx.arc(cx, cy, 2, 0, Math.PI*2); ctx.fillStyle = "#ffe0b2"; ctx.fill(); }
                     }
                     if(type === 2) { ctx.font = "20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🏠", cx, cy); }
                     else if(type === 3) { ctx.font = "20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🏁", cx, cy); }
                     else if(ITEMS[type]) {
-                        if(type === 4) drawStarShape(cx, cy, CELL_SIZE * 0.4, 5, "#FFD700", "#FF8F00");
-                        else { ctx.font = "20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(ITEMS[type].emoji, cx, cy); }
+                        ctx.font = "22px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; 
+                        ctx.fillText(ITEMS[type].emoji, cx, cy);
                     }
                 }
             }
             drawRacingCar();
         }
-        function drawStarShape(cx, cy, radius, spikes, fillColor, strokeColor) {
-            let rot = Math.PI/2*3; let x=cx; let y=cy; let step=Math.PI/spikes;
-            ctx.beginPath(); ctx.moveTo(cx, cy-radius);
-            for(let i=0; i<spikes; i++){ x=cx+Math.cos(rot)*radius; y=cy+Math.sin(rot)*radius; ctx.lineTo(x,y); rot+=step; x=cx+Math.cos(rot)*(radius/2); y=cy+Math.sin(rot)*(radius/2); ctx.lineTo(x,y); rot+=step; }
-            ctx.lineTo(cx, cy-radius); ctx.closePath(); ctx.fillStyle=fillColor; ctx.fill(); ctx.strokeStyle=strokeColor; ctx.lineWidth=2; ctx.stroke();
-        }
+// ★上から見たスリムなスポーツカーを描画する関数
         function drawRacingCar() {
-            let cx = car.x * CELL_SIZE + CELL_SIZE/2; let cy = car.y * CELL_SIZE + CELL_SIZE/2; let size = CELL_SIZE * 0.8;
-            ctx.save(); ctx.translate(cx, cy);
-            let deg = 0; if (car.dir === 0) deg = -90; if (car.dir === 1) deg = 0; if (car.dir === 2) deg = 90; if (car.dir === 3) deg = 180;
+            let cx = car.x * CELL_SIZE + CELL_SIZE/2;
+            let cy = car.y * CELL_SIZE + CELL_SIZE/2;
+            let size = CELL_SIZE;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            
+            // 向きの調整（右向きを基準に回転）
+            let deg = 0; 
+            if (car.dir === 0) deg = -90; 
+            if (car.dir === 1) deg = 0;   
+            if (car.dir === 2) deg = 90;  
+            if (car.dir === 3) deg = 180; 
             ctx.rotate(deg * Math.PI / 180);
-            ctx.fillStyle = "#333"; let wW = size*0.3, wH = size*0.15, wOX = size*0.25, wOY = size*0.3;
-            ctx.fillRect(-wOX-wW/2, -wOY, wW, wH); ctx.fillRect(wOX-wW/2, -wOY, wW, wH); ctx.fillRect(-wOX-wW/2, wOY-wH, wW, wH); ctx.fillRect(wOX-wW/2, wOY-wH, wW, wH);
-            ctx.fillStyle = "#D32F2F"; ctx.beginPath(); ctx.moveTo(-size/2, -size/4); ctx.lineTo(size/4, -size/4); ctx.lineTo(size/2, 0); ctx.lineTo(size/4, size/4); ctx.lineTo(-size/2, size/4); ctx.closePath(); ctx.fill();
-            ctx.fillStyle = "#212121"; ctx.fillRect(-size/2 - 2, -size/3, size/8, size*0.66);
-            ctx.fillStyle = "#eee"; ctx.fillRect(size/2 - 2, -size/3, size/10, size*0.66);
-            ctx.fillStyle = "#FFEB3B"; ctx.beginPath(); ctx.arc(-size/10, 0, size/7, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = "#333"; ctx.lineWidth = 1; ctx.stroke();
+
+            // スケール調整（細長くなるので少し縮小）
+            let scale = size / 28; 
+            ctx.scale(scale, scale);
+
+            // 1. タイヤ（ボディより少し外側に出す）
+            ctx.fillStyle = "#222";
+            // 左=後ろ、右=前。幅を細く、少し外側に配置
+            ctx.fillRect(-10, -8, 5, 3); // 左上(後輪)
+            ctx.fillRect(-10,  5, 5, 3); // 左下(後輪)
+            ctx.fillRect( 6, -8, 4, 3);  // 右上(前輪)
+            ctx.fillRect( 6,  5, 4, 3);  // 右下(前輪)
+
+            // 2. ボディ本体（スリムで鋭く）
+            ctx.fillStyle = "#D50000"; // より深い赤
+            ctx.beginPath();
+            // 後ろから前へ。幅を狭く設定(-5〜+5)
+            ctx.moveTo(-11, -5); 
+            ctx.lineTo( 0, -5);  
+            ctx.lineTo( 12, -2); // ノーズを鋭く長く
+            ctx.quadraticCurveTo(13, 0, 12, 2); // 先端の小さな丸み
+            ctx.lineTo( 0,  5);  
+            ctx.lineTo(-11,  5); 
+            ctx.closePath();
+            ctx.fill();
+            
+            // ボディのエッジリング
+            ctx.strokeStyle = "#FF1744";
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            // 3. コックピット（細長く）
+            ctx.fillStyle = "#263238"; // 濃いグレー
+            ctx.beginPath();
+            ctx.moveTo(-4, -3);
+            ctx.lineTo( 1, -2);
+            ctx.lineTo( 1,  2);
+            ctx.lineTo(-4,  3);
+            ctx.quadraticCurveTo(-5, 0, -4, -3);
+            ctx.fill();
+
+            // 4. リアウイング（薄く広く）
+            ctx.fillStyle = "#B71C1C"; // 暗い赤
+            ctx.fillRect(-12, -7, 2, 14);
+
+            // 5. ストライプ（細く）
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(-11, -0.5, 23, 1); // 中心の細い線
+
+            // 6. ヘッドライト（小さく鋭く）
+            ctx.fillStyle = "#FFEB3B";
+            ctx.beginPath();
+            ctx.moveTo(11, -3); ctx.lineTo(12.5, -2); ctx.lineTo(11, -1); ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(11,  3); ctx.lineTo(12.5,  2); ctx.lineTo(11,  1); ctx.fill();
+
             ctx.restore();
         }
 
@@ -399,7 +491,7 @@
             resetToStart(); closeResult();
             if (workspace.getAllBlocks(false).length > BLOCK_LIMIT) { alert("ブロックが多すぎます！"); return; }
             isRunning = true;
-            document.getElementById("status").innerText = "🏎️ GO!";
+            document.getElementById("status").innerText = "🏎️ 出発！";
             actions = [];
             const code = javascript.javascriptGenerator.workspaceToCode(workspace);
             try { eval(code); } catch (e) { console.error(e); }
@@ -412,7 +504,7 @@
             processCommand(actions[index]);
             draw();
             if(mapData[car.y][car.x] === 3) { setTimeout(() => finishGame(true), 100); return; }
-            setTimeout(() => { executeNextAction(index + 1); }, 120); 
+            setTimeout(() => { executeNextAction(index + 1); }, 100); 
         }
 
         function processCommand(cmd) {
@@ -422,16 +514,17 @@
                 let nx = car.x, ny = car.y;
                 if(car.dir === 0) ny--; if(car.dir === 1) nx++; if(car.dir === 2) ny++; if(car.dir === 3) nx--;
                 if(nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE || mapData[ny][nx] === 1) {
-                    document.getElementById("status").innerText = "💥 クラッシュ！"; isRunning = false;
+                    document.getElementById("status").innerText = "💥 衝突！"; isRunning = false;
                 } else {
                     car.x = nx; car.y = ny;
                     sessionStats.moves++;
                     let cellType = mapData[ny][nx];
                     if(ITEMS[cellType]) {
                         let itemName = ITEMS[cellType].name;
-                        sessionStats.collected[itemName]++;
+                        sessionStats.collectedDetails[itemName]++;
+                        sessionStats.collectedTotal++; 
                         if(cellType === currentQuest.targetId) { currentQuest.collectedNum++; document.getElementById("status").innerText = `👍 ${itemName}ゲット!`; } 
-                        else { document.getElementById("status").innerText = `📥 ${itemName}を拾った`; }
+                        else { document.getElementById("status").innerText = `🧺 ${itemName}を拾った`; }
                         mapData[ny][nx] = 0; updateQuestUI();
                     }
                 }
@@ -461,7 +554,7 @@
         }
 
         /* ==========================================
-           7. リザルト＆スコア計算 (加点式 + 移動コスト)
+           7. リザルト
            ========================================== */
         function calculateAndShowResult(isSuccess, isNewClear) {
             const modal = document.getElementById('resultModal');
@@ -473,31 +566,22 @@
             modal.style.display = 'block';
 
             const usedBlocks = workspace.getAllBlocks(false).length;
-            const movedSteps = sessionStats.moves;
+            const collectedCount = sessionStats.collectedTotal;
             
-            // スコア計算
             let finalScore = 0;
             let savedBlocks = 0;
             let blockBonus = 0;
-            let moveCost = 0;
+            let itemBonus = 0;
 
             if(isSuccess) {
-                // 1. 基礎点 (クリア報酬)
                 finalScore = BASE_SCORE;
-
-                // 2. ブロックボーナス (節約 * 300)
+                itemBonus = collectedCount * SCORE_PER_ITEM;
+                finalScore += itemBonus;
                 savedBlocks = Math.max(0, BLOCK_LIMIT - usedBlocks);
-                blockBonus = savedBlocks * BONUS_PER_SAVED_BLOCK;
+                blockBonus = savedBlocks * SCORE_PER_SAVED_BLOCK;
                 finalScore += blockBonus;
-
-                // 3. 移動コスト (歩数 * 10)
-                moveCost = movedSteps * COST_PER_MOVE;
-                finalScore -= moveCost;
-
-                if(finalScore < 0) finalScore = 0; 
             }
 
-            // ハイスコア更新
             if(finalScore > highScore) {
                 highScore = finalScore;
                 updateScoreBoard();
@@ -509,24 +593,20 @@
             }
 
             if(isSuccess) {
-                title.innerText = "🎉 ミッション達成！";
-                title.style.color = "#2E7D32";
+                title.innerText = "🎉 大収穫！！";
+                title.style.color = "#e65100";
                 
                 let clearMsg = isNewClear ? "新しい地図クリア (+1回)" : "※クリア済の地図です";
-                if(finalScore >= 5000) clearMsg += " 【Sランク!!】";
-                else if(finalScore >= 3000) clearMsg += " 【Aランク!】";
-                else clearMsg += " 【Good!】";
-                
                 sub.innerText = clearMsg;
                 
                 scoreArea.style.display = 'block';
                 document.getElementById('finalScore').innerText = finalScore;
                 
+                document.getElementById('collectedCount').innerText = collectedCount;
+                document.getElementById('resItemBonus').innerText = itemBonus;
+                
                 document.getElementById('savedBlocks').innerText = savedBlocks;
                 document.getElementById('resBlockBonus').innerText = blockBonus;
-                
-                document.getElementById('totalMoves').innerText = movedSteps;
-                document.getElementById('resMoveCost').innerText = moveCost;
 
             } else {
                 title.innerText = "😢 失敗...";
@@ -536,21 +616,20 @@
             }
 
             let itemsHtml = "";
-            for(let key in sessionStats.collected) {
-                let count = sessionStats.collected[key];
+            for(let key in sessionStats.collectedDetails) {
+                let count = sessionStats.collectedDetails[key];
                 if(count > 0) itemsHtml += `<div class="result-row"><span class="result-label">${key}</span><span class="result-val">${count}個</span></div>`;
             }
             if(itemsHtml === "") itemsHtml = "<div class='result-row'>なし</div>";
 
             content.innerHTML = `
-                <div style="margin-top:10px; font-weight:bold; background:#eee; padding:5px;">集めたアイテム</div>
+                <div style="margin-top:10px; font-weight:bold; background:#eee; padding:5px;">収穫したアイテム</div>
                 ${itemsHtml}
             `;
         }
 
         function closeResult() { document.getElementById('resultModal').style.display = 'none'; }
 
-        // 起動時の処理
         loadSaveData();      
         generateNewLevel();  
         setTimeout(()=>Blockly.svgResize(workspace), 100);
