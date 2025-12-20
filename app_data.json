@@ -317,44 +317,34 @@
         "name": "２　　たし算とひき算",
         "apps": [
           {
-            "id": "30kurisagari_from_20",
-            "title": "２０ ひく 一けた",
-            "path": "2nen/02_tashizan_hikizan/30kurisagari_from_20.html"
+            "id": "tashite_next_ten_v2",
+            "title": "いくつ　たすと　30（何十）に　なる？",
+            "path": "2nen/02_tashizan_hikizan/19_tashite_30.html",
+            "page": "19"
           },
           {
-            "id": "50kurisagari_20s",
-            "title": "２０いくつのひき算のくり下がり",
-            "path": "2nen/02_tashizan_hikizan/50kurisagari_20s.html"
+            "id": "tashite_next_ten_v2",
+            "title": "いくつ　たすと　何十に　なる？",
+            "path": "2nen/02_tashizan_hikizan/21_kuriagari_tashizan.html",
+            "page": "19"
           },
           {
-            "id": "10_kurikagari",
-            "title": "くり上がりのあるたし算",
-            "path": "2nen/02_tashizan_hikizan/10_kurikagari.html"
+            "id": "subtraction_borrowing_strategy",
+            "title": "くり下がりのある ひき算（何十から 引く）",
+            "path": "2nen/02_tashizan_hikizan/25_kurisagari_hikizan.html",
+            "page": "25"
           },
           {
-            "id": "110_tashizan_hikizan_matome",
-            "title": "たし算と ひき算の れんしゅう",
-            "path": "2nen/02_tashizan_hikizan/110_tashizan_hikizan_matome.html"
+            "id": "tashizan_making_tens",
+            "title": "たして　何十（１０の　まとまり）",
+            "path": "2nen/02_tashizan_hikizan/19_tashite_nanjuu.html",
+            "page": "19"
           },
           {
-            "id": "90_kurisagari_general",
-            "title": "二けた ひく 一けたのくりさがり",
-            "path": "2nen/02_tashizan_hikizan/90_kurisagari_general.html"
-          },
-          {
-            "id": "20_kurikagari_2",
-            "title": "二けた ＋ 一けたのくり上がり⑵",
-            "path": "2nen/02_tashizan_hikizan/20_kurikagari_2.html"
-          },
-          {
-            "id": "40kurisagari_nanjuu",
-            "title": "何十 ひく 一けた",
-            "path": "2nen/02_tashizan_hikizan/40kurisagari_nanjuu.html"
-          },
-          {
-            "id": "template",
-            "title": "（タイトル未設定）",
-            "path": "2nen/02_tashizan_hikizan/template.html"
+            "id": "subtraction_from_tens_p23",
+            "title": "何十から　ひく　ひき算",
+            "path": "2nen/02_tashizan_hikizan/23_nanjuu_hiku_hitoketa.html",
+            "page": "23"
           }
         ]
       },
@@ -377,14 +367,28 @@
         "name": "４　　長さ",
         "apps": [
           {
-            "id": "40-6_mirime-toru",
-            "title": "４　長さ",
-            "path": "2nen/04_nagasa/40-6_mirime-toru.html"
+            "id": "unit_conversion_basics",
+            "title": "たんいの　かきかえ",
+            "path": "2nen/04_nagasa/45_tani_no_kakikae.html",
+            "page": "45"
           },
           {
-            "id": "44_nagasano_keisan",
-            "title": "４　長さ",
-            "path": "2nen/04_nagasa/44_nagasano_keisan.html"
+            "id": "length_calculation_basics",
+            "title": "長さの　たし算と　ひき算",
+            "path": "2nen/04_nagasa/44_length_calc_basics.html",
+            "page": "44"
+          },
+          {
+            "id": "unit_choice_length_cm_mm",
+            "title": "長さのたんい cmとmm",
+            "path": "2nen/04_nagasa/45_nagasa_no_tani.html",
+            "page": "45"
+          },
+          {
+            "id": "measure_length_ruler",
+            "title": "長さ（ものさしを　よもう）",
+            "path": "2nen/04_nagasa/40_monosashi_yomi.html",
+            "page": "40"
           }
         ]
       },
@@ -392,29 +396,58 @@
         "name": "５　　たし算とひき算の筆算⑴",
         "apps": [
           {
-            "id": "g2_add_kuriagari_o1_2digit",
-            "title": "２けたまでのたし算のひっ算",
-            "path": "2nen/05_hissan_th1/51_2keta_hissan_sum.html"
+            "id": "tashizan_hissan_iroiro_1",
+            "title": "いろいろな たし算の ひっ算",
+            "path": "2nen/05_hissan_th1/51_iroirona_tashizan.html",
+            "page": "51"
           },
           {
-            "id": "g2_51_7_9_iroirona_tasizanno_hissan",
-            "title": "いろいろなたし算のひっ算",
-            "path": "2nen/05_hissan_th1/51-7,9_iroirona_tasizanno_hissan.html"
+            "id": "tashizan_hissan_iroiro_2",
+            "title": "いろいろな たし算の ひっ算⑵",
+            "path": "2nen/05_hissan_th1/51_iroirona_tashizan_2.html",
+            "page": "51"
           },
           {
-            "id": "g2_add_nocarry_2digit",
-            "title": "くり上がりのない２けたのひっ算",
-            "path": "2nen/05_hissan_th1/48_kuriagari_nasi.html"
+            "id": "hikizan_hissan_iroiro_1",
+            "title": "いろいろなひき算のひっ算⑴",
+            "path": "2nen/05_hissan_th1/57_iroirona_hikizan_1.html",
+            "page": "57"
           },
           {
-            "id": "g2_sub_noborrow_2digit",
-            "title": "くり上がりのない２けたのひっ算",
-            "path": "2nen/05_hissan_th1/55-3_kurisagarinonai_2ketano_hissan .html"
+            "id": "hikizan_hissan_iroiro_2",
+            "title": "いろいろなひき算のひっ算⑵",
+            "path": "2nen/05_hissan_th1/57_iroirona_hikizan_2.html",
+            "page": "57"
           },
           {
-            "id": "g2_add_kuriagari_o1_2digit",
-            "title": "一の位がたして１０をこえるひっ算",
-            "path": "2nen/05_hissan_th1/50_tasu_to_over10_rank1.html"
+            "id": "tashizan_hissan_1",
+            "title": "たし算のひっ算（くり上がりあり）",
+            "path": "2nen/05_hissan_th1/50_tashizan_hissan.html",
+            "page": "50"
+          },
+          {
+            "id": "tashizan_hissan_nashi",
+            "title": "たし算のひっ算（くり上がりなし）",
+            "path": "2nen/05_hissan_th1/49_tashizan_hissan_nashi.html",
+            "page": "49"
+          },
+          {
+            "id": "hikizan_hissan_kurisagari",
+            "title": "ひき算のひっ算（くり下がりあり）",
+            "path": "2nen/05_hissan_th1/56_hikizan_hissan_kurisagari.html",
+            "page": "56"
+          },
+          {
+            "id": "hikizan_hissan_nashi",
+            "title": "ひき算のひっ算（くり下がりなし）",
+            "path": "2nen/05_hissan_th1/55_hikizan_hissan_nashi.html",
+            "page": "55"
+          },
+          {
+            "id": "hissan_quiz",
+            "title": "ひっ算クイズ（名探偵）",
+            "path": "2nen/05_hissan_th1/62_hissan_quiz.html.html",
+            "page": "63"
           }
         ]
       },
@@ -905,6 +938,12 @@
         "name": "９　　あまりのあるわり算",
         "apps": [
           {
+            "id": "amari_no_aru_warizan",
+            "title": "あまりのあるわり算の練習",
+            "path": "3nen/9_amari_warizan/107_amari_no_aru_warizan.html",
+            "page": "107"
+          },
+          {
             "id": "107-4_kukuwo_tukatte",
             "title": "九九を使って",
             "path": "3nen/9_amari_warizan/107-4_kukuwo_tukatte.html"
@@ -912,7 +951,7 @@
           {
             "id": "108-2_kotaeno_tashikame",
             "title": "答えのたしかめ",
-            "path": "3nen/9_amari_warizan/108-2_kotaeno_tashikame.html"
+            "path": "3nen/9_amari_warizan/108_kotae_no_tashikame.html.html"
           }
         ]
       },
@@ -923,6 +962,12 @@
             "id": "126-1_tanino_henkan",
             "title": "単位のへんかん",
             "path": "3nen/10_omosa/126-1_tanino_henkan.html"
+          },
+          {
+            "id": "108_kotae_no_tashikame",
+            "title": "答えのたしかめ",
+            "path": "3nen/10_omosa/117_omosa_no_hakari.html",
+            "page": "108"
           },
           {
             "id": "126-3_omosano_taniwo_kakou",
@@ -1011,9 +1056,8 @@
         "apps": [
           {
             "id": "53_wakuwaku_programming",
-            "title": "わくわく　プログラミング",
-            "path": "3nen/16_programming/53_wakuwaku_programming.html",
-            "page": "53"
+            "title": "わくわくプログラミング",
+            "path": "3nen/16_programming/53_wakuwaku_programming.html"
           }
         ]
       },
