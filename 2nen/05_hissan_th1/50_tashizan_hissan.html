@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>たし算のひっ算（くり上がりあり）</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        /* ▼▼▼ テーマ：森の教室（優しい緑と木目調のイメージ） ▼▼▼ */
+        :root {
+            --c-bg-main: #F1F8E9;         /* 背景：薄い緑 */
+            --c-primary: #33691E;         /* メイン：濃いオリーブ緑 */
+            --c-primary-light: #C5E1A5;   /* アクセント：明るい緑 */
+            --c-accent: #E91E63;          /* 強調：ピンク（繰り上がりなど） */
+            --c-text-main: #1B5E20;       /* 文字色：濃い緑 */
+            --c-white: #FFFFFF;
+            
+            --c-btn-bg: #689F38;          /* ボタン背景 */
+            --c-btn-hover: #558B2F;       /* ボタンホバー */
+            --c-btn-text: #FFFFFF;
+
+            --c-correct: #DCEDC8;         /* 正解時の背景 */
+            --c-wrong: #FFCDD2;           /* 不正解時の背景 */
+            
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+            --cell-size: 50px;            /* セルの基本サイズ */
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main);
+            color: var(--c-text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- ヘッダー周り --- */
+        h1 {
+            font-size: 1.6rem;
+            color: var(--c-primary);
+            margin: 10px 0;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            background: var(--c-white);
+            border: 3px solid var(--c-primary-light);
+            padding: 8px 20px;
+            border-radius: 25px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--c-primary);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .page-circle {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: var(--c-primary);
+            color: var(--c-white);
+            font-weight: 800;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* --- 問題表示エリア --- */
+        #game-area {
+            width: 100%;
+            max-width: 800px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            #game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .problem-card {
+            background: var(--c-white);
+            border-radius: 15px;
+            padding: 30px 10px 20px 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            border: 2px solid var(--c-primary-light);
+            display: flex;
+            justify-content: center;
+            position: relative;
+            scroll-margin-block: 150px;
+        }
+
+        .problem-number-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--c-primary);
+            color: var(--c-white);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+
+        /* 筆算グリッド */
+        .hissan-grid {
+            display: grid;
+            grid-template-columns: var(--cell-size) var(--cell-size) var(--cell-size);
+            grid-template-rows: 30px var(--cell-size) var(--cell-size) var(--cell-size);
+            gap: 2px;
+        }
+
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: 500;
+            color: #333;
+            position: relative;
+        }
+
+        .border-bottom { border-bottom: 3px solid #333; }
+        .operator { font-size: 1.5rem; align-items: flex-end; padding-bottom: 5px; }
+
+        input.input-box {
+            width: 100%; height: 100%;
+            font-family: inherit; font-size: 2rem; font-weight: 800;
+            text-align: center;
+            border: 2px solid #E0E0E0; border-radius: 8px;
+            color: var(--c-primary); background: #FAFAFA;
+            outline: none; transition: all 0.2s;
+            padding: 0; margin: 0; -webkit-appearance: none;
+        }
+
+        input.input-box:focus {
+            border-color: var(--c-primary); background-color: #F1F8E9;
+            box-shadow: 0 0 0 3px rgba(51, 105, 30, 0.2);
+            transform: scale(1.05); z-index: 10;
+        }
+
+        input.carry-box {
+            width: 28px; height: 28px;
+            font-size: 1.1rem; color: var(--c-accent);
+            border: 2px dashed #F48FB1; background-color: #FFF0F5;
+            border-radius: 50%; margin-top: auto;
+        }
+        input.carry-box:focus {
+            border-color: var(--c-accent); background-color: #FCE4EC;
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.2);
+        }
+
+        .correct-bg { background-color: var(--c-correct) !important; border-color: var(--c-primary) !important; }
+        .wrong-bg { background-color: var(--c-wrong) !important; border-color: #E53935 !important; }
+
+        /* --- ボタンエリア --- */
+        .action-area {
+            text-align: center;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        button {
+            font-family: var(--font-family);
+            font-size: 1.2rem;
+            font-weight: 800;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--c-btn-bg);
+            color: var(--c-btn-text);
+            cursor: pointer;
+            box-shadow: 0 4px 0 #33691E;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        button:active { transform: translateY(4px); box-shadow: none; }
+        button:disabled { background-color: #BDBDBD; box-shadow: none; cursor: not-allowed; }
+        button:focus { outline: 3px solid #FFC107; outline-offset: 2px; }
+
+        .btn-retry { background-color: #0288D1; box-shadow: 0 4px 0 #01579B; }
+        .btn-start { font-size: 1.5rem; padding: 15px 50px; background-color: #E91E63; box-shadow: 0 5px 0 #C2185B; }
+
+        /* --- スタート画面・リザルト画面 --- */
+        #start-screen, #result-screen {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            border: 4px solid var(--c-primary);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin: 0 auto;
+        }
+        
+        #result-screen {
+            margin-bottom: 50px;
+        }
+
+        /* 統計情報ボックス */
+        .stats-box {
+            background-color: #FFF3E0;
+            border: 2px solid #FFB74D;
+            color: #EF6C00;
+            padding: 10px 20px;
+            border-radius: 15px;
+            display: inline-block;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+        .stats-num {
+            font-size: 1.3rem;
+            margin: 0 4px;
+        }
+
+        .star-rank {
+            font-size: 3rem;
+            color: #FFD700;
+            text-shadow: 2px 2px 0 #FF8F00;
+            margin: 10px 0;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            background: var(--c-primary-light);
+            border-radius: 10px;
+            text-align: left;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .history-list li {
+            padding: 8px 10px;
+            border-bottom: 1px dashed var(--c-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+        .history-meta {
+            font-size: 0.85rem;
+            color: #558B2F;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* --- モーダル --- */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            width: 85%;
+            max-width: 400px;
+            border: 3px solid var(--c-primary);
+        }
+        #btn-help {
+            position: fixed;
+            top: 15px; right: 15px;
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #FFC107;
+            color: #FFC107;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 900;
+            padding: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <button id="btn-help">？</button>
+
+    <div id="modal-overlay">
+        <div class="modal-content">
+            <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">あそびかた</h3>
+            <div id="instruction-text"></div>
+            <div style="text-align:center; margin-top:20px;">
+                <button onclick="document.getElementById('modal-overlay').style.display='none'">とじる</button>
+            </div>
+        </div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span class="page-circle" id="page-num"></span>
+        <span id="app-name"></span>
+    </h2>
+
+    <div id="start-screen">
+        <p style="font-size:1.2rem; line-height:1.8;">
+                        一のくらいのたし算が<span style="color:var(--c-accent); font-weight:bold;">１０をこえたら、</span><br>
+            くり上がりメモを書こう。
+        </p>
+        <button id="btn-start-game" class="btn-start">スタート！</button>
+        
+        <div class="stats-box">
+            今日のクリア: <span id="start-daily-count" class="stats-num">0</span>回 /
+            合計: <span id="start-total-count" class="stats-num">0</span>回
+        </div>
+
+        <div style="font-size:0.9rem;">
+            <div>これまでのきろく（さいしん５件）</div>
+            <ul id="start-history" class="history-list"></ul>
+        </div>
+    </div>
+
+    <div id="game-screen" style="display:none; width:100%; flex-direction:column; align-items:center;">
+        <div id="game-area">
+            </div>
+
+        <div class="action-area" id="check-area">
+            <button id="btn-check">まるつけ</button>
+        </div>
+    </div>
+
+    <div id="result-screen" style="display:none;">
+        <h2 style="border:none; background:none; font-size:1.8rem; margin:0;">けっかはっぴょう</h2>
+        <div id="result-stars" class="star-rank"></div>
+        <div id="result-msg" style="font-size:1.4rem; font-weight:bold; color:var(--c-primary); margin:10px 0;"></div>
+        
+        <div style="font-size:1.2rem; margin:15px 0;">
+            スコア: <span id="score-val" style="font-weight:bold; font-size:1.6rem;">0</span> 点<br>
+            <span style="font-size:1rem; opacity:0.8;">(タイム: <span id="time-val">0</span>秒)</span>
+        </div>
+
+        <div class="stats-box">
+            今日のクリア: <span id="result-daily-count" class="stats-num">0</span>回 /
+            合計: <span id="result-total-count" class="stats-num">0</span>回
+        </div>
+
+        <div class="action-area">
+            <button id="btn-retry" class="btn-retry">もういちど</button>
+            <button id="btn-title" style="background-color:#78909C; box-shadow:0 4px 0 #455A64;">タイトルへ</button>
+        </div>
+
+        <div style="margin-top:20px; font-size:0.9rem;">
+            <div>きろく（★とタイム）</div>
+            <ul id="result-history" class="history-list"></ul>
+        </div>
+    </div>
+
+<script>
+(function() {
+    // --- Config設定 ---
+    const config = {
+        appId: "tashizan_hissan_1",
+        mainTitle: "５　たし算と ひき算の ひっ算(1)",
+        title: "たし算のひっ算（くり上がりあり）",
+        page: 50,
+        baseScore: 100,
+        questionCount: 8, // 8問
+        targetTime: 120,  // 120秒
+        starThresholds: { star5: 140, star4: 120, star3: 100, star2: 80 },
+        instructionHtml: `
+            <p>2けた＋2けたのひっ算です。</p>
+            <div style="background:#E8F5E9; padding:10px; border-radius:10px; border:2px solid #C5E1A5; font-size:0.95rem;">
+                <strong>計算のじゅんばん（れい：34 + 28）</strong><br>
+                ① 一のくらい: 4 + 8 = <strong>12</strong><br>
+                ② 「じゅう」が出たら、先に<span style="color:#E91E63; font-weight:bold;">1 くり上げます</span>。(ピンクのはこ)<br>
+                ③ のこりの「に」を一のくらいに書きます。<br>
+                ④ 十のくらい: <span style="color:#E91E63;">1</span> + 3 + 2 = 6<br>
+                答えは <strong>62</strong>
+            </div>
+        `
+    };
+
+    // --- 変数管理 ---
+    let problems = [];
+    let startTime = 0;
+    let isErrorMode = false;
+    let incorrectInputs = [];
+
+    // LocalStorage Keys
+    const LS_KEY_HISTORY = `${config.appId}_history_v2`; 
+    const LS_KEY_TOTAL = `${config.appId}_total`;
+    const LS_KEY_DAILY = `${config.appId}_daily_${new Date().toLocaleDateString()}`;
+
+    // --- 初期化 ---
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('main-title').textContent = config.mainTitle;
+        document.getElementById('page-num').textContent = config.page;
+        document.getElementById('app-name').textContent = config.title;
+        document.getElementById('instruction-text').innerHTML = config.instructionHtml;
+
+        updateHistoryUI();
+        
+        // イベントリスナー設定
+        document.getElementById('btn-help').onclick = () => document.getElementById('modal-overlay').style.display = 'block';
+        document.getElementById('btn-start-game').onclick = startGame;
+        document.getElementById('btn-check').onclick = checkAnswers;
+        document.getElementById('btn-retry').onclick = startGame;
+        document.getElementById('btn-title').onclick = showTitle;
+
+        // スタート画面でのエンターキー
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.getElementById('start-screen').style.display !== 'none') {
+                startGame();
+            }
+        });
+    });
+
+    // --- 問題生成 ---
+    function generateProblems(count) {
+        const arr = [];
+        let attempts = 0;
+        
+        while (arr.length < count && attempts < 2000) {
+            attempts++;
+            const a = Math.floor(Math.random() * 80) + 10; // 10～89
+            const maxB = 99 - a; 
+            if (maxB < 10) continue; 
+            
+            const b = Math.floor(Math.random() * (maxB - 10 + 1)) + 10; // 10～maxB
+            
+            const a_ones = a % 10;
+            const b_ones = b % 10;
+
+            // ▼▼▼ 修正ロジック ▼▼▼
+            // 教科書P50の△５の傾向に合わせる
+            
+            // 1. どちらの一の位も0ではない (例: 30+45などは除外)
+            if (a_ones === 0 || b_ones === 0) continue;
+
+            // 2. 一の位の和が10ジャストではない (10より大きい => 11,12,13...)
+            // ※「10になる」ケースは次のページの△６・△７で扱うため除外
+            if (a_ones + b_ones <= 10) continue; 
+            // ▲▲▲▲▲▲▲▲▲▲▲▲
+
+            const answer = a + b;
+            
+            const inputOrder = [];
+            const answers = {};
+
+            // 1. 繰り上がり
+            answers[`r0c1`] = 1;
+            inputOrder.push(`r0c1`);
+
+            // 2. 一の位
+            const ans_ones = answer % 10;
+            answers[`r3c2`] = ans_ones;
+            inputOrder.push(`r3c2`);
+
+            // 3. 十の位
+            const ans_tens = Math.floor(answer / 10);
+            answers[`r3c1`] = ans_tens;
+            inputOrder.push(`r3c1`);
+
+            arr.push({ a, b, answer, inputOrder, answers });
+        }
+        return arr;
+    }
+
+    // --- ゲーム開始 ---
+    function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'none';
+        
+        // ゲーム画面を表示
+        const gameScreen = document.getElementById('game-screen');
+        gameScreen.style.display = 'flex';
+        
+        // まるつけボタンを表示
+        document.getElementById('check-area').style.display = 'flex';
+        
+        problems = generateProblems(config.questionCount);
+        renderProblems();
+        
+        isErrorMode = false;
+        incorrectInputs = [];
+        startTime = Date.now();
+        
+        document.getElementById('btn-check').textContent = "まるつけ";
+        document.getElementById('btn-check').disabled = false;
+
+        // 一番上までスクロール
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // 最初の入力欄にフォーカス
+        setTimeout(() => {
+            if (problems.length > 0) {
+                const firstKey = problems[0].inputOrder[0];
+                const firstInput = document.getElementById(`p0_${firstKey}`);
+                if (firstInput) firstInput.focus();
+            }
+        }, 300);
+    }
+
+    // --- 問題描画 ---
+    function renderProblems() {
+        const area = document.getElementById('game-area');
+        area.innerHTML = "";
+
+        problems.forEach((p, idx) => {
+            const pid = `p${idx}`;
+            const card = document.createElement('div');
+            card.className = 'problem-card';
+            card.id = `card-${pid}`;
+
+            const a_tens = Math.floor(p.a / 10);
+            const a_ones = p.a % 10;
+            const b_tens = Math.floor(p.b / 10);
+            const b_ones = p.b % 10;
+
+            let html = `
+                <div class="problem-number-badge">${idx + 1}</div>
+                <div class="hissan-grid">
+                    <div class="cell"></div>
+                    <div class="cell"><input type="tel" inputmode="numeric" class="input-box carry-box" id="${pid}_r0c1" data-pid="${pid}" data-key="r0c1"></div>
+                    <div class="cell"></div>
+
+                    <div class="cell"></div>
+                    <div class="cell">${a_tens}</div>
+                    <div class="cell">${a_ones}</div>
+
+                    <div class="cell operator border-bottom">＋</div>
+                    <div class="cell border-bottom">${b_tens}</div>
+                    <div class="cell border-bottom">${b_ones}</div>
+
+                    <div class="cell"></div>
+                    <div class="cell"><input type="tel" inputmode="numeric" class="input-box" id="${pid}_r3c1" data-pid="${pid}" data-key="r3c1"></div>
+                    <div class="cell"><input type="tel" inputmode="numeric" class="input-box" id="${pid}_r3c2" data-pid="${pid}" data-key="r3c2"></div>
+                </div>
+            `;
+            
+            card.innerHTML = html;
+            area.appendChild(card);
+        });
+
+        document.querySelectorAll('.input-box').forEach(input => {
+            input.addEventListener('input', handleInput);
+            input.addEventListener('focus', handleFocus);
+            input.addEventListener('keydown', handleKeydown);
+        });
+    }
+
+    // --- イベントハンドラ ---
+    function handleFocus(e) {
+        e.target.select();
+    }
+
+    function handleInput(e) {
+        const val = e.target.value.replace(/[^0-9]/g, '');
+        e.target.value = val;
+
+        if (val.length >= 1) {
+            moveFocus(e.target, 1); 
+        }
+    }
+
+    function handleKeydown(e) {
+        if (e.key === 'Backspace' && e.target.value === '') {
+            e.preventDefault();
+            moveFocus(e.target, -1);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (isErrorMode) {
+                moveToNextError(e.target);
+            } else {
+                moveFocus(e.target, 1);
+            }
+        }
+    }
+
+    // フォーカス移動ロジック
+    function moveFocus(currentEl, direction) {
+        const pid = currentEl.dataset.pid;
+        const key = currentEl.dataset.key;
+        const pIndex = parseInt(pid.replace('p', ''));
+        const problem = problems[pIndex];
+        
+        const currentOrderIdx = problem.inputOrder.indexOf(key);
+        
+        if (direction === 1) { // 次へ
+            if (currentOrderIdx < problem.inputOrder.length - 1) {
+                // 同じ問題の次のセル
+                const nextKey = problem.inputOrder[currentOrderIdx + 1];
+                document.getElementById(`${pid}_${nextKey}`).focus();
+            } else {
+                // 次の問題の先頭へ
+                if (pIndex < problems.length - 1) {
+                    const nextPid = `p${pIndex + 1}`;
+                    const nextKey = problems[pIndex + 1].inputOrder[0];
+                    document.getElementById(`${nextPid}_${nextKey}`).focus();
+                    
+                    // 次の問題へスムーズにスクロール
+                    document.getElementById(`card-${nextPid}`).scrollIntoView({behavior: 'smooth', block: 'center'});
+                } else {
+                    // 全入力完了 -> まるつけボタンへ
+                    document.getElementById('btn-check').focus();
+                }
+            }
+        } else if (direction === -1) { // 戻る
+            if (currentOrderIdx > 0) {
+                const prevKey = problem.inputOrder[currentOrderIdx - 1];
+                document.getElementById(`${pid}_${prevKey}`).focus();
+            } else {
+                // 前の問題の最後のセルへ
+                if (pIndex > 0) {
+                    const prevPid = `p${pIndex - 1}`;
+                    const prevProb = problems[pIndex - 1];
+                    const prevKey = prevProb.inputOrder[prevProb.inputOrder.length - 1];
+                    document.getElementById(`${prevPid}_${prevKey}`).focus();
+                }
+            }
+        }
+    }
+
+    function moveToNextError(currentEl) {
+        const allInputs = Array.from(document.querySelectorAll('.input-box'));
+        const currentIndex = allInputs.indexOf(currentEl);
+        
+        let nextError = null;
+        for (let i = currentIndex + 1; i < allInputs.length; i++) {
+            if (allInputs[i].classList.contains('wrong-bg') || allInputs[i].value === "") {
+                nextError = allInputs[i];
+                break;
+            }
+        }
+
+        if (nextError) {
+            nextError.focus();
+        } else {
+            document.getElementById('btn-check').focus();
+        }
+    }
+
+    // --- まるつけ処理 ---
+    function checkAnswers() {
+        const btn = document.getElementById('btn-check');
+        let allCorrect = true;
+        incorrectInputs = []; 
+
+        problems.forEach((p, idx) => {
+            const pid = `p${idx}`;
+            p.inputOrder.forEach(key => {
+                const el = document.getElementById(`${pid}_${key}`);
+                const userVal = el.value;
+                const correctVal = String(p.answers[key]);
+
+                el.classList.remove('correct-bg', 'wrong-bg');
+
+                if (userVal === correctVal) {
+                    el.classList.add('correct-bg');
+                } else {
+                    el.classList.add('wrong-bg');
+                    allCorrect = false;
+                    incorrectInputs.push(el);
+                }
+            });
+        });
+
+        if (allCorrect) {
+            showResult();
+        } else {
+            isErrorMode = true;
+            btn.textContent = "もういちどチェック";
+            if (incorrectInputs.length > 0) {
+                incorrectInputs[0].focus();
+            }
+        }
+    }
+
+    // --- 結果画面 ---
+    function showResult() {
+        // ゲーム画面は消さない。ボタンだけ隠す
+        document.getElementById('check-area').style.display = 'none';
+
+        const resultScreen = document.getElementById('result-screen');
+        resultScreen.style.display = 'block';
+
+        const endTime = Date.now();
+        const elapsed = (endTime - startTime) / 1000;
+        
+        let timeScore = Math.max(0, config.targetTime - elapsed);
+        let score = config.baseScore + Math.floor((timeScore / config.targetTime) * 50);
+        
+        document.getElementById('score-val').textContent = score;
+        document.getElementById('time-val').textContent = elapsed.toFixed(1);
+
+        // 星ランク
+        let stars = "";
+        if (score >= config.starThresholds.star5) stars = "★★★★★";
+        else if (score >= config.starThresholds.star4) stars = "★★★★☆";
+        else if (score >= config.starThresholds.star3) stars = "★★★☆☆";
+        else if (score >= config.starThresholds.star2) stars = "★★☆☆☆";
+        else stars = "★☆☆☆☆";
+        
+        document.getElementById('result-stars').textContent = stars;
+
+        const msgs = ["すごい！かんぺき！", "よくがんばったね！", "そのちょうし！", "ナイスチャレンジ！"];
+        document.getElementById('result-msg').textContent = score >= 130 ? msgs[0] : msgs[1];
+
+        // 履歴保存
+        saveResult(score, stars, elapsed.toFixed(1));
+        
+        // スクロールして結果を表示
+        resultScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // リトライボタンにフォーカス
+        setTimeout(() => {
+            document.getElementById('btn-retry').focus();
+        }, 500);
+
+        if (score >= 100) {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#33691E', '#C5E1A5', '#E91E63'] 
+            });
+        }
+    }
+
+    // --- データ保存 ---
+    function saveResult(score, starStr, timeStr) {
+        const total = parseInt(localStorage.getItem(LS_KEY_TOTAL) || "0") + 1;
+        const daily = parseInt(localStorage.getItem(LS_KEY_DAILY) || "0") + 1;
+        
+        localStorage.setItem(LS_KEY_TOTAL, total);
+        localStorage.setItem(LS_KEY_DAILY, daily);
+
+        let history = JSON.parse(localStorage.getItem(LS_KEY_HISTORY) || "[]");
+        const now = new Date();
+        const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+        
+        history.unshift({ date: dateStr, score: score, stars: starStr, time: timeStr });
+        if (history.length > 5) history.pop();
+        localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(history));
+
+        updateHistoryUI();
+    }
+
+    function updateHistoryUI() {
+        const total = localStorage.getItem(LS_KEY_TOTAL) || "0";
+        const daily = localStorage.getItem(LS_KEY_DAILY) || "0";
+        
+        // スタート画面の統計
+        if(document.getElementById('start-total-count')) document.getElementById('start-total-count').textContent = total;
+        if(document.getElementById('start-daily-count')) document.getElementById('start-daily-count').textContent = daily;
+        
+        // リザルト画面の統計
+        if(document.getElementById('result-daily-count')) document.getElementById('result-daily-count').textContent = daily;
+        if(document.getElementById('result-total-count')) document.getElementById('result-total-count').textContent = total;
+
+        const history = JSON.parse(localStorage.getItem(LS_KEY_HISTORY) || "[]");
+        
+        const listHtml = history.map(h => `
+            <li>
+                <span class="history-meta">${h.date}</span>
+                <span style="color:#FBC02D;">${h.stars || '-'}</span>
+                <span>${h.time || '0'}秒</span>
+                <strong>${h.score}点</strong>
+            </li>
+        `).join('');
+        
+        document.getElementById('start-history').innerHTML = listHtml;
+        document.getElementById('result-history').innerHTML = listHtml;
+    }
+
+    function showTitle() {
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('start-screen').style.display = 'block';
+    }
+
+})();
+</script>
+</body>
+</html>

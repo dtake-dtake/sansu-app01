@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>長さのたんい cmとmm</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：フレッシュ・ミント（若草色と土の色） ▼▼▼ */
+        :root {
+            --c-bg: #F1F8E9;              /* 背景：薄い黄緑 */
+            --c-card-bg: #FFFFFF;         /* カード：白 */
+            --c-text: #33691E;            /* 文字：濃い緑 */
+            --c-border: #AED581;          /* 枠線：明るい緑 */
+            
+            --c-primary: #558B2F;         /* メイン：オリーブグリーン */
+            --c-accent: #FF8F00;          /* アクセント：アンバー（オレンジ） */
+            
+            --c-correct-bg: #DCEDC8;      /* 正解時：薄い緑 */
+            --c-wrong-bg: #FFEBEE;        /* 不正解時：薄い赤 */
+            
+            /* フォント設定 */
+            --font-main: "UD デジタル 教科書体 N-B", "UD Digi Kyokasho N-B", "Yu Gothic", "Meiryo", sans-serif;
+            --font-num: "Verdana", "Arial", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--c-bg); 
+            color: var(--c-text);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: 120px; /* キーボード用の余白 */
+        }
+
+        h1 { font-size: 1.5rem; color: var(--c-text); margin: 10px 0 5px 0; text-align: center; }
+        h2 { 
+            font-size: 1.2rem; 
+            background: var(--c-card-bg);
+            border: 2px solid var(--c-primary);
+            color: var(--c-primary);
+            padding: 8px 25px; 
+            border-radius: 50px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 10px; margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: var(--c-primary); color: #fff;
+            font-weight: bold; font-size: 1.1rem; flex-shrink: 0;
+            font-family: var(--font-num);
+        }
+
+        /* ヒントボタン */
+        #bulb-btn {
+            position: fixed; top: 15px; right: 15px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: #fff; border: 2px solid #FFC107; color: #FFC107;
+            font-size: 1.5rem; cursor: pointer; 
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            z-index: 9999; font-weight: bold;
+        }
+
+        /* スタート画面 */
+        #start-area {
+            background: var(--c-card-bg);
+            padding: 40px 30px; border-radius: 12px;
+            text-align: center; margin-top: 20px;
+            border: 2px solid var(--c-border);
+            max-width: 500px; width: 95%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        /* 記録表示エリア */
+        .stats-container {
+            display: flex; justify-content: space-around;
+            background-color: #DCEDC8; /* テーマに合わせた薄緑 */
+            padding: 10px; border-radius: 8px;
+            margin: 20px 0; font-size: 0.9rem;
+        }
+        .stat-box { display: flex; flex-direction: column; align-items: center; }
+        .stat-label { font-size: 0.8rem; color: var(--c-text); margin-bottom: 2px; }
+        .stat-value { font-size: 1.3rem; font-weight: bold; color: var(--c-primary); font-family: var(--font-num); }
+
+        /* 履歴リスト */
+        .history-container {
+            text-align: left; margin-top: 15px;
+            background: #FAFAFA; padding: 10px; border-radius: 8px;
+            border: 1px solid #EEEEEE;
+        }
+        ul.history-list {
+            list-style: none; padding: 0; margin: 10px 0 0 0;
+        }
+        ul.history-list li {
+            padding: 8px 5px; border-bottom: 1px dashed #CCC;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem;
+        }
+        ul.history-list li:last-child { border-bottom: none; }
+        .history-time { font-size: 0.85rem; color: #888; margin-right: 5px; }
+        .history-stars { color: #FFB300; margin-right: 5px; font-size: 0.8rem; letter-spacing: -1px; }
+
+        /* 問題リスト */
+        #problems-container {
+            display: flex; flex-direction: column; gap: 15px;
+            width: 100%; max-width: 550px; margin-top: 10px;
+            padding-bottom: 10px; 
+        }
+        
+        .problem-card {
+            background: var(--c-card-bg);
+            border-radius: 12px;
+            padding: 15px 15px;
+            display: flex; flex-direction: row; /* 横並び */
+            align-items: center; justify-content: space-between; 
+            border: 2px solid var(--c-border);
+            transition: background-color 0.2s;
+            position: relative;
+        }
+
+        .problem-number {
+            display: flex; justify-content: center; align-items: center;
+            width: 28px; height: 28px;
+            background-color: var(--c-primary);
+            color: #fff;
+            border-radius: 50%;
+            font-weight: bold;
+            font-family: var(--font-num);
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+        
+        .problem-text {
+            flex-grow: 1;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--c-text);
+            text-align: left;
+            line-height: 1.4;
+        }
+        
+        .input-wrapper {
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        /* テキスト入力（読み取り専用・ボタンで入力） */
+        input[type="text"] {
+            width: 80px; height: 50px;
+            font-size: 1.6rem; text-align: center;
+            border: 2px solid #999; border-radius: 8px;
+            background: #fff; color: var(--c-text);
+            outline: none; font-family: var(--font-num); font-weight: bold;
+            caret-color: transparent; /* カーソルを隠す */
+            cursor: pointer;
+        }
+        input[type="text"]:focus {
+            border-color: var(--c-accent); /* フォーカス時はアクセントカラー */
+            background-color: #FFF3E0; 
+            box-shadow: 0 0 0 3px rgba(255, 143, 0, 0.2);
+        }
+        
+        .problem-card.correct { background-color: var(--c-correct-bg); border-color: #AED581; }
+        .problem-card.wrong { background-color: var(--c-wrong-bg); border-color: #EF9A9A; }
+        .problem-card.wrong input { background-color: #FFEBEE; color: #D32F2F; border-color: #EF5350; }
+
+        /* ボタン */
+        button.action-btn {
+            font-size: 1.3rem; padding: 15px 40px; border: none; border-radius: 50px;
+            background-color: var(--c-primary); color: #fff;
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 0 #33691E;
+            transition: transform 0.1s;
+            font-family: var(--font-main);
+        }
+        button.action-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .button-area { 
+            margin: 30px 0; display: flex; gap: 20px; justify-content: center; width: 100%;
+        }
+
+        /* 単位選択キーボード（下部固定） */
+        #unit-keyboard {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 2px solid var(--c-border);
+            padding: 15px 10px 25px 10px;
+            display: none; /* ゲーム中のみ表示 */
+            justify-content: center; gap: 20px;
+            z-index: 5000;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+        }
+        .unit-btn {
+            flex: 1; max-width: 180px; height: 65px;
+            font-size: 1.8rem; border-radius: 15px; border: none;
+            background-color: var(--c-accent); color: white;
+            font-family: var(--font-num); font-weight: bold;
+            box-shadow: 0 4px 0 #E65100;
+            cursor: pointer; transition: all 0.1s;
+        }
+        .unit-btn:active { transform: translateY(4px); box-shadow: none; }
+        /* cmは少し色を変える */
+        .unit-btn.btn-cm { background-color: var(--c-primary); box-shadow: 0 4px 0 #33691E; }
+
+
+        /* リザルト */
+        #result-area {
+            display: none; width: 100%; max-width: 550px;
+            background: var(--c-card-bg); padding: 30px; border-radius: 12px;
+            text-align: center; border: 2px solid var(--c-border);
+            margin-top: 20px; 
+            margin-bottom: 50px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .status-stars { color: #FFD700; font-size: 3.5rem; margin: 10px 0; text-shadow: 1px 1px 0 #FFB300; }
+        
+        .reset-link {
+            display: inline-block; margin-top: 40px; 
+            color: #90A4AE; font-size: 0.9rem; text-decoration: underline; 
+            cursor: pointer; border: none; background: none;
+        }
+        
+        /* モーダル */
+        #info-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; backdrop-filter: blur(2px); }
+        .modal-content { 
+            background: #fff; margin: 15% auto; padding: 25px; 
+            width: 85%; max-width: 450px; border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 3px solid var(--c-primary);
+        }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="ヒント">💡</button>
+    
+    <div id="info-modal">
+        <div class="modal-content">
+            <h3 style="color:var(--c-primary); margin-top:0;">学習のポイント</h3>
+            <div id="instruction-content" style="text-align:left; line-height:1.6; font-size:1.1rem;"></div>
+            <button onclick="document.getElementById('info-modal').style.display='none'" class="action-btn" style="margin-top:20px; width:100%; font-size:1rem; padding:10px;">とじる</button>
+        </div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <p style="font-size:1.3rem; font-weight:bold; margin-bottom:20px; color:var(--c-text);">
+            どちらの たんいが 合うかな？
+        </p>
+        
+        <button id="start-btn" class="action-btn">スタート (Enter)</button>
+        
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-label">きょうのクリア</span>
+                <span class="stat-value" id="start-daily-clear">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">ごうけいクリア</span>
+                <span class="stat-value" id="start-total-clear">0</span>
+            </div>
+        </div>
+
+        <div class="history-container">
+            <strong style="color:#555;">さいきんの きろく</strong>
+            <ul class="history-list" id="start-history-list"></ul>
+        </div>
+    </div>
+
+    <div id="game-container" style="display:none; width:100%; flex-direction:column; align-items:center;">
+        <div id="problems-container"></div>
+        <div class="button-area" id="game-btn-area" style="margin-bottom: 100px;">
+            <button id="check-btn" class="action-btn" style="min-width:200px; background-color:#78909C; box-shadow:0 4px 0 #455A64;">まるつけ</button>
+        </div>
+    </div>
+
+    <div id="unit-keyboard">
+        <button class="unit-btn btn-cm" onclick="inputUnit('cm')">cm</button>
+        <button class="unit-btn btn-mm" onclick="inputUnit('mm')">mm</button>
+    </div>
+
+    <div id="result-area">
+        <h2 style="border:none; background:none; font-size:2rem; color:var(--c-primary); padding:0; margin-bottom:5px;">けっかはっぴょう</h2>
+        
+        <div id="result-stars" class="status-stars"></div>
+        <div id="result-msg" style="font-size:1.3rem; font-weight:bold; margin:10px 0;"></div>
+        <div id="score-detail" style="font-size:1.2rem; color:#444; margin-bottom:10px; font-weight:bold;"></div>
+        
+        <p style="color:#666; font-size:0.9rem;">↑ 上にスクロールすると もんだいを みかえせます ↑</p>
+
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-label">きょうのクリア</span>
+                <span class="stat-value" id="result-daily-clear">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">ごうけいクリア</span>
+                <span class="stat-value" id="result-total-clear">0</span>
+            </div>
+        </div>
+
+        <div class="history-container">
+            <strong style="color:#555;">さいきんの きろく</strong>
+            <ul class="history-list" id="result-history-list"></ul>
+        </div>
+        
+        <div class="button-area">
+            <button id="retry-btn" class="action-btn">もういちど (Enter)</button>
+        </div>
+
+        <button id="reset-hs-btn" class="reset-link">ハイスコアのみけす</button>
+    </div>
+
+    <script>
+    // グローバル関数として定義（HTMLのonclickから呼ぶため）
+    window.inputUnit = function(unit) {};
+
+    (function(){
+        // ▼▼▼ コンフィグ ▼▼▼
+        const config = {
+            appId: "unit_choice_length_cm_mm", 
+            mainTitle: "4.　長さ", 
+            title: "cm か mm かな？", 
+            page: 45,
+            baseScore: 100, 
+            
+            baseTimeLimit: 60, 
+            timeBonusMultiplier: 2.0,
+            
+            questionCount: 5,
+            
+            starThresholds: { 
+                starGod: 200, 
+                star5: 180, 
+                star4: 150, 
+                star3: 120, 
+                star2: 80 
+            },
+            
+            instructionHtml: `
+                <p>□に あてはまる 長さの たんい（<strong>cm</strong> か <strong>mm</strong>）を えらぼう。</p>
+                <div style="background:#F1F8E9; padding:15px; border-radius:8px; border:2px solid #AED581; margin:15px 0;">
+                    <strong style="color:#558B2F;">ヒント：</strong><br>
+                    <ul style="margin:5px 0 0 20px; padding:0;">
+                        <li><strong>mm (ミリメートル)</strong><br>とても 小さいもの。<br>ノートの あつさ、アリさんの 大きさ など。</li>
+                        <br>
+                        <li><strong>cm (センチメートル)</strong><br>ふつうの 大きさのもの。<br>えんぴつ、くつ、はがき など。</li>
+                    </ul>
+                    <div style="margin-top:10px; text-align:center; font-weight:bold; color:#33691E;">
+                        1cm ＝ 10mm
+                    </div>
+                </div>
+            `
+        };
+
+        let problems = [];
+        let startTime = 0;
+        let currentFocusIndex = 0; // 現在選択中の入力欄
+        let hasChecked = false;
+
+        // ローカルストレージキー
+        const KEY_HS = `${config.appId}:hs`;
+        const KEY_TOTAL_CLEAR = `${config.appId}:totalClear`;
+        const KEY_DAILY_DATA = `${config.appId}:dailyData`; 
+        const KEY_HISTORY = `${config.appId}:history`;
+        const KEY_STATUS = `${config.appId}:status`;
+
+        function loadAndDisplayData() {
+            const ls = localStorage;
+            const totalClear = ls.getItem(KEY_TOTAL_CLEAR) || "0";
+            document.getElementById('start-total-clear').textContent = totalClear;
+            document.getElementById('result-total-clear').textContent = totalClear;
+            
+            const todayStr = new Date().toLocaleDateString("ja-JP");
+            let dailyData = JSON.parse(ls.getItem(KEY_DAILY_DATA) || 'null');
+            if (!dailyData || dailyData.date !== todayStr) {
+                dailyData = { date: todayStr, count: 0 };
+                ls.setItem(KEY_DAILY_DATA, JSON.stringify(dailyData));
+            }
+            document.getElementById('start-daily-clear').textContent = dailyData.count;
+            document.getElementById('result-daily-clear').textContent = dailyData.count;
+            updateHistoryDisplay();
+        }
+
+        function saveGameResult(score, stars, timeStr) {
+            const ls = localStorage;
+            const currentTotal = parseInt(ls.getItem(KEY_TOTAL_CLEAR) || "0");
+            ls.setItem(KEY_TOTAL_CLEAR, String(currentTotal + 1));
+            
+            const todayStr = new Date().toLocaleDateString("ja-JP");
+            let dailyData = JSON.parse(ls.getItem(KEY_DAILY_DATA) || 'null');
+            if (!dailyData || dailyData.date !== todayStr) {
+                dailyData = { date: todayStr, count: 0 };
+            }
+            dailyData.count += 1;
+            ls.setItem(KEY_DAILY_DATA, JSON.stringify(dailyData));
+
+            const oldHs = parseInt(ls.getItem(KEY_HS) || "0");
+            if(score > oldHs) ls.setItem(KEY_HS, String(score));
+            
+            ls.setItem(KEY_STATUS, stars);
+
+            const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
+            const now = new Date();
+            const dateDisplay = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            history.unshift({ date: dateDisplay, score: score, time: timeStr, stars: stars });
+            if(history.length > 5) history.pop();
+            ls.setItem(KEY_HISTORY, JSON.stringify(history));
+
+            loadAndDisplayData();
+        }
+
+        function updateHistoryDisplay() {
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const html = history.length === 0 
+                ? "<li style='justify-content:center; color:#999;'>まだきろくはありません</li>"
+                : history.map(h => {
+                    const timeInfo = h.time ? `<span class="history-time">(${h.time}秒)</span>` : "";
+                    const starInfo = h.stars ? `<span class="history-stars">${h.stars}</span>` : "";
+                    
+                    return `<li>
+                        <div><span style="font-size:0.8rem; color:#666;">${h.date}</span></div>
+                        <div style="text-align:right;">
+                            ${starInfo}
+                            ${timeInfo} <strong>${h.score}点</strong>
+                        </div>
+                    </li>`;
+                }).join('');
+            document.getElementById('start-history-list').innerHTML = html;
+            document.getElementById('result-history-list').innerHTML = html;
+        }
+
+        function resetHighScore() {
+            if(confirm("ハイスコアをけしますか？")) {
+                localStorage.removeItem(KEY_HS);
+                localStorage.removeItem(KEY_STATUS);
+                alert("ハイスコアをけしました。");
+                loadAndDisplayData();
+            }
+        }
+// --- 問題生成ロジック ---
+        function generateProblems(count) {
+            // 問題プール： { text: "問題文", val: 数値, ans: "正解の単位" }
+            const pool = [
+                // ▼ cm (センチメートル) の問題
+                { text: "えんぴつの 長さ", val: 15, ans: "cm" },
+                { text: "はがきの 長さ", val: 15, ans: "cm" },
+                { text: "算数の教科書の よこ", val: 21, ans: "cm" },
+                { text: "くつの サイズ", val: 21, ans: "cm" },
+                { text: "黒板(こくばん)けしの 長さ", val: 15, ans: "cm" },
+                { text: "クレヨンの 長さ", val: 8, ans: "cm" },
+                { text: "ハブラシの 長さ", val: 18, ans: "cm" },
+                { text: "おはしの 長さ", val: 20, ans: "cm" },
+                { text: "バナナの 長さ", val: 25, ans: "cm" },
+                { text: "ペットボトルの 高さ", val: 22, ans: "cm" },
+                { text: "折り紙(おりがみ)の 1辺", val: 15, ans: "cm" },
+                { text: "ランドセルの 高さ", val: 35, ans: "cm" },
+                { text: "きゅうりの 長さ", val: 20, ans: "cm" },
+
+                // ▼ mm (ミリメートル) の問題
+                { text: "ノートの あつさ", val: 4, ans: "mm" },
+                { text: "消しゴムの あつさ", val: 10, ans: "mm" },
+                { text: "スマホの あつさ", val: 8, ans: "mm" },
+                { text: "アリさんの 大きさ", val: 5, ans: "mm" },
+                { text: "お米の つぶの 大きさ", val: 5, ans: "mm" },
+                { text: "てんとう虫の 大きさ", val: 7, ans: "mm" },
+                { text: "1円玉の あつさ", val: 2, ans: "mm" },
+                { text: "ダンゴムシの 大きさ", val: 9, ans: "mm" },
+                { text: "画びょうの 長さ", val: 8, ans: "mm" },
+                { text: "スイカの タネの 大きさ", val: 6, ans: "mm" },
+                { text: "クッキーの あつさ", val: 5, ans: "mm" },
+                { text: "ビー玉の 大きさ", val: 15, ans: "mm" }
+            ];
+
+            // シャッフルして指定数取得
+            const shuffled = pool.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function renderProblems() {
+            const container = document.getElementById('problems-container');
+            container.innerHTML = "";
+            
+            problems.forEach((p, index) => {
+                const card = document.createElement('div');
+                card.className = 'problem-card';
+                card.id = `card-${index}`;
+                
+                // タップしたらその問題を選択状態にする
+                card.onclick = () => {
+                    const input = document.getElementById(`input-${index}`);
+                    if(!input.disabled) {
+                        input.focus();
+                        currentFocusIndex = index;
+                    }
+                };
+                
+                const html = `
+                    <div class="problem-number">${index + 1}</div>
+                    <div class="problem-text">
+                        ${p.text}<br>
+                        <span style="font-family:var(--font-num); font-size:1.8rem; color:var(--c-primary);">${p.val}</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="text" id="input-${index}" data-index="${index}" readonly placeholder="?">
+                    </div>
+                `;
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+
+            // フォーカス管理用イベント
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    currentFocusIndex = parseInt(e.target.dataset.index);
+                    // スクロール調整
+                    setTimeout(() => {
+                        const card = document.getElementById(`card-${currentFocusIndex}`);
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                });
+            });
+        }
+
+        // キーボードからの入力処理
+        window.inputUnit = function(unit) {
+            const input = document.getElementById(`input-${currentFocusIndex}`);
+            if (input && !input.disabled) {
+                input.value = unit;
+                input.classList.add('filled');
+                
+                // 次の問題へフォーカス移動
+                const nextIndex = currentFocusIndex + 1;
+                if (nextIndex < config.questionCount) {
+                    const nextInput = document.getElementById(`input-${nextIndex}`);
+                    nextInput.focus();
+                } else {
+                    // 最後の問題ならフォーカスを外す（完了感）
+                    input.blur();
+                    // ボタンの色を変えて「まるつけ」を促す演出があれば良いが、今回はシンプルに
+                    document.getElementById('check-btn').style.backgroundColor = "var(--c-accent)";
+                    document.getElementById('check-btn').style.boxShadow = "0 4px 0 #E65100";
+                }
+            }
+        };
+
+        function checkAnswers() {
+            hasChecked = true;
+            let correctCount = 0;
+            const inputs = document.querySelectorAll('input[type="text"]');
+            
+            inputs.forEach((input, index) => {
+                const card = document.getElementById(`card-${index}`);
+                const val = input.value;
+                const ans = problems[index].ans;
+                
+                card.classList.remove('correct', 'wrong');
+                input.disabled = false;
+                
+                if (val === ans) {
+                    card.classList.add('correct');
+                    input.disabled = true; 
+                    correctCount++;
+                } else {
+                    card.classList.add('wrong');
+                }
+            });
+
+            if (correctCount === config.questionCount) {
+                gameClear();
+            } else {
+                // 不正解の最初の問題にフォーカス
+                for (let i = 0; i < config.questionCount; i++) {
+                    const card = document.getElementById(`card-${i}`);
+                    if (card.classList.contains('wrong') || document.getElementById(`input-${i}`).value === "") {
+                        document.getElementById(`input-${i}`).focus();
+                        break;
+                    }
+                }
+            }
+        }
+
+        function gameClear() {
+            const endTime = Date.now();
+            const elapsedSec = (endTime - startTime) / 1000;
+            
+            let timeBonus = 0;
+            if (elapsedSec < config.baseTimeLimit) {
+                timeBonus = Math.floor((config.baseTimeLimit - elapsedSec) * config.timeBonusMultiplier);
+            }
+            if (timeBonus < 0) timeBonus = 0;
+            let totalScore = config.baseScore + timeBonus;
+
+            let stars = "★☆☆☆☆";
+            let msg = "よくがんばったね！";
+
+            if (totalScore >= config.starThresholds.starGod) {
+                stars = "★★★★★";
+                msg = "ものしりマスターだ！すごい！！";
+            } else if (totalScore >= config.starThresholds.star5) {
+                stars = "★★★★★"; msg = "すばらしい！かんぺき！";
+            } else if (totalScore >= config.starThresholds.star4) {
+                stars = "★★★★☆"; msg = "とても はやいね！";
+            } else if (totalScore >= config.starThresholds.star3) {
+                stars = "★★★☆☆"; msg = "いい調子！";
+            } else if (totalScore >= config.starThresholds.star2) {
+                stars = "★★☆☆☆"; msg = "そのちょうし！";
+            }
+
+            document.getElementById('game-btn-area').style.display = 'none'; 
+            document.getElementById('unit-keyboard').style.display = 'none'; // キーボード隠す
+            
+            const resultArea = document.getElementById('result-area');
+            resultArea.style.display = 'block';
+            
+            document.getElementById('result-stars').textContent = stars;
+            document.getElementById('result-msg').textContent = msg;
+            document.getElementById('score-detail').innerHTML = `
+                スコア: <span style="font-size:1.8rem; color:#1E88E5; font-weight:bold;">${totalScore}</span> 点<br>
+                タイム: ${elapsedSec.toFixed(1)} 秒
+            `;
+
+            saveGameResult(totalScore, stars, elapsedSec.toFixed(1));
+            
+            setTimeout(() => {
+                resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            if (totalScore >= 120) {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#AED581', '#FF8F00', '#FFFFFF']
+                });
+            }
+        }
+
+        function initGame() {
+            problems = generateProblems(config.questionCount);
+            hasChecked = false;
+            currentFocusIndex = 0;
+            
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            
+            document.getElementById('game-container').style.display = 'flex';
+            document.getElementById('game-btn-area').style.display = 'flex';
+            document.getElementById('unit-keyboard').style.display = 'flex'; // キーボード表示
+            
+            // ボタンの色を初期化
+            const checkBtn = document.getElementById('check-btn');
+            checkBtn.style.backgroundColor = ""; 
+            checkBtn.style.boxShadow = "";
+
+            renderProblems();
+            startTime = Date.now();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            setTimeout(() => {
+                const first = document.getElementById('input-0');
+                if(first) first.focus();
+            }, 300);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+            document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+            
+            loadAndDisplayData();
+
+            document.getElementById('start-btn').addEventListener('click', initGame);
+            document.getElementById('retry-btn').addEventListener('click', initGame);
+            document.getElementById('check-btn').addEventListener('click', checkAnswers);
+            document.getElementById('reset-hs-btn').addEventListener('click', resetHighScore);
+            
+            document.getElementById('bulb-btn').addEventListener('click', () => {
+                document.getElementById('info-modal').style.display = 'block';
+            });
+
+            // エンターキーでスタート
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const startArea = document.getElementById('start-area');
+                    const resultArea = document.getElementById('result-area');
+                    if (startArea.style.display !== 'none') {
+                        initGame();
+                    } else if (resultArea.style.display !== 'none') {
+                        initGame();
+                    }
+                }
+            });
+        });
+    })();
+    </script>
+</body>
+</html>
