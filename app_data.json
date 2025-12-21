@@ -497,6 +497,54 @@
             "path": "2nen/10_kakezan1/60kuku_3dan_barabara.html"
           },
           {
+            "id": "2_no_dan_card_junban",
+            "title": "九九カード（２のだん・じゅんばん）",
+            "path": "2nen/10_kakezan1/16_2_no_dan_card_junban.html",
+            "page": "16"
+          },
+          {
+            "id": "2_no_dan_card_random",
+            "title": "九九カード（２のだん・ばらばら）",
+            "path": "2nen/10_kakezan1/16_2_no_dan_card_random.html",
+            "page": "16"
+          },
+          {
+            "id": "3_no_dan_card_junban",
+            "title": "九九カード（３のだん・じゅんばん）",
+            "path": "2nen/10_kakezan1/18_3_no_dan_card_junban.html",
+            "page": "18"
+          },
+          {
+            "id": "3_no_dan_card_random",
+            "title": "九九カード（３のだん・ばらばら）",
+            "path": "2nen/10_kakezan1/18_3_no_dan_card_random.html",
+            "page": "18"
+          },
+          {
+            "id": "4_no_dan_card_junban",
+            "title": "九九カード（４のだん・じゅんばん）",
+            "path": "2nen/10_kakezan1/20_4_no_dan_card_junban.html",
+            "page": "20"
+          },
+          {
+            "id": "4_no_dan_card_random",
+            "title": "九九カード（４のだん・ばらばら）",
+            "path": "2nen/10_kakezan1/20_4_no_dan_card_random.html",
+            "page": "20"
+          },
+          {
+            "id": "5_no_dan_card_order",
+            "title": "九九カード（５のだん・じゅんばん）",
+            "path": "2nen/10_kakezan1/14_5_no_dan_card_junban.html",
+            "page": "14"
+          },
+          {
+            "id": "5_no_dan_card_random",
+            "title": "九九カード（５のだん・ばらばら）",
+            "path": "2nen/10_kakezan1/14_5_no_dan_card_random.html",
+            "page": "14"
+          },
+          {
             "id": "90kuku_5234dan_random",
             "title": "二、三、四、五の段の九九",
             "path": "2nen/10_kakezan1/90kuku_5234dan_random.html"
@@ -580,6 +628,54 @@
             "id": "120kuku_10mondai",
             "title": "九九",
             "path": "2nen/11_kakezan2/120kuku_10mondai.html"
+          },
+          {
+            "id": "6_no_dan_card_junban",
+            "title": "九九カード（６のだん・じゅんばん）",
+            "path": "2nen/11_kakezan2/26_6_no_dan_card_junban.html",
+            "page": "26"
+          },
+          {
+            "id": "6_no_dan_card_random",
+            "title": "九九カード（６のだん・ばらばら）",
+            "path": "2nen/11_kakezan2/26_6_no_dan_card_random.html",
+            "page": "26"
+          },
+          {
+            "id": "7_no_dan_card_junban",
+            "title": "九九カード（７のだん・じゅんばん）",
+            "path": "2nen/11_kakezan2/28_7_no_dan_card_junban.html",
+            "page": "28"
+          },
+          {
+            "id": "7_no_dan_card_random",
+            "title": "九九カード（７のだん・ばらばら）",
+            "path": "2nen/11_kakezan2/28_7_no_dan_card_random.html",
+            "page": "28"
+          },
+          {
+            "id": "8_no_dan_card_junban",
+            "title": "九九カード（８のだん・じゅんばん）",
+            "path": "2nen/11_kakezan2/30_8_no_dan_card_junban.html",
+            "page": "30"
+          },
+          {
+            "id": "8_no_dan_card_random",
+            "title": "九九カード（８のだん・ばらばら）",
+            "path": "2nen/11_kakezan2/30_8_no_dan_card_random.html",
+            "page": "30"
+          },
+          {
+            "id": "9_no_dan_card_junban",
+            "title": "九九カード（９のだん・じゅんばん）",
+            "path": "2nen/11_kakezan2/31_9_no_dan_card_junban.html",
+            "page": "31"
+          },
+          {
+            "id": "9_no_dan_card_random",
+            "title": "九九カード（９のだん・ばらばら）",
+            "path": "2nen/11_kakezan2/31_9_no_dan_card_random.html",
+            "page": "31"
           },
           {
             "id": "130kuku_81mondai",

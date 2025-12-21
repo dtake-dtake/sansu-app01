@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九九カード（４のだん・じゅんばん）</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        /* ▼▼▼ テーマ：キャラメルチョコ ▼▼▼ */
+        :root {
+            --c-bg-main: #FFF8E1;          /* キャラメルミルク（薄いクリーム色） */
+            --c-primary: #FF8F00;          /* キャラメル（濃厚なオレンジ） */
+            --c-primary-light: #FFCC80;    /* 薄いキャラメル */
+            --c-accent: #5D4037;           /* チョコレート（こげ茶） */
+            --c-text-main: #3E2723;        /* ビターチョコ（濃い茶色） */
+            --c-card-bg: #FFFFFF;          /* カード背景 */
+            
+            --c-correct: #7CB342;          /* 正解（抹茶グリーン） */
+            --c-wrong: #FF5722;            /* 不正解（ブラッドオレンジ） */
+            --c-yomi-text: #E65100;        /* 読み方の文字（焦がしキャラメル色） */
+
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main);
+            color: var(--c-text-main);
+            padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+        }
+
+        h1 { font-size: 1.2rem; color: var(--c-accent); margin: 10px 0; text-align: center; }
+        h2 { 
+            font-size: 1.1rem; 
+            background: var(--c-primary); 
+            color: #fff;
+            padding: 5px 20px; 
+            border-radius: 20px;
+            display: inline-flex; align-items: center; gap: 10px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        .page-circle {
+            background-color: #fff; color: var(--c-primary);
+            width: 1.8rem; height: 1.8rem; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: 800; font-size: 0.9rem;
+        }
+
+        /* --- 画面の表示切り替え制御 --- */
+        #start-area { display: block; }
+        #game-area { display: none; flex-direction: column; align-items: center; width: 100%; }
+        #result-area { display: none; }
+
+        /* カードエリア */
+        #card-container {
+            perspective: 1000px;
+            width: 100%; max-width: 450px;
+            height: 350px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        #flashcard {
+            width: 100%; height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: default;
+        }
+
+        #flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            background: var(--c-card-bg);
+            border: 4px solid var(--c-primary-light);
+            box-shadow: 0 10px 25px rgba(93, 64, 55, 0.15);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 15px; box-sizing: border-box;
+        }
+
+        .card-front { /* 表面 */ }
+        .card-back {
+            transform: rotateY(180deg);
+            background: #FFF3E0; /* 裏面は薄いオレンジ */
+            border-color: var(--c-correct);
+        }
+
+        /* 読み出し（上の句）表示エリア */
+        .yomi-prompt-container {
+            background-color: #FFECB3;
+            border: 2px dashed #FFA000;
+            border-radius: 15px;
+            padding: 8px 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .yomi-text {
+            font-size: 1.6rem; 
+            font-weight: 800; 
+            color: var(--c-yomi-text);
+        }
+
+        /* 式と入力欄を横並びにするコンテナ */
+        .equation-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            width: 100%;
+            flex-wrap: nowrap;
+        }
+
+        .problem-display {
+            font-size: 3rem; font-weight: 800; color: var(--c-text-main);
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .equals-sign {
+            font-size: 3rem; font-weight: 800; color: #8D6E63;
+            margin: 0 5px;
+        }
+
+        .answer-input {
+            font-family: var(--font-family);
+            font-size: 2.5rem; text-align: center;
+            width: 110px;
+            padding: 5px;
+            border: 3px solid #D7CCC8;
+            border-radius: 12px;
+            outline: none; color: var(--c-text-main); font-weight: bold;
+            background: #FAFAFA;
+            transition: all 0.2s;
+        }
+        .answer-input:focus {
+            border-color: var(--c-primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(255, 143, 0, 0.2);
+            transform: scale(1.05);
+        }
+        .answer-input.error {
+            background-color: var(--c-wrong);
+            color: #fff;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* 裏面の表示 */
+        .result-yomi-full {
+            font-size: 2.2rem; font-weight: 800;
+            color: var(--c-primary);
+            margin-bottom: 10px;
+            text-align: center;
+            line-height: 1.4;
+            padding: 10px;
+            background: #fff;
+            border-radius: 10px;
+            width: 90%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .answer-check-display {
+            font-size: 1.5rem; color: #555; margin-bottom: 20px;
+        }
+
+        /* ボタン類 */
+        .btn {
+            font-family: var(--font-family);
+            font-size: 1.2rem; font-weight: 800;
+            padding: 12px 30px; border-radius: 50px; border: none;
+            cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s; color: #fff;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .btn-next { background: var(--c-accent); width: 80%; }
+        .btn-check { background: var(--c-primary); width: 80%; }
+
+        /* 進捗バー */
+        .progress-bar-container {
+            width: 100%; max-width: 450px; height: 10px;
+            background: #FFCC80; border-radius: 5px;
+            margin-top: 20px; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; background: var(--c-primary); width: 0%; transition: width 0.3s;
+        }
+
+        /* スタート・リザルト画面 */
+        #start-area, #result-area {
+            text-align: center; background: rgba(255,255,255,0.95);
+            padding: 30px; border-radius: 20px; border: 4px solid var(--c-primary-light);
+            max-width: 500px; width: 90%; margin-top: 20px;
+        }
+        
+        /* 記録表示エリア */
+        .stats-display {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #555;
+            display: flex;
+            justify-content: space-around;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid var(--c-primary-light);
+        }
+        .stats-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .stats-label { font-size: 0.8rem; color: #777; margin-bottom: 2px; }
+        .stats-value { font-size: 1.2rem; font-weight: bold; color: var(--c-primary); }
+        
+        /* モーダル */
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 45px; height: 45px; border-radius: 50%;
+            background: #fff; border: 3px solid #FF8F00; color: #FF8F00;
+            font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1); font-weight: bold;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 450px; }
+        .close-modal { float: right; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; }
+
+        /* 履歴リスト */
+        .history-list { list-style: none; padding: 0; text-align: left; background: #FFECB3; padding: 10px; border-radius: 10px; font-size: 0.9rem; }
+        .history-list li { 
+            border-bottom: 1px dashed #fff; 
+            padding: 8px 0; 
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 0.8fr;
+            align-items: center;
+            gap: 5px;
+        }
+        .history-list li span:nth-child(1) { font-size: 0.8rem; color: #555; }
+        .history-list li span:nth-child(2) { color: #FF8F00; text-shadow: 1px 1px 0 #FFCA28; font-size: 1.0rem;}
+        .history-list li span:nth-child(3) { font-size: 0.9rem; text-align:right; }
+        .history-list li span:nth-child(4) { font-weight: bold; color: var(--c-accent); text-align:right;}
+        
+        @media (max-width: 400px) {
+            .problem-display, .equals-sign { font-size: 2.2rem; }
+            .answer-input { font-size: 2.2rem; width: 90px; }
+            .yomi-text { font-size: 1.4rem; }
+            .history-list li { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn">？</button>
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 style="color:var(--c-primary); text-align:center;">あそびかた</h3>
+            <p>カードに「しいちが…？」のように、読み方が書いてあります。</p>
+            <p><strong>声に出して読みながら</strong>、□の中に答えを入力してください。</p>
+        </div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <p style="font-size: 1.5rem; font-weight:bold; margin-top:20px; color:var(--c-primary);">４のだんの九九カード<br>（じゅんばん）</p>
+        <p>「しいちが…　し！」<br>じゅんばんに ９もん 出てくるよ！</p>
+        <button id="start-btn" class="btn" style="background:var(--c-primary); width:200px; margin-top:20px;">スタート！(Enter)</button>
+        
+        <div class="stats-display">
+            <div class="stats-item">
+                <span class="stats-label">今日のクリア</span>
+                <span class="stats-value" id="start-daily-count">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">合計クリア</span>
+                <span class="stats-value" id="start-total-count">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">ハイスコア</span>
+                <span class="stats-value" id="start-high-score">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-area">
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div style="text-align:right; width:100%; max-width:450px; font-size:0.9rem; margin-top:5px; font-weight:bold; color:var(--c-accent);">
+            のこり <span id="remain-count">9</span> まい
+        </div>
+
+        <div id="card-container">
+            <div id="flashcard">
+                <div class="card-face card-front">
+                    <div style="font-size:1.1rem; color:#aaa; position:absolute; top:15px; left:20px;">もんだい</div>
+                    
+                    <div class="yomi-prompt-container">
+                        <span id="yomi-prefix" class="yomi-text">しいちが</span>
+                        <span class="yomi-text" style="color:#ccc; margin-left:5px;">……？</span>
+                    </div>
+
+                    <div class="equation-row">
+                        <div id="problem-text" class="problem-display">4 × 1</div>
+                        <div class="equals-sign">＝</div>
+                        <input type="tel" inputmode="numeric" id="answer-input" class="answer-input" placeholder="?">
+                    </div>
+
+                    <button id="check-btn" class="btn btn-check">こたえる</button>
+                </div>
+
+                <div class="card-face card-back">
+                    <div style="font-size:5rem; color:var(--c-correct); position:absolute; top:-10px; right:10px;">〇</div>
+                    <div style="font-size:1.2rem; color:#888; margin-bottom:10px;">せいかい！</div>
+                    
+                    <div id="result-yomi-full" class="result-yomi-full">しいちが　し</div>
+                    
+                    <div id="result-math" class="answer-check-display">4 × 1 = 4</div>
+                    <button id="next-btn" class="btn btn-next">つぎへ (Enter)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="background:none; color:var(--c-primary); font-size:2rem; padding:0; box-shadow:none;">クリア！</h2>
+        <div id="result-stars" style="font-size:3rem; color:#FF8F00; text-shadow:2px 2px 0 #FFCA28;">★★★★★</div>
+        <p style="font-size:1.2rem; font-weight:bold; margin:10px 0;">よくがんばりました！</p>
+        <div style="font-size:1.1rem; margin-bottom:20px;">スコア: <span id="score-display">100</span>点</div>
+        <div id="score-detail" style="font-size:0.9rem; color:#777; margin-bottom:10px;"></div>
+        
+        <div class="stats-display" style="margin-bottom:20px;">
+            <div class="stats-item">
+                <span class="stats-label">今日のクリア</span>
+                <span class="stats-value" id="result-daily-count">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">合計クリア</span>
+                <span class="stats-value" id="result-total-count">0</span>
+            </div>
+        </div>
+        
+        <div style="margin-bottom:15px; font-size:0.9rem; text-align:left;">
+            <strong>これまでのきろく</strong>
+            <ul id="history-list" class="history-list"></ul>
+        </div>
+
+        <button id="retry-btn" class="btn" style="background:var(--c-accent); width:200px;">もういちど(Enter)</button>
+        <button id="reset-btn" style="display:block; margin:20px auto; background:none; border:none; text-decoration:underline; color:#999; cursor:pointer;">きろくを消す</button>
+    </div>
+
+    <script>
+    (function(){
+        const config = {
+            appId: "4_no_dan_card_junban",
+            mainTitle: "１０　かけ算（１）",
+            title: "九九カード（４のだん・じゅんばん）",
+            page: 20,
+            problems: [
+                { q: "4 × 1", a: 4, q_read: "しいちが", a_read: "し" },
+                { q: "4 × 2", a: 8, q_read: "しにが",   a_read: "はち" },
+                { q: "4 × 3", a: 12, q_read: "しさん",   a_read: "じゅうに" },
+                { q: "4 × 4", a: 16, q_read: "しし",     a_read: "じゅうろく" },
+                { q: "4 × 5", a: 20, q_read: "しご",     a_read: "にじゅう" },
+                { q: "4 × 6", a: 24, q_read: "しろく",   a_read: "にじゅうし" },
+                { q: "4 × 7", a: 28, q_read: "ししち",   a_read: "にじゅうはち" },
+                { q: "4 × 8", a: 32, q_read: "しは",     a_read: "さんじゅうに" },
+                { q: "4 × 9", a: 36, q_read: "しく",     a_read: "さんじゅうろく" }
+            ]
+        };
+
+        let currentProblemIndex = 0;
+        let problemOrder = [];
+        let startTime = 0;
+        let mistakeCount = 0;
+        let isFlipped = false;
+
+        const KEY_HS = `${config.appId}:hs`;
+        const KEY_HISTORY = `${config.appId}:history`;
+        const KEY_TOTAL = `${config.appId}:total`;
+        const KEY_DAILY = `${config.appId}:daily-${new Date().toLocaleDateString()}`;
+
+        const card = document.getElementById('flashcard');
+        const inputEl = document.getElementById('answer-input');
+
+        function init() {
+            document.getElementById('start-area').style.display = 'block';
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('sub-title-text').textContent = config.title;
+            document.getElementById('page-circle').textContent = config.page;
+            
+            loadStats();
+
+            document.getElementById('start-btn').onclick = startGame;
+            document.getElementById('retry-btn').onclick = startGame;
+            document.getElementById('check-btn').onclick = checkAnswer;
+            document.getElementById('next-btn').onclick = nextProblem;
+            
+            inputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    if (!isFlipped) {
+                        checkAnswer();
+                    }
+                }
+            });
+
+            // キーダウンイベントの修正（連打防止対応済み）
+            document.addEventListener('keydown', (e) => {
+                const startArea = document.getElementById('start-area');
+                const resultArea = document.getElementById('result-area');
+                if (e.key === 'Enter') {
+                    if (startArea.style.display !== 'none') {
+                        startGame();
+                    } else if (resultArea.style.display !== 'none') {
+                        startGame();
+                    }
+                }
+            });
+
+            document.getElementById('reset-btn').onclick = () => {
+                if(confirm('きろくをすべて消しますか？')) {
+                    localStorage.clear();
+                    loadStats();
+                }
+            };
+
+            const modal = document.getElementById('info-modal');
+            document.getElementById('bulb-btn').onclick = () => modal.style.display = "block";
+            document.querySelector('.close-modal').onclick = () => modal.style.display = "none";
+            window.onclick = (e) => { if(e.target == modal) modal.style.display = "none"; };
+        }
+
+        function loadStats() {
+            const hs = localStorage.getItem(KEY_HS) || 0;
+            const daily = localStorage.getItem(KEY_DAILY) || 0;
+            const total = localStorage.getItem(KEY_TOTAL) || 0;
+            
+            // スタート画面の更新
+            document.getElementById('start-high-score').textContent = hs;
+            document.getElementById('start-daily-count').textContent = daily;
+            document.getElementById('start-total-count').textContent = total;
+            
+            // リザルト画面の更新
+            document.getElementById('result-daily-count').textContent = daily;
+            document.getElementById('result-total-count').textContent = total;
+            
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const list = document.getElementById('history-list');
+            
+            list.innerHTML = history.map(h => {
+                const stars = h.stars || '―';
+                const timeStr = h.time ? `${h.time}秒` : '―';
+                return `<li>
+                    <span>${h.date}</span>
+                    <span>${stars}</span>
+                    <span>${timeStr}</span>
+                    <span>${h.score}点</span>
+                </li>`;
+            }).join('');
+        }
+
+        function startGame() {
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'flex';
+            
+            // じゅんばん通り
+            problemOrder = [...Array(config.problems.length).keys()];
+            
+            currentProblemIndex = 0;
+            mistakeCount = 0;
+            startTime = Date.now();
+            
+            showProblem();
+        }
+
+        function showProblem() {
+            isFlipped = false;
+            card.classList.remove('flipped');
+            
+            const pIndex = problemOrder[currentProblemIndex];
+            const p = config.problems[pIndex];
+            
+            document.getElementById('problem-text').textContent = p.q;
+            document.getElementById('yomi-prefix').textContent = p.q_read;
+            
+            inputEl.value = "";
+            
+            const progress = (currentProblemIndex / config.problems.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('remain-count').textContent = config.problems.length - currentProblemIndex;
+
+            setTimeout(() => {
+                const cardContainer = document.getElementById('card-container');
+                cardContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                inputEl.focus();
+            }, 300);
+        }
+
+        function checkAnswer() {
+            const pIndex = problemOrder[currentProblemIndex];
+            const p = config.problems[pIndex];
+            const val = parseInt(inputEl.value);
+
+            if (val === p.a) {
+                isFlipped = true;
+                
+                const fullRead = `${p.q_read}　${p.a_read}`;
+                document.getElementById('result-yomi-full').textContent = fullRead;
+                document.getElementById('result-math').textContent = `${p.q} = ${p.a}`;
+                
+                card.classList.add('flipped');
+                
+                setTimeout(() => {
+                    document.getElementById('next-btn').focus();
+                }, 600); 
+
+            } else {
+                inputEl.classList.add('error');
+                mistakeCount++;
+                inputEl.select();
+                inputEl.focus();
+                setTimeout(() => {
+                    inputEl.classList.remove('error');
+                }, 500);
+            }
+        }
+
+        function nextProblem() {
+            currentProblemIndex++;
+            if (currentProblemIndex >= config.problems.length) {
+                finishGame();
+            } else {
+                showProblem();
+            }
+        }
+
+        function finishGame() {
+            const elapsed = (Date.now() - startTime) / 1000;
+            
+            // スコア計算
+            let baseScore = 100;
+            let timeBonus = 0;
+            const threshold = 50; 
+            if (elapsed < threshold) {
+                timeBonus = Math.floor((threshold - elapsed) * 2);
+            }
+            const mistakePenalty = mistakeCount * 5;
+            let score = baseScore + timeBonus - mistakePenalty;
+            if (score < 0) score = 0;
+
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+            document.getElementById('score-display').textContent = score;
+
+            document.getElementById('score-detail').textContent = 
+                `(タイム: ${elapsed.toFixed(1)}秒 / ミス: ${mistakeCount}回)`;
+
+            let stars = "★☆☆☆☆";
+            if (score >= 150) stars = "★★★★★";
+            else if (score >= 120) stars = "★★★★☆";
+            else if (score >= 100) stars = "★★★☆☆";
+            else if (score >= 80) stars = "★★☆☆☆";
+            
+            document.getElementById('result-stars').textContent = stars;
+
+            if (score >= 120) {
+                confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors:['#FF8F00', '#FFCC80', '#FFFFFF'] });
+            }
+
+            const currentHs = parseInt(localStorage.getItem(KEY_HS) || 0);
+            if (score > currentHs) {
+                localStorage.setItem(KEY_HS, score);
+            }
+            
+            // クリア回数の更新
+            const currentDaily = parseInt(localStorage.getItem(KEY_DAILY) || 0);
+            localStorage.setItem(KEY_DAILY, currentDaily + 1);
+            
+            const currentTotal = parseInt(localStorage.getItem(KEY_TOTAL) || 0);
+            localStorage.setItem(KEY_TOTAL, currentTotal + 1);
+
+            // 履歴保存（★とタイムを追加）
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const dateStr = new Date().toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'numeric', minute:'numeric' });
+            
+            history.unshift({ 
+                date: dateStr, 
+                score: score, 
+                stars: stars, 
+                time: elapsed.toFixed(1)
+            });
+            
+            if (history.length > 5) history.pop();
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
+
+            loadStats();
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
