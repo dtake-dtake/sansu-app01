@@ -358,6 +358,10 @@
                 <span class="stats-label">合計クリア</span>
                 <span class="stats-value" id="result-total-count">0</span>
             </div>
+            <div class="stats-item">
+                <span class="stats-label">ハイスコア</span>
+                <span class="stats-value" id="result-high-score">0</span>
+            </div>
         </div>
         
         <div style="margin-bottom:15px; font-size:0.9rem; text-align:left;">
@@ -465,6 +469,7 @@
             // リザルト画面の更新
             document.getElementById('result-daily-count').textContent = daily;
             document.getElementById('result-total-count').textContent = total;
+            document.getElementById('result-high-score').textContent = hs;
             
             const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
             const list = document.getElementById('history-list');
