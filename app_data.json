@@ -630,6 +630,24 @@
             "path": "2nen/11_kakezan2/120kuku_10mondai.html"
           },
           {
+            "id": "81_all_random",
+            "title": "九九カード",
+            "path": "2nen/11_kakezan2/34_81_all_random.html",
+            "page": "34"
+          },
+          {
+            "id": "1_no_dan_card_junban",
+            "title": "九九カード（１のだん・じゅんばん）",
+            "path": "2nen/11_kakezan2/32_1_no_dan_card_junban.html",
+            "page": "32"
+          },
+          {
+            "id": "1_no_dan_card_random",
+            "title": "九九カード（１のだん・ばらばら）",
+            "path": "2nen/11_kakezan2/32_1_no_dan_card_random.html",
+            "page": "32"
+          },
+          {
             "id": "6_no_dan_card_junban",
             "title": "九九カード（６のだん・じゅんばん）",
             "path": "2nen/11_kakezan2/26_6_no_dan_card_junban.html",
