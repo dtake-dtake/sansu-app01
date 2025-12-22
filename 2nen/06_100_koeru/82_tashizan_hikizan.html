@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>たし算と ひき算（10のまとまり）</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：ロボット・ファクトリー（工場） ▼▼▼ */
+        :root {
+            --c-bg-main: #263238;         /* ダークグレー */
+            --c-primary: #00E676;         /* ネオングリーン */
+            --c-primary-dark: #00C853;    
+            --c-accent: #00B0FF;          /* ネオンブルー */
+            
+            --c-panel-bg: #37474F;        /* パネル色 */
+            --c-panel-border: #546E7A;
+            
+            --c-button-bg: #455A64;       
+            --c-button-hover: #546E7A;    
+            
+            --c-text-main: #ECEFF1;       
+            --c-text-sub: #B0BEC5;
+            
+            --c-result-area-bg: #CFD8DC;
+            --c-history-bg: #90A4AE;      
+            
+            --font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            /* 背景：メタルプレート風 */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        h1 { 
+            font-size: 1.8rem; letter-spacing: 2px; color: var(--c-primary);
+            text-shadow: 0 0 10px rgba(0, 230, 118, 0.5); margin: 15px 0; 
+            border: 2px solid var(--c-primary); padding: 5px 20px; border-radius: 5px;
+            background: rgba(0,0,0,0.3); text-align: center;
+        }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-panel-bg); 
+            padding: 8px 30px; 
+            border-radius: 5px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 10px; 
+            border-left: 5px solid var(--c-accent);
+            color: var(--c-text-main);
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background-color: var(--c-accent); color: #fff;
+            border: 2px solid #fff;
+            font-weight: 800; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+            box-shadow: 0 0 10px var(--c-accent);
+        }
+
+        /* スタート画面 */
+        #start-area { 
+            text-align: center; margin: 40px 0; 
+            background: rgba(55, 71, 79, 0.95);
+            padding: 40px; border-radius: 10px;
+            border: 2px solid var(--c-primary);
+            max-width: 600px; width: 95%;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+        #start-instruction-placeholder {
+            text-align: center; margin-bottom: 30px; font-size: 1.3rem;
+            line-height: 1.8; font-weight: bold; color: var(--c-text-main);
+        }
+
+        /* ゲーム画面 */
+        #game-container { 
+            display: none; width: 100%; flex-direction: column; align-items: center; 
+            max-width: 700px; 
+        }
+
+        .status-header { width: 100%; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+        .score-display {
+            font-size: 1.6rem; font-weight: bold; color: var(--c-primary); 
+            text-shadow: 0 0 5px var(--c-primary); white-space: nowrap; font-family: monospace;
+        }
+        .progress-container {
+            flex-grow: 1; height: 12px; background: #263238; border-radius: 2px; overflow: hidden;
+            border: 1px solid #546E7A;
+        }
+        .progress-bar {
+            height: 100%; background: linear-gradient(90deg, #00E676, #00B0FF);
+            width: 0%; transition: width 0.3s ease-out;
+        }
+
+        /* 問題表示（モニター風） */
+        .problem-monitor {
+            background-color: #000;
+            border: 4px solid #546E7A;
+            border-radius: 10px;
+            padding: 30px; width: 100%;
+            text-align: center; margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 176, 255, 0.1);
+            position: relative;
+        }
+        .monitor-glare {
+            position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(rgba(255,255,255,0.05), transparent);
+            pointer-events: none;
+        }
+        #problem-text {
+            font-size: 3.5rem; font-weight: bold; color: var(--c-primary);
+            font-family: monospace; letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--c-primary);
+        }
+
+        /* 答え入力欄 */
+        #answer-display {
+            width: 100%; min-height: 80px;
+            background: #263238; border: 2px solid var(--c-accent);
+            border-radius: 5px; display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; font-weight: bold; color: #fff;
+            font-family: monospace;
+            margin-bottom: 20px; padding: 10px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        #answer-display.placeholder { color: #546E7A; font-size: 1.5rem; }
+
+        /* キーボード */
+        .input-area-wrapper {
+            display: flex; gap: 20px; width: 100%; justify-content: center; flex-wrap: wrap;
+        }
+
+        .numpad-area {
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
+            width: 260px;
+        }
+
+        .key-btn {
+            aspect-ratio: 1.4;
+            background-color: var(--c-button-bg); color: #fff;
+            border: 1px solid var(--c-panel-border); border-radius: 4px;
+            font-size: 1.8rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 0 #263238;
+            transition: transform 0.1s, background-color 0.1s;
+            font-family: monospace;
+        }
+        .key-btn:active { transform: translateY(4px); box-shadow: none; background-color: var(--c-accent); }
+        .key-zero { grid-column: 2; }
+
+        /* 操作ボタン */
+        .action-area { 
+            display: flex; flex-direction: column; gap: 15px; 
+            width: 160px; justify-content: flex-start; 
+        }
+        .action-btn {
+            padding: 20px; font-size: 1.2rem; border-radius: 50px; border: none;
+            font-weight: bold; color: #fff; cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+            font-family: var(--font-family);
+        }
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-delete { background-color: #607D8B; border: 1px solid #78909C; }
+        .btn-check { background-color: var(--c-primary-dark); border: 1px solid var(--c-primary); box-shadow: 0 4px 0 #1B5E20; font-size: 1.4rem; }
+
+        /* 正誤フィードバック */
+        .feedback-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; justify-content: center; align-items: center;
+            z-index: 999; opacity: 0; transition: opacity 0.3s;
+        }
+        .feedback-mark { font-size: 15rem; font-weight: 800; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .mark-correct { color: var(--c-primary); text-shadow: 0 0 30px var(--c-primary); } 
+        .mark-wrong { color: #FF1744; text-shadow: 0 0 30px #FF1744; }
+
+        /* リザルト画面 */
+        #result-area {
+            display: none; width: 100%; max-width: 600px;
+            background: var(--c-result-area-bg); padding: 40px; border-radius: 10px; text-align: center;
+            border: 4px solid var(--c-panel-bg); color: #263238;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        }
+        .status-stars { font-size: 4rem; color: #FFD700; text-shadow: 1px 1px 0 #F57F17; letter-spacing: 5px; }
+
+        .history-list { 
+            list-style: none; padding: 0; text-align: left; 
+            background: var(--c-history-bg); border-radius: 5px; 
+            margin-top: 20px; overflow: hidden; border: 1px solid #546E7A;
+        }
+        .history-list li { padding: 10px 15px; border-bottom: 1px solid #CFD8DC; display: flex; justify-content: space-between; font-size: 1.0rem; }
+        .history-list li:last-child { border-bottom: none; }
+
+        button { font-family: var(--font-family); }
+        .action-btn-rect {
+            padding: 15px 40px; font-size: 1.3rem; border-radius: 5px; border: none;
+            background: var(--c-accent); color: #fff; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 0 #0288D1;
+        }
+        .action-btn-rect:active { transform: translateY(4px); box-shadow: none; }
+        
+        #bulb-btn {
+            position: absolute; top: 20px; right: 20px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #263238; border: 2px solid var(--c-primary); color: var(--c-primary);
+            font-size: 1.8rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.3); font-weight: 800;
+        }
+        .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); backdrop-filter: blur(3px);}
+        .modal-content { 
+            background-color: #263238; margin: 10% auto; padding: 40px; 
+            width: 80%; max-width: 600px; border-radius: 10px; color: #ECEFF1;
+            border: 2px solid var(--c-accent); text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .hint-box {
+            background: #37474F; border: 1px solid #546E7A; padding: 15px; border-radius: 5px; margin: 15px 0; text-align:left;
+        }
+        .hint-text { color: var(--c-primary); font-weight: bold; font-size: 1.4rem;}
+    </style>
+</head>
+<body>
+    <button id="bulb-btn">？</button>
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--c-accent); font-size:1.8rem; margin-top:0;">計算のコツ</h3>
+            <div id="instruction-content-modal"></div>
+            <button onclick="document.getElementById('info-modal').style.display='none'" class="action-btn-rect" style="margin-top:30px;">起動 (Start)</button>
+        </div>
+    </div>
+
+    <div class="feedback-overlay" id="feedback-overlay">
+        <div class="feedback-mark" id="feedback-mark"></div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <div id="start-instruction-placeholder"></div>
+        <button id="start-btn" class="action-btn-rect" style="width:250px;">システム起動 (Enter)</button>
+    </div>
+
+    <div id="game-container">
+        <div class="status-header">
+            <div class="score-display">SCORE: <span id="current-score">0</span></div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="problem-monitor">
+            <div class="monitor-glare"></div>
+            <div id="problem-text">---</div>
+        </div>
+
+        <div id="answer-display" class="placeholder">INPUT</div>
+
+        <div class="input-area-wrapper">
+            <div class="numpad-area">
+                <button class="key-btn" data-val="7">7</button>
+                <button class="key-btn" data-val="8">8</button>
+                <button class="key-btn" data-val="9">9</button>
+                <button class="key-btn" data-val="4">4</button>
+                <button class="key-btn" data-val="5">5</button>
+                <button class="key-btn" data-val="6">6</button>
+                <button class="key-btn" data-val="1">1</button>
+                <button class="key-btn" data-val="2">2</button>
+                <button class="key-btn" data-val="3">3</button>
+                <button class="key-btn key-zero" data-val="0">0</button>
+            </div>
+
+            <div class="action-area">
+                <button class="action-btn btn-delete" id="btn-delete">消去 (BS)</button>
+                <button class="action-btn btn-check" id="btn-check">入力 (Ent)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="color:#263238; margin-top:0;">ミッション完了</h2>
+        
+        <div style="display:flex; justify-content:space-around; margin:20px 0;">
+            <div>
+                <div style="font-size:1rem; color:#546E7A;">トータルスコア</div>
+                <div id="score-val" style="font-size:2.5rem; font-weight:bold; color:#00C853;">0</div>
+            </div>
+            <div>
+                <div style="font-size:1rem; color:#546E7A;">クリアタイム</div>
+                <div style="font-size:2.2rem; font-weight:bold; color:#0277BD;"><span id="time-val">0</span>秒</div>
+            </div>
+        </div>
+
+        <div id="status-stars" class="status-stars"></div>
+        <div id="result-msg" style="font-size:1.5rem; font-weight:bold; margin:15px 0; color:#37474F;"></div>
+        
+        <div style="margin-top:20px;">
+            <div style="font-size:1rem; color:#546E7A; margin-bottom:5px;">データログ</div>
+            <ul id="history-list" class="history-list"></ul>
+        </div>
+
+        <button id="retry-btn" class="action-btn-rect" style="width:100%; margin-top:30px; background:#455A64;">再起動 (Enter)</button>
+    </div>
+
+    <script>
+    (function () {
+        const config = {
+            appId: "82_tashizan_hikizan",
+            mainTitle: "６　１００をこえる数",
+            title: "たし算と ひき算（１０のまとまり）", 
+            page: 82, 
+            baseScore: 100, 
+            questionCount: 10, 
+            starThresholds: { star5: 180, star4: 150, star3: 120, star2: 100 },
+            
+            instructionHtml: `
+                <p>10の まとまり（たば）が 何こあるか 考えよう。</p>
+                <div class="hint-box">
+                    <div>80 + 30 = <span style="color:#00E676;">□</span></div>
+                    <div style="margin-top:5px; font-size:1rem; color:#B0BEC5;">
+                        10が (8 + 3)こ → 11こ<br>
+                        10が 11こ だから <span class="hint-text">110</span>
+                    </div>
+                </div>
+                <div class="hint-box">
+                    <div>130 - 90 = <span style="color:#00B0FF;">□</span></div>
+                    <div style="margin-top:5px; font-size:1rem; color:#B0BEC5;">
+                        10が (13 - 9)こ → 4こ<br>
+                        10が 4こ だから <span class="hint-text">40</span>
+                    </div>
+                </div>
+            `,
+            startContent: `
+                <p style="margin-bottom:20px;">80 + 40 や 130 - 90 のような<br>けいさん を しよう！</p>
+                <div style="background:#263238; padding:15px; border:2px solid #546E7A; border-radius:5px; margin:0 auto 20px auto; max-width:300px; color:#fff;">
+                    <div style="font-size:2rem; font-weight:bold; font-family:monospace;">80 + 40 = ?</div>
+                </div>
+                <p style="color:#00E676; font-weight:bold;">10の たばで かんがえよう！</p>
+            `
+        };
+
+        let problems = [];
+        let currentIndex = 0;
+        let userInput = "";
+        let startTime = 0;
+        let currentScore = 0;
+        let questionStartTime = 0;
+        
+        const KEY_HS = `${config.appId}:hs`;
+        const KEY_HISTORY = `${config.appId}:hist`;
+
+        // 問題生成ロジック
+        function generateProblems(count) {
+            const arr = [];
+            while(arr.length < count) {
+                // 半々で足し算と引き算
+                const isAddition = Math.random() < 0.5;
+                let a, b, ans, display;
+
+                if (isAddition) {
+                    // 足し算: 80+40=120 のような、答えが100を超えるもの
+                    // a: 60~90, b: 40~90, a+b >= 100
+                    let a_base = Math.floor(Math.random() * 4) + 6; // 6~9
+                    let b_base = Math.floor(Math.random() * 5) + 5; // 5~9
+                    // 調整: 和が10以上20未満になるように
+                    if (a_base + b_base < 10) b_base += (10 - (a_base+b_base));
+                    
+                    a = a_base * 10;
+                    b = b_base * 10;
+                    ans = a + b;
+                    display = `${a} + ${b}`;
+                } else {
+                    // 引き算: 130-90=40 のような、100をまたぐ繰り下がり
+                    // a: 110~180, b: 20~90, a-b < 100
+                    let a_base = Math.floor(Math.random() * 8) + 11; // 11~18
+                    let b_base = Math.floor(Math.random() * 8) + 2;  // 2~9
+                    
+                    // 答えが1桁(10~90)になるように調整 (a_base - b_base < 10)
+                    if (a_base - b_base >= 10) b_base = a_base - (Math.floor(Math.random()*9)+1);
+                    if (a_base - b_base <= 0) {
+                        // 引けない場合は作り直し
+                        a_base = 13; b_base = 8; 
+                    }
+
+                    a = a_base * 10;
+                    b = b_base * 10;
+                    ans = a - b;
+                    display = `${a} - ${b}`;
+                }
+                
+                arr.push({ display: display, ans: ans });
+            }
+            return arr;
+        }
+
+        function loadData() {
+            return {
+                hs: parseInt(localStorage.getItem(KEY_HS) || "0"),
+                history: JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]")
+            };
+        }
+        
+        function saveData(score, stars, time) {
+            const d = loadData();
+            const newHs = Math.max(d.hs, score);
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            d.history.unshift({ date: dateStr, score: score, stars: stars, time: time });
+            if(d.history.length > 5) d.history.pop();
+            localStorage.setItem(KEY_HS, newHs);
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(d.history));
+        }
+
+        function updateDisplay() {
+            const p = problems[currentIndex];
+            document.getElementById('problem-text').textContent = p.display;
+            
+            const ansArea = document.getElementById('answer-display');
+            if (userInput === "") {
+                ansArea.textContent = "INPUT";
+                ansArea.classList.add('placeholder');
+            } else {
+                ansArea.textContent = userInput;
+                ansArea.classList.remove('placeholder');
+            }
+
+            const progress = (currentIndex / config.questionCount) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('current-score').textContent = currentScore;
+        }
+
+        function handleInput(val) {
+            if (userInput.length < 4) { // 3桁+予備
+                userInput += val;
+                updateDisplay();
+            }
+        }
+
+        function handleDelete() {
+            userInput = userInput.slice(0, -1);
+            updateDisplay();
+        }
+
+        function showFeedback(isCorrect) {
+            const overlay = document.getElementById('feedback-overlay');
+            const mark = document.getElementById('feedback-mark');
+            overlay.style.opacity = '1';
+            
+            if(isCorrect) {
+                mark.textContent = '〇';
+                mark.className = 'feedback-mark mark-correct';
+            } else {
+                mark.textContent = '×';
+                mark.className = 'feedback-mark mark-wrong';
+            }
+            setTimeout(() => { overlay.style.opacity = '0'; }, 400);
+        }
+
+        function checkAnswer() {
+            const p = problems[currentIndex];
+            if (userInput === "") return;
+
+            const isCorrect = (parseInt(userInput) === p.ans);
+
+            if (isCorrect) {
+                showFeedback(true);
+                
+                const qTime = (Date.now() - questionStartTime) / 1000;
+                const baseQ = 10; 
+                let bonusQ = Math.max(0, Math.floor(10 - qTime)); 
+                let gained = baseQ + bonusQ;
+                
+                // スコアアニメーション
+                const startScore = currentScore;
+                const endScore = currentScore + gained;
+                let step = 0;
+                const animInterval = setInterval(() => {
+                    step++;
+                    currentScore = Math.floor(startScore + (gained * step / 5));
+                    if (step >= 5) {
+                        currentScore = endScore;
+                        clearInterval(animInterval);
+                    }
+                    document.getElementById('current-score').textContent = currentScore;
+                }, 30);
+                currentScore = endScore; 
+
+                setTimeout(() => {
+                    currentIndex++;
+                    userInput = "";
+                    if (currentIndex >= problems.length) {
+                        document.getElementById('progress-bar').style.width = `100%`;
+                        showResult();
+                    } else {
+                        questionStartTime = Date.now();
+                        updateDisplay();
+                    }
+                }, 600);
+            } else {
+                showFeedback(false);
+                userInput = "";
+                updateDisplay();
+            }
+        }
+
+        function showResult() {
+            const endTime = Date.now();
+            const elapsedSec = (endTime - startTime) / 1000;
+            let totalScore = currentScore;
+            
+            if (totalScore >= 180) {
+                 confetti({ particleCount: 200, spread: 180, colors:['#00E676', '#00B0FF', '#FFFFFF'] });
+            }
+
+            let stars = "★☆☆☆☆";
+            if (totalScore >= config.starThresholds.star5) stars = "★★★★★";
+            else if (totalScore >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (totalScore >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (totalScore >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+            
+            document.getElementById('status-stars').textContent = stars;
+            document.getElementById('score-val').textContent = totalScore;
+            document.getElementById('time-val').textContent = elapsedSec.toFixed(1);
+            
+            let msg = "よくがんばったね！";
+            if (totalScore >= 180) msg = "すごい！ ロボット博士だ！";
+            else if (totalScore >= 150) msg = "すばらしい！ そのちょうし！";
+            
+            document.getElementById('result-msg').textContent = msg;
+
+            saveData(totalScore, stars, elapsedSec.toFixed(1)); 
+            updateResultDisplay();
+            setTimeout(() => document.getElementById('retry-btn').focus(), 100);
+        }
+
+        function updateResultDisplay() {
+            const d = loadData();
+            const list = document.getElementById('history-list');
+            list.innerHTML = d.history.map(h => {
+                const s = h.stars || ''; 
+                const t = h.time ? `${h.time}秒` : '-';
+                return `
+                <li>
+                    <div>
+                        <span style="font-size:0.9rem; color:#546E7A;">${h.date}</span><br>
+                        <span style="color:#FFD700;">${s}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:0.9rem; color:#546E7A;">${t}</span><br>
+                        <span style="font-weight:bold; color:#00E676;">${h.score}点</span>
+                    </div>
+                </li>`;
+            }).join('');
+        }
+
+        function initGame() {
+            window.scrollTo(0, 0); 
+            problems = generateProblems(config.questionCount);
+            currentIndex = 0;
+            userInput = "";
+            currentScore = 0;
+            
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            
+            updateDisplay();
+            startTime = Date.now();
+            questionStartTime = startTime;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+            
+            document.getElementById('instruction-content-modal').innerHTML = config.instructionHtml;
+            document.getElementById('start-instruction-placeholder').innerHTML = config.startContent;
+            
+            // ボタンイベント
+            document.querySelectorAll('.key-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    handleInput(btn.dataset.val);
+                });
+            });
+
+            document.getElementById('btn-delete').addEventListener('click', handleDelete);
+            document.getElementById('btn-check').addEventListener('click', checkAnswer);
+
+            document.getElementById('start-btn').addEventListener('click', initGame);
+            document.getElementById('retry-btn').addEventListener('click', initGame);
+            
+            // キーボードイベント
+            document.body.addEventListener('keydown', (e) => {
+                const key = e.key;
+                
+                if (document.getElementById('game-container').style.display === 'flex') {
+                    if (key >= '0' && key <= '9') {
+                        handleInput(key);
+                    } else if (key === 'Backspace' || key === 'Delete') {
+                        handleDelete();
+                    } else if (key === 'Enter') {
+                        checkAnswer();
+                    }
+                } else if (key === 'Enter') {
+                    const startArea = document.getElementById('start-area');
+                    const resultArea = document.getElementById('result-area');
+                    
+                    if (startArea.style.display !== 'none') {
+                        initGame();
+                    } else if (resultArea.style.display !== 'none') {
+                        initGame();
+                    }
+                }
+            });
+
+            document.getElementById('bulb-btn').addEventListener('click', () => {
+                document.getElementById('info-modal').style.display = 'block';
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

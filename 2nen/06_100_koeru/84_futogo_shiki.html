@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>＞、＜、＝ を つかった しき</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：わくわくスーパーマーケット（お買い物） ▼▼▼ */
+        :root {
+            --c-bg-main: #FFF8E1;         /* クリーム色 */
+            --c-primary: #FF6F00;         /* フレッシュオレンジ */
+            --c-primary-dark: #E65100;    
+            --c-accent: #43A047;          /* 野菜グリーン */
+            --c-accent-light: #C8E6C9;
+            
+            --c-text-main: #3E2723;       /* チョコ色 */
+            --c-text-white: #FFFFFF;
+            
+            --c-btn-greater: #FF5722;     /* 赤（＞） */
+            --c-btn-equal: #FFC107;       /* 黄（＝） */
+            --c-btn-less: #2196F3;        /* 青（＜） */
+            
+            --c-result-bg: #FFFFFF;
+            --c-history-bg: #FFF3E0;
+            
+            --font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            /* 背景：チェック柄 */
+            background-image: 
+                linear-gradient(45deg, #FFECB3 25%, transparent 25%, transparent 75%, #FFECB3 75%, #FFECB3),
+                linear-gradient(45deg, #FFECB3 25%, transparent 25%, transparent 75%, #FFECB3 75%, #FFECB3);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+
+        h1 { 
+            font-size: 1.6rem; letter-spacing: 1px; color: var(--c-primary-dark);
+            background: #fff; padding: 10px 30px; border-radius: 50px;
+            border: 4px solid var(--c-primary);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            margin: 15px 0; 
+        }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: var(--c-accent); 
+            padding: 8px 30px; 
+            border-radius: 25px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 10px; 
+            border: 2px solid #fff;
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background-color: #fff; color: var(--c-accent);
+            border: 2px solid var(--c-accent);
+            font-weight: 800; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+
+        /* スタート画面 */
+        #start-area { 
+            text-align: center; margin: 30px 0; 
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px; border-radius: 30px;
+            border: 5px dashed var(--c-primary);
+            max-width: 600px; width: 95%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        #start-instruction-placeholder {
+            text-align: center; margin-bottom: 30px; font-size: 1.3rem;
+            line-height: 1.8; font-weight: bold; color: var(--c-text-main);
+        }
+        
+        .start-status-box {
+            background: #FFF3E0; padding: 15px 25px; border-radius: 15px; 
+            display: inline-block; margin-top: 20px;
+            border: 2px solid var(--c-primary);
+            text-align: left; min-width: 220px;
+        }
+
+        /* ゲーム画面 */
+        #game-container { 
+            display: none; width: 100%; flex-direction: column; align-items: center; 
+            max-width: 800px; 
+        }
+
+        .status-header { width: 100%; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+        .score-display {
+            font-size: 1.6rem; font-weight: bold; color: var(--c-primary-dark); 
+            text-shadow: 1px 1px 0 #fff; white-space: nowrap;
+        }
+        .progress-container {
+            flex-grow: 1; height: 16px; background: #FFF; border-radius: 10px; overflow: hidden;
+            border: 2px solid var(--c-primary);
+        }
+        .progress-bar {
+            height: 100%; background: repeating-linear-gradient(45deg, #8BC34A, #8BC34A 10px, #AED581 10px, #AED581 20px);
+            width: 0%; transition: width 0.5s ease-out;
+        }
+
+        /* 問題表示エリア */
+        .comparison-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 20px 10px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            border: 3px solid var(--c-accent-light);
+        }
+
+        .card {
+            flex: 1;
+            background: #fff;
+            color: var(--c-text-main);
+            font-size: 2.2rem;
+            font-weight: 800;
+            padding: 20px 5px;
+            border-radius: 15px;
+            border: 3px solid var(--c-primary);
+            text-align: center;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100px;
+        }
+        .card.number-target {
+            background-color: #FFF3E0; /* 基準数は少し目立たせる */
+            font-size: 3rem; color: var(--c-primary-dark);
+        }
+
+        .symbol-box {
+            width: 90px; height: 90px; flex-shrink: 0;
+            background: #EEEEEE;
+            border: 3px dashed #BDBDBD;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--c-text-main);
+        }
+
+        /* ペナルティ表示（硬直用） */
+        #penalty-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.6);
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 20px;
+            z-index: 50;
+            font-size: 1.5rem; font-weight: bold; color: #D32F2F;
+            display: none;
+        }
+
+        /* ボタンエリア */
+        .action-area { 
+            display: flex; gap: 20px; width: 100%; justify-content: center; position: relative;
+        }
+
+        .choice-btn {
+            background: #fff;
+            color: #fff;
+            font-size: 3rem;
+            font-weight: 900;
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .choice-btn:active { 
+            transform: translateY(4px); 
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2); 
+        }
+        /* ロック時のスタイル */
+        .choice-btn.locked {
+            opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none;
+        }
+        
+        .btn-greater { background-color: var(--c-btn-greater); }
+        .btn-equal { background-color: var(--c-btn-equal); font-size: 2.5rem; }
+        .btn-less { background-color: var(--c-btn-less); }
+
+        .key-hint {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            font-weight: bold;
+            opacity: 0.9;
+        }
+
+        /* 正誤フィードバック */
+        .feedback-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; justify-content: center; align-items: center;
+            z-index: 999; opacity: 0; transition: opacity 0.3s;
+        }
+        .feedback-mark { font-size: 15rem; font-weight: 800; text-shadow: 0 0 40px #fff; }
+        .mark-correct { color: #E91E63; -webkit-text-stroke: 3px #fff; } 
+        .mark-wrong { color: #1976D2; -webkit-text-stroke: 3px #fff; }
+
+        /* リザルト画面 */
+        #result-area {
+            display: none; width: 100%; max-width: 600px;
+            background: var(--c-result-bg); padding: 40px; border-radius: 30px; text-align: center;
+            border: 6px solid var(--c-primary); 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        .status-stars { font-size: 4rem; color: #FFD700; text-shadow: 2px 2px 0 #FFAB00; letter-spacing: 8px; margin-bottom:10px; }
+
+        .history-list { 
+            list-style: none; padding: 0; text-align: left; 
+            background: var(--c-history-bg); border-radius: 15px; 
+            margin-top: 15px; overflow: hidden; 
+        }
+        .history-list li { padding: 12px 20px; border-bottom: 2px solid #fff; display: flex; justify-content: space-between; font-size: 1.1rem; color: var(--c-text-main); font-weight:bold; }
+        .history-list li:last-child { border-bottom: none; }
+
+        button { font-family: var(--font-family); }
+        .action-btn-rect {
+            padding: 15px 40px; font-size: 1.3rem; border-radius: 50px; border: none;
+            background: var(--c-accent); color: #fff; font-weight: bold; cursor: pointer;
+            box-shadow: 0 6px 0 #2E7D32;
+        }
+        .action-btn-rect:active { transform: translateY(4px); box-shadow: 0 2px 0 #2E7D32; }
+        
+        #bulb-btn {
+            position: absolute; top: 20px; right: 20px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #fff; border: 4px solid var(--c-primary); color: var(--c-primary);
+            font-size: 2.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1); font-weight: 800;
+        }
+        .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.6); backdrop-filter: blur(5px);}
+        .modal-content { 
+            background-color: #fff; margin: 10% auto; padding: 40px; 
+            width: 80%; max-width: 600px; border-radius: 30px; color: var(--c-text-main);
+            border: 6px solid var(--c-primary); text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 600px) {
+            .card { font-size: 1.8rem; padding: 15px 5px; }
+            .symbol-box { width: 60px; height: 60px; font-size: 2rem; }
+            .choice-btn { width: 80px; height: 80px; font-size: 2rem; }
+            .key-hint { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn">？</button>
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--c-primary); font-size:1.8rem;">あそびかた</h3>
+            <div id="instruction-content-modal" style="text-align:left; line-height:1.8;"></div>
+            <button onclick="document.getElementById('info-modal').style.display='none'" class="action-btn-rect" style="margin-top:30px;">わかった！</button>
+        </div>
+    </div>
+
+    <div class="feedback-overlay" id="feedback-overlay">
+        <div class="feedback-mark" id="feedback-mark"></div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <div id="start-instruction-placeholder"></div>
+        <button id="start-btn" class="action-btn-rect" style="width:300px; font-size:1.5rem;">お買い物へ！(Enter)</button>
+        <br>
+        <div class="start-status-box">
+            <div style="font-size:0.9rem; color:#555;">今日のクリア：<span id="start-daily-count" style="font-weight:bold; font-size:1.4rem; color:var(--c-primary);">0</span> 回</div>
+            <div style="font-size:0.9rem; color:#555;">合計クリア：<span id="start-total-count" style="font-weight:bold; font-size:1.4rem; color:var(--c-primary);">0</span> 回</div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div class="status-header">
+            <div class="score-display">スコア: <span id="current-score">0</span></div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="comparison-area">
+            <div id="left-card" class="card">100</div>
+            <div id="symbol-display" class="symbol-box">?</div>
+            <div id="right-card" class="card">70 + 40</div>
+            <div id="penalty-overlay">考え中...</div>
+        </div>
+
+        <div class="action-area">
+            <button class="choice-btn btn-greater" id="btn-greater">
+                ＞
+                <span class="key-hint">←キー</span>
+            </button>
+            <button class="choice-btn btn-equal" id="btn-equal">
+                ＝
+                <span class="key-hint">↓キー</span>
+            </button>
+            <button class="choice-btn btn-less" id="btn-less">
+                ＜
+                <span class="key-hint">→キー</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="color:var(--c-primary); background:none; border:none; box-shadow:none; font-size:2.5rem;">おかいもの終了！</h2>
+        
+        <div style="display:flex; justify-content:space-around; background:var(--c-history-bg); padding:20px; border-radius:15px; margin:20px 0;">
+            <div>
+                <div style="font-size:1.1rem; color:var(--c-text-main);">最終スコア</div>
+                <div id="score-val" style="font-size:2.5rem; font-weight:bold; color:var(--c-primary);">0</div>
+            </div>
+            <div>
+                <div style="font-size:1.1rem; color:var(--c-text-main);">タイム</div>
+                <div style="font-size:2.2rem; font-weight:bold; color:var(--c-primary-dark);"><span id="time-val">0</span>秒</div>
+            </div>
+        </div>
+
+        <div id="status-stars" class="status-stars"></div>
+        <div id="result-msg" style="font-size:1.8rem; font-weight:bold; margin:15px 0; color:var(--c-text-main);"></div>
+        
+        <div style="background:#FFF8E1; padding:10px 20px; border-radius:10px; display:inline-block; border:2px solid var(--c-primary-dark); margin-bottom:20px;">
+            <div style="font-size:1rem; color:#555;">今日のクリア：<span id="res-daily-count" style="font-weight:bold; font-size:1.4rem; color:var(--c-primary);">0</span> 回</div>
+            <div style="font-size:1rem; color:#555;">合計クリア：<span id="res-total-count" style="font-weight:bold; font-size:1.4rem; color:var(--c-primary);">0</span> 回</div>
+        </div>
+
+        <div style="margin-top:10px; text-align:left;">
+            <div style="font-size:1.1rem; color:var(--c-text-main); margin-bottom:5px;">今回のきろく</div>
+            <ul id="history-list" class="history-list"></ul>
+        </div>
+
+        <button id="retry-btn" class="action-btn-rect" style="width:100%; margin-top:30px;">もういちど (Enter)</button>
+    </div>
+
+    <script>
+    (function () {
+        const config = {
+            appId: "84_futogo_shiki_v3",
+            mainTitle: "６　100を こえる 数",
+            title: "＞、＜、＝ を つかった しき", 
+            page: 84, 
+            baseScore: 100, 
+            questionCount: 5, // 5問
+            starThresholds: { star5: 180, star4: 150, star3: 120, star2: 100 },
+            
+            instructionHtml: `
+                <p>数と、計算した数をくらべて、<br>正しい記号（＞、＝、＜）を選んでください。</p>
+                <div style="background:#FFF3E0; padding:15px; border-radius:15px; border:2px solid #FF6F00; margin:15px 0; text-align:center; font-weight:bold; font-size:1.2rem;">
+                    120 <span style="color:#2196F3;">＜</span> 70 + 60<br>
+                    <span style="font-size:0.9rem; color:#555;">(70+60は130だから、130のほうが大きい)</span><br><br>
+                    100 <span style="color:#FFC107;">＝</span> 150 - 50<br>
+                    <span style="font-size:0.9rem; color:#555;">(150-50は100だから、同じだね)</span>
+                </div>
+                <p>間違えると<strong>少しの間動けなくなるよ</strong>！</p>
+            `,
+            startContent: `
+                <p style="margin-bottom:20px;">数と比べて、大きいか、小さいか、同じか。<br>計算して記号を選ぼう！</p>
+                <div style="display:flex; justify-content:center; gap:10px; align-items:center; margin-bottom:20px; font-weight:bold;">
+                    <div style="background:#FFF3E0; padding:10px; border-radius:5px; border:2px solid #FF6F00;">120</div>
+                    <div>?</div>
+                    <div style="background:#fff; padding:10px; border-radius:5px; border:2px solid #43A047;">70 + 60</div>
+                </div>
+                <p style="margin-top:20px; color:#FF6F00; font-weight:bold; font-size:1.2rem;">お買い物の達人になろう！</p>
+            `
+        };
+
+        let problems = [];
+        let currentIndex = 0;
+        let startTime = 0;
+        let currentScore = 0;
+        let questionStartTime = 0;
+        let isLocked = false; // 硬直用フラグ
+        
+        const KEY_HS = `${config.appId}:hs`;
+        const KEY_HISTORY = `${config.appId}:hist`;
+        const KEY_CLEAR = `${config.appId}:clear`;
+        const KEY_DAILY = `${config.appId}:daily-`; 
+
+        function generateProblems(count) {
+            const arr = [];
+            // 比較対象の候補
+            const targets = [100, 110, 120, 130, 140, 150];
+
+            while(arr.length < count) {
+                const targetVal = targets[Math.floor(Math.random() * targets.length)];
+                
+                const isAdd = Math.random() < 0.5;
+                const typeRand = Math.random();
+                let resultType; 
+                
+                if (typeRand < 0.33) resultType = 'equal';
+                else if (typeRand < 0.66) resultType = 'less'; 
+                else resultType = 'greater';
+
+                let calcVal, exprStr;
+                // targetValに対して、計算結果(calcVal)をどうするか決める
+                if (resultType === 'equal') {
+                    calcVal = targetVal;
+                } else if (resultType === 'less') {
+                    // targetValより小さい (10の倍数で)
+                    calcVal = targetVal - 10 * (Math.floor(Math.random() * 2) + 1); // -10 or -20
+                    if (calcVal < 10) calcVal = 10;
+                } else {
+                    // targetValより大きい
+                    calcVal = targetVal + 10 * (Math.floor(Math.random() * 2) + 1); // +10 or +20
+                }
+
+                // 式を作る (a +/- b = calcVal)
+                // 両方とも10の倍数にする
+                let a, b;
+                if (isAdd) {
+                    // a + b = calcVal
+                    // aは calcVal未満の適当な10の倍数
+                    // calcValが150なら aは 10~140
+                    let maxA_tens = (calcVal / 10) - 1;
+                    if (maxA_tens < 1) maxA_tens = 1; 
+                    let a_tens = Math.floor(Math.random() * maxA_tens) + 1;
+                    a = a_tens * 10;
+                    b = calcVal - a;
+                    exprStr = `${a} + ${b}`;
+                } else {
+                    // a - b = calcVal -> a = calcVal + b
+                    // bを適当に決める (10~90くらい)
+                    let b_tens = Math.floor(Math.random() * 9) + 1;
+                    b = b_tens * 10;
+                    a = calcVal + b;
+                    exprStr = `${a} - ${b}`;
+                }
+
+                let leftText, rightText, correctSymbol;
+                // どちらを式にするかランダム
+                if (Math.random() < 0.5) {
+                    leftText = String(targetVal);
+                    rightText = exprStr;
+                    if (targetVal > calcVal) correctSymbol = ">";
+                    else if (targetVal < calcVal) correctSymbol = "<";
+                    else correctSymbol = "=";
+                } else {
+                    leftText = exprStr;
+                    rightText = String(targetVal);
+                    if (calcVal > targetVal) correctSymbol = ">";
+                    else if (calcVal < targetVal) correctSymbol = "<";
+                    else correctSymbol = "=";
+                }
+
+                arr.push({ left: leftText, right: rightText, ans: correctSymbol });
+            }
+            return arr;
+        }
+
+        function loadData() {
+            const dateKey = KEY_DAILY + new Date().toISOString().split('T')[0];
+            return {
+                hs: parseInt(localStorage.getItem(KEY_HS) || "0"),
+                history: JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]"),
+                clear: parseInt(localStorage.getItem(KEY_CLEAR) || "0"),
+                daily: parseInt(localStorage.getItem(dateKey) || "0")
+            };
+        }
+        
+        function saveData(score, stars, time) {
+            const d = loadData();
+            const newHs = Math.max(d.hs, score);
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            const newClear = d.clear + 1;
+            const newDaily = d.daily + 1;
+            
+            d.history.unshift({ date: dateStr, score: score, stars: stars, time: time });
+            if(d.history.length > 5) d.history.pop();
+            
+            localStorage.setItem(KEY_HS, newHs);
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(d.history));
+            localStorage.setItem(KEY_CLEAR, newClear);
+            
+            const dateKey = KEY_DAILY + new Date().toISOString().split('T')[0];
+            localStorage.setItem(dateKey, newDaily);
+            
+            return { clear: newClear, daily: newDaily };
+        }
+
+        function updateStartScreenStats() {
+            const d = loadData();
+            document.getElementById('start-total-count').textContent = d.clear;
+            document.getElementById('start-daily-count').textContent = d.daily;
+        }
+
+        function updateDisplay() {
+            const p = problems[currentIndex];
+            const lc = document.getElementById('left-card');
+            const rc = document.getElementById('right-card');
+            
+            lc.textContent = p.left;
+            rc.textContent = p.right;
+            
+            // 数字のみ（式でない）の方を目立たせる
+            const isLeftNum = !p.left.includes('+') && !p.left.includes('-');
+            const isRightNum = !p.right.includes('+') && !p.right.includes('-');
+            
+            lc.className = isLeftNum ? "card number-target" : "card";
+            rc.className = isRightNum ? "card number-target" : "card";
+
+            document.getElementById('symbol-display').textContent = "?";
+            document.getElementById('symbol-display').style.color = "var(--c-text-main)";
+
+            const progress = (currentIndex / config.questionCount) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('current-score').textContent = currentScore;
+        }
+
+        function showFeedback(isCorrect) {
+            const overlay = document.getElementById('feedback-overlay');
+            const mark = document.getElementById('feedback-mark');
+            overlay.style.opacity = '1';
+            
+            if(isCorrect) {
+                mark.textContent = '〇';
+                mark.className = 'feedback-mark mark-correct';
+            } else {
+                mark.textContent = '×';
+                mark.className = 'feedback-mark mark-wrong';
+            }
+            setTimeout(() => { overlay.style.opacity = '0'; }, 400);
+        }
+
+        function setLock(locked) {
+            isLocked = locked;
+            const btns = document.querySelectorAll('.choice-btn');
+            const pen = document.getElementById('penalty-overlay');
+            if (locked) {
+                btns.forEach(b => b.classList.add('locked'));
+                pen.style.display = 'flex';
+            } else {
+                btns.forEach(b => b.classList.remove('locked'));
+                pen.style.display = 'none';
+            }
+        }
+
+        function checkAnswer(userChoice) {
+            if (isLocked) return; // ロック中は無視
+
+            const p = problems[currentIndex];
+            const isCorrect = (userChoice === p.ans);
+            
+            const sym = document.getElementById('symbol-display');
+            let displaySym = userChoice === '>' ? '＞' : userChoice === '<' ? '＜' : '＝';
+            
+            if (isCorrect) {
+                sym.textContent = displaySym;
+                sym.style.color = "var(--c-primary)"; 
+                showFeedback(true);
+                
+                // スコア加算
+                const qTime = (Date.now() - questionStartTime) / 1000;
+                const baseQ = 20; 
+                let bonusQ = Math.max(0, Math.floor(20 - qTime)); 
+                let gained = baseQ + bonusQ;
+                
+                const startScore = currentScore;
+                const endScore = currentScore + gained;
+                
+                let step = 0;
+                const animInterval = setInterval(() => {
+                    step++;
+                    currentScore = Math.floor(startScore + (gained * step / 5));
+                    if (step >= 5) {
+                        currentScore = endScore;
+                        clearInterval(animInterval);
+                    }
+                    document.getElementById('current-score').textContent = currentScore;
+                }, 30);
+                
+                currentScore = endScore; 
+
+                // 次へ進む
+                setTimeout(() => {
+                    currentIndex++;
+                    if (currentIndex >= problems.length) {
+                        document.getElementById('progress-bar').style.width = `100%`;
+                        showResult();
+                    } else {
+                        questionStartTime = Date.now();
+                        updateDisplay();
+                    }
+                }, 600); 
+                
+            } else {
+                // 不正解：ペナルティ（硬直）
+                showFeedback(false);
+                setLock(true);
+                // 1.5秒後に解除
+                setTimeout(() => {
+                    setLock(false);
+                }, 1500);
+            }
+        }
+
+        function showResult() {
+            const endTime = Date.now();
+            const elapsedSec = (endTime - startTime) / 1000;
+            let totalScore = currentScore;
+            
+            if (totalScore >= 180) {
+                 confetti({ particleCount: 200, spread: 180, colors:['#FF6F00', '#43A047', '#FFFFFF'] });
+            }
+
+            let stars = "★☆☆☆☆";
+            if (totalScore >= config.starThresholds.star5) stars = "★★★★★";
+            else if (totalScore >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (totalScore >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (totalScore >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+            
+            document.getElementById('status-stars').textContent = stars;
+            document.getElementById('score-val').textContent = totalScore;
+            document.getElementById('time-val').textContent = elapsedSec.toFixed(1);
+            
+            let msg = "よくがんばったね！";
+            if (totalScore >= 180) msg = "すごい！ お買い物の達人だ！";
+            else if (totalScore >= 150) msg = "すばらしい！ そのちょうし！";
+            
+            document.getElementById('result-msg').textContent = msg;
+
+            const newCounts = saveData(totalScore, stars, elapsedSec.toFixed(1));
+            
+            document.getElementById('res-total-count').textContent = newCounts.clear;
+            document.getElementById('res-daily-count').textContent = newCounts.daily;
+            
+            updateResultDisplay();
+            setTimeout(() => document.getElementById('retry-btn').focus(), 100);
+        }
+
+        function updateResultDisplay() {
+            const d = loadData();
+            const list = document.getElementById('history-list');
+            list.innerHTML = d.history.map(h => {
+                const s = h.stars || ''; 
+                const t = h.time ? (h.time.toString().includes('秒') ? h.time : `${h.time}秒`) : '-';
+                return `
+                <li>
+                    <div>
+                        <span style="font-size:0.8rem; color:#777;">${h.date}</span><br>
+                        <span style="color:#FFC107;">${s}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:0.9rem; color:#777;">${t}</span><br>
+                        <span style="font-weight:bold; color:#FF6F00;">${h.score}点</span>
+                    </div>
+                </li>`;
+            }).join('');
+        }
+
+        function initGame() {
+            window.scrollTo(0, 0); 
+            problems = generateProblems(config.questionCount);
+            currentIndex = 0;
+            currentScore = 0;
+            isLocked = false;
+            setLock(false);
+            
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            
+            updateDisplay();
+            startTime = Date.now();
+            questionStartTime = startTime;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+            
+            document.getElementById('instruction-content-modal').innerHTML = config.instructionHtml;
+            document.getElementById('start-instruction-placeholder').innerHTML = config.startContent;
+            
+            updateStartScreenStats();
+            
+            // ボタンイベント
+            document.getElementById('btn-greater').addEventListener('click', () => checkAnswer('>'));
+            document.getElementById('btn-equal').addEventListener('click', () => checkAnswer('='));
+            document.getElementById('btn-less').addEventListener('click', () => checkAnswer('<'));
+
+            document.getElementById('start-btn').addEventListener('click', initGame);
+            document.getElementById('retry-btn').addEventListener('click', () => {
+                initGame();
+                updateStartScreenStats();
+            });
+            
+            // キーボードイベント
+            document.body.addEventListener('keydown', (e) => {
+                if (isLocked) return;
+
+                const key = e.key;
+                
+                if (document.getElementById('game-container').style.display === 'flex') {
+                    if (key === 'ArrowLeft') {
+                        checkAnswer('>');
+                        const btn = document.getElementById('btn-greater');
+                        btn.style.transform = 'translateY(4px)';
+                        setTimeout(() => btn.style.transform = 'none', 100);
+                    } 
+                    else if (key === 'ArrowRight') {
+                        checkAnswer('<');
+                        const btn = document.getElementById('btn-less');
+                        btn.style.transform = 'translateY(4px)';
+                        setTimeout(() => btn.style.transform = 'none', 100);
+                    }
+                    else if (key === 'ArrowDown') {
+                        checkAnswer('=');
+                        const btn = document.getElementById('btn-equal');
+                        btn.style.transform = 'translateY(4px)';
+                        setTimeout(() => btn.style.transform = 'none', 100);
+                    }
+                } else if (key === 'Enter') {
+                    const startArea = document.getElementById('start-area');
+                    const resultArea = document.getElementById('result-area');
+                    
+                    if (startArea.style.display !== 'none') {
+                        initGame();
+                    } else if (resultArea.style.display !== 'none') {
+                        initGame();
+                        updateStartScreenStats();
+                    }
+                }
+            });
+
+            document.getElementById('bulb-btn').addEventListener('click', () => {
+                document.getElementById('info-modal').style.display = 'block';
+            });
+        });
+    })();
+    </script>
+</body>
+</html>
