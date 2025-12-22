@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>九九カード（全８１もん・ばらばら）</title>
+    <title>九九カード（選べる問題数）</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
     <style>
@@ -26,7 +26,6 @@
         body {
             font-family: var(--font-family);
             background-color: var(--c-bg-main);
-            /* 虹色の背景アクセント */
             background-image: linear-gradient(135deg, rgba(255,0,0,0.05) 0%, rgba(255,255,0,0.05) 20%, rgba(0,255,0,0.05) 40%, rgba(0,255,255,0.05) 60%, rgba(0,0,255,0.05) 80%, rgba(255,0,255,0.05) 100%);
             color: var(--c-text-main);
             padding: 20px;
@@ -39,7 +38,7 @@
         h1 { font-size: 1.2rem; color: #555; margin: 10px 0; text-align: center; }
         h2 { 
             font-size: 1.2rem; 
-            background: linear-gradient(90deg, #FF5252, #FFAB40, #FFD740, #40C4FF, #7C4DFF); /* レインボーグラデーション */
+            background: linear-gradient(90deg, #FF5252, #FFAB40, #FFD740, #40C4FF, #7C4DFF); 
             color: #fff;
             padding: 8px 30px; 
             border-radius: 30px;
@@ -55,7 +54,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* --- 画面の表示切り替え制御 --- */
         #start-area { display: block; }
         #game-area { display: none; flex-direction: column; align-items: center; width: 100%; }
         #result-area { display: none; }
@@ -94,14 +92,12 @@
             padding: 15px; box-sizing: border-box;
         }
 
-        .card-front { /* 表面 */ }
         .card-back {
             transform: rotateY(180deg);
-            background: #FFF; /* 裏面 */
+            background: #FFF;
             border-color: var(--c-correct);
         }
 
-        /* 読み出し（上の句）表示エリア */
         .yomi-prompt-container {
             background-color: #F3E5F5;
             border: 2px dashed #9C27B0;
@@ -116,48 +112,34 @@
             color: var(--c-yomi-text);
         }
 
-        /* 式と入力欄を横並びにするコンテナ */
         .equation-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 30px;
-            width: 100%;
-            flex-wrap: nowrap;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; margin-bottom: 30px; width: 100%; flex-wrap: nowrap;
         }
 
         .problem-display {
             font-size: 3rem; font-weight: 800; color: var(--c-text-main);
-            letter-spacing: 1px;
-            line-height: 1;
+            letter-spacing: 1px; line-height: 1;
         }
 
         .equals-sign {
-            font-size: 3rem; font-weight: 800; color: #9E9E9E;
-            margin: 0 5px;
+            font-size: 3rem; font-weight: 800; color: #9E9E9E; margin: 0 5px;
         }
 
         .answer-input {
             font-family: var(--font-family);
             font-size: 2.5rem; text-align: center;
-            width: 110px;
-            padding: 5px;
-            border: 3px solid #E0E0E0;
-            border-radius: 12px;
+            width: 110px; padding: 5px;
+            border: 3px solid #E0E0E0; border-radius: 12px;
             outline: none; color: var(--c-text-main); font-weight: bold;
-            background: #FAFAFA;
-            transition: all 0.2s;
+            background: #FAFAFA; transition: all 0.2s;
         }
         .answer-input:focus {
-            border-color: var(--c-primary);
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(156, 39, 176, 0.2);
-            transform: scale(1.05);
+            border-color: var(--c-primary); background: #fff;
+            box-shadow: 0 0 0 4px rgba(156, 39, 176, 0.2); transform: scale(1.05);
         }
         .answer-input.error {
-            background-color: var(--c-wrong);
-            color: #fff;
+            background-color: var(--c-wrong); color: #fff;
             animation: shake 0.4s;
         }
 
@@ -167,24 +149,16 @@
             75% { transform: translateX(10px); }
         }
 
-        /* 裏面の表示 */
         .result-yomi-full {
-            font-size: 2.2rem; font-weight: 800;
-            color: var(--c-primary);
-            margin-bottom: 10px;
-            text-align: center;
-            line-height: 1.4;
-            padding: 10px;
-            background: #F3E5F5;
-            border-radius: 10px;
-            width: 90%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 2.2rem; font-weight: 800; color: var(--c-primary);
+            margin-bottom: 10px; text-align: center; line-height: 1.4;
+            padding: 10px; background: #F3E5F5; border-radius: 10px;
+            width: 90%; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .answer-check-display {
             font-size: 1.5rem; color: #555; margin-bottom: 20px;
         }
 
-        /* ボタン類 */
         .btn {
             font-family: var(--font-family);
             font-size: 1.2rem; font-weight: 800;
@@ -197,7 +171,6 @@
         .btn-next { background: var(--c-accent); width: 80%; color: #3E2723; }
         .btn-check { background: var(--c-primary); width: 80%; }
 
-        /* 進捗バー */
         .progress-bar-container {
             width: 100%; max-width: 450px; height: 12px;
             background: #E0E0E0; border-radius: 6px;
@@ -209,34 +182,39 @@
             width: 0%; transition: width 0.3s;
         }
 
-        /* スタート・リザルト画面 */
         #start-area, #result-area {
             text-align: center; background: rgba(255,255,255,0.95);
             padding: 30px; border-radius: 20px; border: 4px solid var(--c-primary-light);
             max-width: 500px; width: 90%; margin-top: 20px;
         }
         
-        /* 記録表示エリア */
         .stats-display {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #555;
-            display: flex;
-            justify-content: space-around;
-            background: #fff;
-            padding: 10px;
-            border-radius: 10px;
-            border: 2px solid var(--c-primary-light);
+            margin-top: 20px; font-size: 0.9rem; color: #555;
+            display: flex; justify-content: space-around;
+            background: #fff; padding: 10px;
+            border-radius: 10px; border: 2px solid var(--c-primary-light);
         }
-        .stats-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .stats-item { display: flex; flex-direction: column; align-items: center; }
         .stats-label { font-size: 0.8rem; color: #777; margin-bottom: 2px; }
         .stats-value { font-size: 1.2rem; font-weight: bold; color: var(--c-primary); }
         
-        /* モーダル */
+        /* 選択ボタンのスタイル */
+        .select-container {
+            display: flex; justify-content: center; gap: 10px; margin: 15px 0;
+        }
+        .btn-select {
+            font-family: var(--font-family);
+            font-size: 1rem; font-weight: 800;
+            padding: 8px 15px; border: 2px solid var(--c-primary);
+            border-radius: 20px; background: #fff; color: var(--c-primary);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-select.active {
+            background: var(--c-primary); color: #fff;
+            transform: scale(1.05); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* モーダル等省略（共通機能） */
         #bulb-btn {
             position: absolute; top: 15px; right: 15px;
             width: 45px; height: 45px; border-radius: 50%;
@@ -248,19 +226,13 @@
         .modal-content { background-color: #fff; margin: 15% auto; padding: 25px; border: 4px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 450px; }
         .close-modal { float: right; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; }
 
-        /* 履歴リスト */
         .history-list { list-style: none; padding: 0; text-align: left; background: #F3E5F5; padding: 10px; border-radius: 10px; font-size: 0.9rem; }
         .history-list li { 
-            border-bottom: 1px dashed #fff; 
-            padding: 8px 0; 
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr 0.8fr;
-            align-items: center;
-            gap: 5px;
+            border-bottom: 1px dashed #fff; padding: 8px 0; 
+            display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.8fr;
+            align-items: center; gap: 5px;
         }
-        .history-list li span:nth-child(1) { font-size: 0.8rem; color: #555; }
-        .history-list li span:nth-child(2) { color: #FFC107; text-shadow: 1px 1px 0 #FFB300; font-size: 1.0rem;}
-        .history-list li span:nth-child(3) { font-size: 0.9rem; text-align:right; }
+        .history-list li span:nth-child(2) { color: #FFC107; text-shadow: 1px 1px 0 #FFB300; }
         .history-list li span:nth-child(4) { font-weight: bold; color: var(--c-primary); text-align:right;}
         
         @media (max-width: 400px) {
@@ -279,20 +251,30 @@
             <h3 style="color:var(--c-primary); text-align:center;">あそびかた</h3>
             <p>カードに「ににんが…？」のように、読み方が書いてあります。</p>
             <p><strong>声に出して読みながら</strong>、□の中に答えを入力してください。</p>
-            <p>１のだんから９のだんまで、ぜんぶで <strong>８１もん</strong> あります！<br>がんばってクリアしよう！</p>
+            <p>問題数は 10もん、20もん、81もん（ぜんぶ）から選べます。</p>
         </div>
     </div>
 
     <h1 id="main-title">九九カード</h1>
     <h2 id="sub-title">
         <span id="page-circle" class="page-circle">34</span>
-        <span id="sub-title-text">全８１もん・ばらばら</span>
+        <span id="sub-title-text">ばらばら・ランダム</span>
     </h2>
 
     <div id="start-area">
         <p style="font-size: 1.5rem; font-weight:bold; margin-top:20px; color:var(--c-primary);">目指せ全問正解！</p>
-        <p>「ににんが…　し！」<br>九九のまとめ問題だよ。<br>ぜんぶで ８１もん！</p>
-        <button id="start-btn" class="btn" style="background:var(--c-primary); width:200px; margin-top:20px;">スタート！(Enter)</button>
+        <p>「ににんが…　し！」<br>九九のまとめ問題だよ。</p>
+        
+        <div style="margin: 20px 0;">
+            <p style="font-size:0.9rem; font-weight:bold; color:#666; margin-bottom:5px;">もんだいすう を えらんでね</p>
+            <div class="select-container">
+                <button class="btn-select active" onclick="selectCount(10, this)">10もん</button>
+                <button class="btn-select" onclick="selectCount(20, this)">20もん</button>
+                <button class="btn-select" onclick="selectCount(81, this)">ぜんぶ</button>
+            </div>
+        </div>
+
+        <button id="start-btn" class="btn" style="background:var(--c-primary); width:200px; margin-top:10px;">スタート！(Enter)</button>
         
         <div class="stats-display">
             <div class="stats-item">
@@ -315,7 +297,7 @@
             <div id="progress-bar" class="progress-bar"></div>
         </div>
         <div style="text-align:right; width:100%; max-width:450px; font-size:0.9rem; margin-top:5px; font-weight:bold; color:var(--c-primary);">
-            のこり <span id="remain-count">81</span> まい
+            のこり <span id="remain-count">10</span> まい
         </div>
 
         <div id="card-container">
@@ -351,9 +333,9 @@
     </div>
 
     <div id="result-area">
-        <h2 style="background:var(--c-primary); color:#fff; font-size:2rem; padding:10px 40px; box-shadow:0 4px 0 rgba(0,0,0,0.1);">コンプリート！</h2>
+        <h2 style="background:var(--c-primary); color:#fff; font-size:2rem; padding:10px 40px; box-shadow:0 4px 0 rgba(0,0,0,0.1);">クリア！</h2>
         <div id="result-stars" style="font-size:3rem; color:#FFC107; text-shadow:2px 2px 0 #FF6F00; margin-top:10px;">★★★★★</div>
-        <p style="font-size:1.2rem; font-weight:bold; margin:10px 0;">８１もん、よくがんばりました！</p>
+        <p style="font-size:1.2rem; font-weight:bold; margin:10px 0;">よくがんばりました！</p>
         <div style="font-size:1.5rem; margin-bottom:20px; color:var(--c-primary); font-weight:bold;">スコア: <span id="score-display">100</span>点</div>
         <div id="score-detail" style="font-size:0.9rem; color:#777; margin-bottom:10px;"></div>
         
@@ -464,7 +446,7 @@
             { q: "8 × 6", a: 48, q_read: "はちろく",   a_read: "しじゅうはち" },
             { q: "8 × 7", a: 56, q_read: "はちしち",   a_read: "ごじゅうろく" },
             { q: "8 × 8", a: 64, q_read: "はっぱ",     a_read: "ろくじゅうし" },
-            { q: "8 × 9", a: 72, q_read: "はっく",     a_read: "ななじゅうに" },
+            { q: "8 × 9", a: 72, q_read: "はっく",     a_read: "しちじゅうに" },
             // 9の段
             { q: "9 × 1", a: 9, q_read: "くいちが", a_read: "く" },
             { q: "9 × 2", a: 18, q_read: "くに",     a_read: "じゅうはち" },
@@ -473,7 +455,7 @@
             { q: "9 × 5", a: 45, q_read: "くご",     a_read: "しじゅうご" },
             { q: "9 × 6", a: 54, q_read: "くろく",   a_read: "ごじゅうし" },
             { q: "9 × 7", a: 63, q_read: "くしち",   a_read: "ろくじゅうさん" },
-            { q: "9 × 8", a: 72, q_read: "くは",     a_read: "ななじゅうに" },
+            { q: "9 × 8", a: 72, q_read: "くは",     a_read: "しちじゅうに" },
             { q: "9 × 9", a: 81, q_read: "くく",     a_read: "はちじゅういち" }
         ];
 
@@ -490,6 +472,7 @@
         let startTime = 0;
         let mistakeCount = 0;
         let isFlipped = false;
+        let selectedProblemCount = 10; // デフォルト
 
         const KEY_HS = `${config.appId}:hs`;
         const KEY_HISTORY = `${config.appId}:history`;
@@ -542,6 +525,13 @@
             document.getElementById('bulb-btn').onclick = () => modal.style.display = "block";
             document.querySelector('.close-modal').onclick = () => modal.style.display = "none";
             window.onclick = (e) => { if(e.target == modal) modal.style.display = "none"; };
+            
+            // 問題数選択機能
+            window.selectCount = function(cnt, btn) {
+                selectedProblemCount = cnt;
+                document.querySelectorAll('.btn-select').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
         }
 
         function loadStats() {
@@ -577,9 +567,10 @@
             document.getElementById('result-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'flex';
             
-            // ★ランダムシャッフル
+            // ★ランダムシャッフルして、選択された数だけ取り出す
             problemOrder = [...Array(config.problems.length).keys()];
             problemOrder.sort(() => Math.random() - 0.5);
+            problemOrder = problemOrder.slice(0, selectedProblemCount);
             
             currentProblemIndex = 0;
             mistakeCount = 0;
@@ -600,9 +591,9 @@
             
             inputEl.value = "";
             
-            const progress = (currentProblemIndex / config.problems.length) * 100;
+            const progress = (currentProblemIndex / selectedProblemCount) * 100;
             document.getElementById('progress-bar').style.width = `${progress}%`;
-            document.getElementById('remain-count').textContent = config.problems.length - currentProblemIndex;
+            document.getElementById('remain-count').textContent = selectedProblemCount - currentProblemIndex;
 
             setTimeout(() => {
                 const cardContainer = document.getElementById('card-container');
@@ -642,7 +633,7 @@
 
         function nextProblem() {
             currentProblemIndex++;
-            if (currentProblemIndex >= config.problems.length) {
+            if (currentProblemIndex >= selectedProblemCount) {
                 finishGame();
             } else {
                 showProblem();
@@ -652,14 +643,24 @@
         function finishGame() {
             const elapsed = (Date.now() - startTime) / 1000;
             
-            // スコア計算 (81問用調整)
+            // スコア計算 (問題数に応じてベーススコアを変更)
             let baseScore = 100;
+            if (selectedProblemCount === 20) baseScore = 300;
+            if (selectedProblemCount === 81) baseScore = 1000;
+
             let timeBonus = 0;
-            const threshold = 400; // 基準タイム（かなり長めに）
+            // 基準タイム：1問あたり5秒と想定
+            const threshold = selectedProblemCount * 5; 
             if (elapsed < threshold) {
-                timeBonus = Math.floor((threshold - elapsed) * 0.5); // ボーナス係数を調整
+                // ボーナス係数も問題数が多いほど大きくする
+                let multiplier = 2;
+                if (selectedProblemCount === 81) multiplier = 5;
+                else if (selectedProblemCount === 20) multiplier = 3;
+                
+                timeBonus = Math.floor((threshold - elapsed) * multiplier);
             }
-            const mistakePenalty = mistakeCount * 2; // ペナルティを少し軽く
+            
+            const mistakePenalty = mistakeCount * 5;
             let score = baseScore + timeBonus - mistakePenalty;
             if (score < 0) score = 0;
 
@@ -668,17 +669,30 @@
             document.getElementById('score-display').textContent = score;
 
             document.getElementById('score-detail').textContent = 
-                `(タイム: ${elapsed.toFixed(1)}秒 / ミス: ${mistakeCount}回)`;
+                `(${selectedProblemCount}問 / タイム: ${elapsed.toFixed(1)}秒 / ミス: ${mistakeCount}回)`;
 
             let stars = "★☆☆☆☆";
-            if (score >= 200) stars = "★★★★★";
-            else if (score >= 150) stars = "★★★★☆";
-            else if (score >= 100) stars = "★★★☆☆";
-            else if (score >= 50) stars = "★★☆☆☆";
+            // スターの基準もベーススコアに合わせて調整
+            if (selectedProblemCount === 10) {
+                if (score >= 150) stars = "★★★★★";
+                else if (score >= 120) stars = "★★★★☆";
+                else if (score >= 100) stars = "★★★☆☆";
+                else if (score >= 80) stars = "★★☆☆☆";
+            } else if (selectedProblemCount === 20) {
+                if (score >= 400) stars = "★★★★★";
+                else if (score >= 350) stars = "★★★★☆";
+                else if (score >= 300) stars = "★★★☆☆";
+                else if (score >= 200) stars = "★★☆☆☆";
+            } else { // 81問
+                if (score >= 1500) stars = "★★★★★";
+                else if (score >= 1300) stars = "★★★★☆";
+                else if (score >= 1000) stars = "★★★☆☆";
+                else if (score >= 800) stars = "★★☆☆☆";
+            }
             
             document.getElementById('result-stars').textContent = stars;
 
-            if (score >= 150) {
+            if (stars.length >= 3) { // ★3以上で紙吹雪
                 confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 }, colors:['#9C27B0', '#FFC107', '#E1BEE7', '#FFFFFF'] });
             }
 
