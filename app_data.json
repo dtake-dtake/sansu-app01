@@ -137,34 +137,22 @@
         "name": "９　　10より おおきい かず",
         "apps": [
           {
-            "id": "35-2_10_to_ikutsu",
-            "title": "１０といくつ",
-            "path": "1nen/09_10yori_ookii/35-2_10_to_ikutsu.html"
+            "id": "10_to_ikutsu",
+            "title": "１０と　いくつ",
+            "path": "1nen/09_10yori_ookii/35_10_to_ikutsu.html",
+            "page": "35"
           },
           {
-            "id": "39-6_2keta_tasu_1keta",
-            "title": "２けたと１けたの たしざん",
-            "path": "1nen/09_10yori_ookii/39-6_2keta_tasu_1keta.html"
+            "id": "kazu_no_sen_20",
+            "title": "かずのせん（０〜２０）",
+            "path": "1nen/09_10yori_ookii/37_kazu_no_sen.html",
+            "page": "37"
           },
           {
-            "id": "39-8_nikita_hiku_1keta",
-            "title": "２けたと１けたの ひきざん",
-            "path": "1nen/09_10yori_ookii/39-8_nikita_hiku_1keta.html"
-          },
-          {
-            "id": "35-2_sikaku_ni_hairukazu",
-            "title": "□にはいるかず",
-            "path": "1nen/09_10yori_ookii/35-2_sikaku_ni_hairukazu.html"
-          },
-          {
-            "id": "36-3_kazuha_ikutu",
-            "title": "かずは いくつ？",
-            "path": "1nen/09_10yori_ookii/36-3_kazuha_ikutu.html"
-          },
-          {
-            "id": "38-4_kotaega_10ninaru_hikizan",
-            "title": "こたえが１０になる ひきざん",
-            "path": "1nen/09_10yori_ookii/38-4_kotaega_10ninaru_hikizan.html"
+            "id": "tashizan_hikizan_10_20",
+            "title": "たしざんと　ひきざん",
+            "path": "1nen/09_10yori_ookii/39_tashizan_hikizan.html",
+            "page": "39"
           }
         ]
       },
@@ -172,9 +160,10 @@
         "name": "１０　なんじ なんじはん",
         "apps": [
           {
-            "id": "1n-nanji-nanjihan",
-            "title": "とけいの　よみかた",
-            "path": "1nen/10_nanji_nanjihan/45-2_nanji_nanjihan.html"
+            "id": "nanji_nanjihan",
+            "title": "なんじ　なんじはん",
+            "path": "1nen/10_nanji_nanjihan/45_nanji_nanjihan.html",
+            "page": "45"
           }
         ]
       },
@@ -186,21 +175,21 @@
         "name": "１２　3つの かずの けいさん",
         "apps": [
           {
-            "id": "1nen_p58_mix_fixed_v3",
-            "title": "３つの かずの けいさん",
-            "path": "1nen/12_3kazu_keisan/058_3nums_mix.html",
-            "page": "58"
-          },
-          {
-            "id": "1nen_p55_3nums_add_v2",
-            "title": "３つの かずの たしざん",
-            "path": "1nen/12_3kazu_keisan/055_3tsu_no_kazu.html",
+            "id": "3tsu_no_kazu",
+            "title": "３つのかずの　たしざん",
+            "path": "1nen/12_3kazu_keisan/55_3tsu_no_kazu.html",
             "page": "55"
           },
           {
-            "id": "1nen_p56_3nums_sub_final",
-            "title": "３つの かずの ひきざん",
-            "path": "1nen/12_3kazu_keisan/056_3nums_sub.html",
+            "id": "3tsu_no_kongo",
+            "title": "３つのかずの　たしざんと　ひきざん",
+            "path": "1nen/12_3kazu_keisan/58_3tsu_no_kongo.html",
+            "page": "58"
+          },
+          {
+            "id": "3tsu_no_hikizan",
+            "title": "３つのかずの　ひきざん",
+            "path": "1nen/12_3kazu_keisan/56_3tsu_no_hikizan.html",
             "page": "56"
           }
         ]

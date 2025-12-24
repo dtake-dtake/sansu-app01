@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>３つのかずの　たしざん</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        /* ▼▼▼ テーマ：フレッシュ・レモン（黄色・ライム） ▼▼▼ */
+        :root {
+            --c-bg-main: #FFFDE7;         /* ごく薄い黄色 */
+            --c-primary: #FBC02D;         /* 濃い黄色 */
+            --c-primary-dark: #F57F17;    /* オレンジ寄りの黄色 */
+            --c-primary-light: #FFF9C4;   /* クリーム色 */
+            --c-accent: #76FF03;          /* ライムグリーン（アクセント） */
+            --c-accent-dark: #64DD17;
+            
+            --c-button-bg: #FFEB3B;       /* ボタン背景 */
+            --c-button-hover: #FDD835;    
+            
+            --c-text-main: #5D4037;       /* こげ茶（文字色） */
+            --c-text-on-button: #5D4037;
+            
+            --c-line: #F9A825;            
+            
+            --c-result-area-bg: #ffffff;
+            --c-history-bg: #F0F4C3;      /* 薄いライム */
+            
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            /* 背景パターン：レモン（ドットで表現） */
+            background-image: radial-gradient(var(--c-primary) 15%, transparent 16%);
+            background-size: 20px 20px;
+        }
+
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; letter-spacing: 1px;}
+        h1 { font-size: 1.5rem; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: #fff;
+            border: 3px solid var(--c-primary);
+            padding: 8px 25px; 
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background-color: var(--c-accent-dark); color: #fff;
+            font-weight: 800; font-size: 1.2rem; line-height: 1; flex-shrink: 0;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* 共通ボタン */
+        button {
+            font-family: var(--font-family);
+            font-size: 1.4rem; padding: 12px 30px; border: none; border-radius: 50px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: transform 0.1s; font-weight: 800;
+            border-bottom: 5px solid var(--c-primary-dark); /* 立体感 */
+            margin: 10px;
+        }
+        button:active { transform: translateY(4px); border-bottom: 1px solid var(--c-primary-dark); }
+        button:disabled { background-color: #ccc; border-bottom: 5px solid #999; cursor: not-allowed; transform: none; }
+
+        /* スタート画面 */
+        #start-area {
+            text-align: center; margin-top: 40px;
+            background: rgba(255,255,255,0.95);
+            padding: 40px; border-radius: 20px;
+            border: 5px solid var(--c-primary);
+            width: 90%; max-width: 600px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .stats-box {
+            background: var(--c-primary-light);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 15px 0;
+            color: var(--c-text-main);
+            font-weight: bold;
+            border: 2px solid var(--c-primary);
+        }
+
+        /* ゲーム画面 */
+        #game-area { display: none; width: 100%; max-width: 700px; flex-direction: column; align-items: center; }
+        
+        .progress-bar {
+            width: 100%; max-width: 400px; height: 12px;
+            background: #fff; border-radius: 6px; margin: 10px 0;
+            overflow: hidden; border: 2px solid var(--c-primary);
+        }
+        .progress-fill {
+            height: 100%; background: var(--c-accent); width: 0%;
+            transition: width 0.3s;
+        }
+        .question-counter {
+            font-size: 1.2rem; font-weight: bold; color: var(--c-primary-dark); margin-bottom: 5px;
+        }
+
+        .problem-card {
+            background: var(--c-result-area-bg);
+            border: 5px solid var(--c-primary);
+            border-radius: 20px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            min-height: 200px;
+            justify-content: center;
+        }
+
+        /* 式と答えを横並びにする */
+        .equation-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .problem-text {
+            font-size: 2.8rem; font-weight: 800;
+            color: var(--c-text-main);
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            letter-spacing: 2px;
+            margin: 0; 
+            line-height: 1.2;
+        }
+
+        /* 入力表示エリア */
+        .input-display {
+            font-size: 2.8rem; font-weight: bold;
+            min-width: 100px; min-height: 60px;
+            border-bottom: 4px solid var(--c-accent-dark);
+            text-align: center; color: var(--c-accent-dark);
+            display: flex; align-items: center; justify-content: center;
+            line-height: 1;
+            margin: 0;
+        }
+        .input-placeholder { color: #ccc; font-size: 2.0rem; border:none;}
+
+        /* ソフトキーパッド */
+        .keypad-area {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            margin-top: 10px; width: 100%; max-width: 350px;
+        }
+        .key-btn {
+            font-size: 1.8rem; padding: 15px 0; border-radius: 12px;
+            background: #fff; border: 2px solid var(--c-primary);
+            border-bottom: 5px solid var(--c-primary);
+            color: var(--c-text-main); font-weight: bold;
+            cursor: pointer; margin: 0; box-shadow: none;
+        }
+        .key-btn:active { transform: translateY(4px); border-bottom: 2px solid var(--c-primary); }
+        .key-zero { grid-column: span 1; }
+        .key-enter { grid-column: span 2; background: var(--c-accent); color: #33691E; border-color: #64DD17; border-bottom-color: #33691E; }
+        .key-enter:active { border-bottom-color: #64DD17; }
+        .key-bs { background: #CFD8DC; color: #455A64; border-color: #90A4AE; border-bottom-color: #546E7A; font-size: 1.2rem; }
+        .key-bs:active { border-bottom-color: #78909C; }
+
+        /* フィードバック */
+        .feedback-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            pointer-events: none; z-index: 20; opacity: 0; transition: opacity 0.2s;
+            border-radius: 15px;
+        }
+        .mark { font-size: 12rem; font-weight: bold; -webkit-text-stroke: 5px #fff; }
+        .mark-correct { color: #E91E63; }
+        .mark-wrong { color: #1976D2; }
+
+        /* リザルト */
+        #result-area {
+            display: none;
+            width: 90%; max-width: 500px; margin: 20px auto; padding: 25px;
+            background: var(--c-result-area-bg); border-radius: 20px; 
+            border: 5px solid var(--c-primary); text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .status-stars { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FFB300; display:block; margin: 10px 0;}
+        
+        #history-area { margin-top: 20px; font-size: 0.9rem; text-align: left; background: var(--c-history-bg); padding:15px; border-radius:10px; border: 2px dashed var(--c-primary);}
+        #history-list { list-style: none; padding: 0; }
+        #history-list li { 
+            border-bottom: 1px dashed var(--c-primary-dark); padding: 8px 0; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* モーダル */
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 50px; height: 50px; padding:0; margin:0;
+            border-radius: 50%; background: #fff; border: 3px solid #FFD700; 
+            color: #FFD700; font-size: 2rem; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 30px; border: 4px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 500px; position:relative;}
+        .close-modal { position:absolute; right:15px; top:10px; font-size: 30px; cursor: pointer; color:var(--c-primary);}
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="せつめい">？</button>
+
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">あそびかた</h3>
+        <p>３つの　かずの　たしざん　だよ。</p>
+        <div style="background:#FFF9C4; padding:15px; border-radius:10px; margin:15px 0; line-height:1.6;">
+            <strong>ヒント：</strong><br>
+            まえから　じゅんばんに　たしてね。<br>
+            <br>
+            たとえ：　<strong>５ ＋ ５ ＋ ３</strong><br>
+            ①「５＋５」は「１０」<br>
+            ②「１０＋３」は・・・<strong>「１３」！</strong>
+        </div>
+        <button onclick="document.getElementById('info-modal').style.display='none'" style="width:100%; margin:20px 0 0 0;">わかった！</button>
+      </div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <div style="font-size:4rem; margin:10px 0;">🍋</div>
+        <p style="font-weight:bold; font-size:1.4rem; margin:10px 0;">３つ　まとめて　たしざん！<br>１０をつくると　かんたんだよ</p>
+        
+        <div class="stats-box">
+            ハイスコア: <span id="high-score-display" style="font-size:1.5rem; color:#E65100;">0</span> 点
+        </div>
+        
+        <div style="margin:15px 0; font-size:0.95rem; color:#555;">
+            きょうのクリア：<span id="daily-count-start">0</span> かい<br>
+            ごうけいクリア：<span id="total-count-start">0</span> かい
+        </div>
+
+        <button id="start-btn">はじめる (Enter)</button>
+    </div>
+
+    <div id="game-area">
+        <div class="question-counter">もんだい <span id="current-q-num">1</span> / <span id="total-q-num">10</span></div>
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+        <div class="problem-card" id="current-problem-card">
+            <div class="feedback-overlay" id="feedback-overlay">
+                <div class="mark" id="feedback-mark"></div>
+            </div>
+
+            <div class="equation-row">
+                <div class="problem-text" id="problem-text">1 + 2 + 3 = </div>
+                <div class="input-display" id="input-display"><span class="input-placeholder">?</span></div>
+            </div>
+        </div>
+
+        <div class="keypad-area">
+            <button class="key-btn" onclick="inputNum(7)">7</button>
+            <button class="key-btn" onclick="inputNum(8)">8</button>
+            <button class="key-btn" onclick="inputNum(9)">9</button>
+            
+            <button class="key-btn" onclick="inputNum(4)">4</button>
+            <button class="key-btn" onclick="inputNum(5)">5</button>
+            <button class="key-btn" onclick="inputNum(6)">6</button>
+            
+            <button class="key-btn" onclick="inputNum(1)">1</button>
+            <button class="key-btn" onclick="inputNum(2)">2</button>
+            <button class="key-btn" onclick="inputNum(3)">3</button>
+            
+            <button class="key-btn key-bs" onclick="deleteNum()">けす</button>
+            <button class="key-btn key-zero" onclick="inputNum(0)">0</button>
+            <button class="key-btn key-enter" id="enter-btn" onclick="checkAnswer()">けってい</button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="border:none; background:none; font-size:2rem; color:var(--c-primary-dark); margin:0;">けっか はっぴょう</h2>
+        <div id="result-stars" class="status-stars"></div>
+        <div id="result-msg" style="font-size:1.5rem; font-weight:bold; margin:10px 0;"></div>
+        <div id="result-score" style="font-size:1.2rem;"></div>
+        
+        <div style="font-weight:bold; color:#E65100; margin:10px 0;">
+            ハイスコア: <span id="high-score-result">0</span> 点
+        </div>
+        
+        <div class="stats-box" style="margin:20px 0;">
+            きょうのクリア：<span id="daily-count-result" style="color:#E65100; font-size:1.2rem;">0</span> かい<br>
+            ごうけいクリア：<span id="total-count-result" style="color:#E65100; font-size:1.2rem;">0</span> かい
+        </div>
+
+        <div id="history-area">
+            <strong>これまでの きろく（さいしん5けん）</strong>
+            <ul id="history-list"></ul>
+        </div>
+        
+        <button id="back-to-start-btn" style="margin-top:20px;">さいしょに もどる (Enter)</button>
+        <div style="margin-top:10px;">
+            <button id="reset-rank-btn" style="font-size:0.8rem; background:#90A4AE; padding:8px 15px; border:none; box-shadow:none;">ハイスコアをけす</button>
+        </div>
+    </div>
+
+    <script>
+    // グローバル関数定義
+    let inputNum, deleteNum, checkAnswer;
+
+    (function(){
+        const config = {
+            appId: "3tsu_no_kazu",
+            mainTitle: "１２　３つのかずの　けいさん",
+            title: "３つのかずの　たしざん",
+            page: 55,
+            baseScore: 100,
+            targetTimePerQuestion: 8, 
+            questionCount: 10,
+            starThresholds: { star5: 180, star4: 150, star3: 100, star2: 80 }
+        };
+
+        // 状態変数
+        let problems = [];
+        let currentProblemIndex = 0;
+        let currentInput = "";
+        let startTime = 0;
+        let totalMistakeCount = 0;
+        let isAnswering = false;
+
+        // ストレージキー
+        const KEY_HS = `${config.appId}:highScore`;
+        const KEY_CLEAR = `${config.appId}:totalClear`;
+        const KEY_DAILY_PREFIX = `${config.appId}:dailyClear_`;
+        const KEY_HISTORY = `${config.appId}:history`;
+
+        // DOM要素
+        const els = {
+            mainTitle: document.getElementById('main-title'),
+            subTitleText: document.getElementById('sub-title-text'),
+            pageCircle: document.getElementById('page-circle'),
+            instruction: document.getElementById('instruction-content'),
+            
+            startArea: document.getElementById('start-area'),
+            highScoreDisplay: document.getElementById('high-score-display'),
+            dailyCountStart: document.getElementById('daily-count-start'),
+            totalCountStart: document.getElementById('total-count-start'),
+            startBtn: document.getElementById('start-btn'),
+
+            gameArea: document.getElementById('game-area'),
+            problemText: document.getElementById('problem-text'),
+            inputDisplay: document.getElementById('input-display'),
+            currentQNum: document.getElementById('current-q-num'),
+            totalQNum: document.getElementById('total-q-num'),
+            progressFill: document.getElementById('progress-fill'),
+            feedbackOverlay: document.getElementById('feedback-overlay'),
+            feedbackMark: document.getElementById('feedback-mark'),
+
+            resultArea: document.getElementById('result-area'),
+            resultStars: document.getElementById('result-stars'),
+            resultMsg: document.getElementById('result-msg'),
+            resultScore: document.getElementById('result-score'),
+            highScoreResult: document.getElementById('high-score-result'),
+            dailyCountResult: document.getElementById('daily-count-result'),
+            totalCountResult: document.getElementById('total-count-result'),
+            historyList: document.getElementById('history-list'),
+            backStartBtn: document.getElementById('back-to-start-btn'),
+            resetRankBtn: document.getElementById('reset-rank-btn')
+        };
+
+        function init() {
+            els.mainTitle.textContent = config.mainTitle;
+            els.subTitleText.textContent = config.title;
+            els.pageCircle.textContent = config.page;
+            els.totalQNum.textContent = config.questionCount;
+
+            loadStats();
+            updateHistoryDisplay();
+
+            els.startBtn.addEventListener('click', startGame);
+            els.backStartBtn.addEventListener('click', () => location.reload());
+            els.resetRankBtn.addEventListener('click', resetRank);
+
+            document.addEventListener('keydown', (e) => {
+                if (els.gameArea.style.display === 'flex' && !isAnswering) {
+                    if (e.key >= '0' && e.key <= '9') inputNum(parseInt(e.key));
+                    if (e.key === 'Backspace') deleteNum();
+                    if (e.key === 'Enter') checkAnswer();
+                } else if (e.key === 'Enter') {
+                    if (els.startArea.style.display !== 'none') startGame();
+                    else if (els.resultArea.style.display !== 'none') location.reload();
+                }
+            });
+            
+            const modal = document.getElementById('info-modal');
+            document.getElementById('bulb-btn').onclick = () => modal.style.display = 'block';
+            document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
+            window.onclick = (e) => { if(e.target == modal) modal.style.display = 'none'; };
+        }
+
+        function loadStats() {
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = localStorage.getItem(todayKey) || 0;
+            const total = localStorage.getItem(KEY_CLEAR) || 0;
+            const highScore = localStorage.getItem(KEY_HS) || 0;
+
+            els.dailyCountStart.textContent = daily;
+            els.totalCountStart.textContent = total;
+            els.highScoreDisplay.textContent = highScore;
+            els.highScoreResult.textContent = highScore;
+            els.dailyCountResult.textContent = daily;
+            els.totalCountResult.textContent = total;
+        }
+
+        function updateHistoryDisplay() {
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            els.historyList.innerHTML = history.map(h => `
+                <li>
+                    <span style="font-size:0.8rem; color:#555;">${h.date}</span>
+                    <span>${h.stars}</span>
+                    <span style="font-weight:bold; color:var(--c-primary-dark);">
+                        ${h.score}点 <span style="font-size:0.85rem; color:#333; margin-left:5px;">(${h.time}びょう)</span>
+                    </span>
+                </li>
+            `).join('');
+        }
+
+        function generateProblems() {
+            const arr = [];
+            
+            // パターン1：答えが10をこえない (5問)
+            // a + b + c <= 10
+            for (let i = 0; i < 5; i++) {
+                let a, b, c;
+                do {
+                    a = Math.floor(Math.random() * 6) + 1; // 1~6
+                    b = Math.floor(Math.random() * (10 - a - 1)) + 1;
+                    c = Math.floor(Math.random() * (10 - a - b)) + 1;
+                } while ((a + b + c) > 10);
+                
+                arr.push({ 
+                    text: `${a} + ${b} + ${c} = `, 
+                    answer: a + b + c 
+                });
+            }
+            
+            // パターン2：はじめ二つの項を足すと10になる (5問)
+            // a + b = 10,  10 + c = ?
+            for (let i = 0; i < 5; i++) {
+                const a = Math.floor(Math.random() * 9) + 1; // 1~9
+                const b = 10 - a;
+                const c = Math.floor(Math.random() * 10) + 1; // 1~10
+                
+                arr.push({ 
+                    text: `${a} + ${b} + ${c} = `, 
+                    answer: 10 + c 
+                });
+            }
+            
+            // 混ぜるかどうか... 教科書の流れ的には混ぜないほうが学習効果が高い場合もあるが、
+            // ゲームとしてはランダムの方が面白い。今回はパターン1→2の順序固定にしますか？
+            // 「一問一答」なので、ランダムに混ぜて出題します。
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startGame() {
+            problems = generateProblems();
+            currentProblemIndex = 0;
+            totalMistakeCount = 0;
+            startTime = Date.now();
+            els.startArea.style.display = 'none';
+            els.resultArea.style.display = 'none';
+            els.gameArea.style.display = 'flex';
+            showProblem();
+        }
+
+        function showProblem() {
+            isAnswering = false;
+            currentInput = "";
+            updateInputDisplay();
+            
+            const p = problems[currentProblemIndex];
+            els.currentQNum.textContent = currentProblemIndex + 1;
+            els.progressFill.style.width = `${(currentProblemIndex / config.questionCount) * 100}%`;
+            els.problemText.textContent = p.text;
+        }
+
+        inputNum = (num) => {
+            if (isAnswering) return;
+            if (currentInput.length >= 2) return;
+            currentInput += num;
+            updateInputDisplay();
+        };
+
+        deleteNum = () => {
+            if (isAnswering) return;
+            currentInput = currentInput.slice(0, -1);
+            updateInputDisplay();
+        };
+
+        function updateInputDisplay() {
+            if (currentInput === "") {
+                els.inputDisplay.innerHTML = '<span class="input-placeholder">?</span>';
+            } else {
+                els.inputDisplay.textContent = currentInput;
+            }
+        }
+
+        checkAnswer = () => {
+            if (isAnswering) return;
+            if (currentInput === "") return;
+
+            const userVal = parseInt(currentInput);
+            const p = problems[currentProblemIndex];
+            isAnswering = true;
+
+            if (userVal === p.answer) {
+                // 正解
+                showFeedback(true);
+                setTimeout(() => {
+                    currentProblemIndex++;
+                    if (currentProblemIndex < config.questionCount) {
+                        showProblem();
+                    } else {
+                        finishGame();
+                    }
+                }, 800);
+            } else {
+                // 不正解
+                showFeedback(false);
+                totalMistakeCount++;
+                currentInput = "";
+                updateInputDisplay();
+                isAnswering = false;
+            }
+        };
+
+        function showFeedback(isCorrect) {
+            const overlay = els.feedbackOverlay;
+            const mark = els.feedbackMark;
+            overlay.style.opacity = '1';
+            if (isCorrect) {
+                mark.textContent = '〇';
+                mark.className = 'mark mark-correct';
+            } else {
+                mark.textContent = '×';
+                mark.className = 'mark mark-wrong';
+            }
+            setTimeout(() => { overlay.style.opacity = '0'; }, 600);
+        }
+
+        function finishGame() {
+            els.gameArea.style.display = 'none';
+            els.resultArea.style.display = 'block';
+
+            const endTime = Date.now();
+            const elapsedSec = Math.floor((endTime - startTime) / 1000);
+            
+            // スコア計算
+            const standardTime = config.targetTimePerQuestion * config.questionCount; // 80秒
+            
+            let timeBonus = 0;
+            if (elapsedSec < standardTime) {
+                timeBonus = Math.floor((standardTime - elapsedSec) * 2.0); 
+            }
+            
+            const mistakePenalty = totalMistakeCount * 5;
+            let finalScore = config.baseScore + timeBonus - mistakePenalty;
+            if (finalScore < 0) finalScore = 0;
+            
+            // 全問正解保証
+            if (totalMistakeCount === 0 && finalScore < 100) finalScore = 100;
+
+            // スター判定
+            let stars = "★☆☆☆☆";
+            if (finalScore >= config.starThresholds.star5) stars = "★★★★★";
+            else if (finalScore >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (finalScore >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (finalScore >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+            els.resultStars.textContent = stars;
+            els.resultMsg.textContent = (totalMistakeCount === 0) ? "すごい！ かんぺき！" : "よくがんばったね！";
+            els.resultScore.innerHTML = `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:0.9rem; color:#555;">(タイム: ${elapsedSec}びょう / ミス: ${totalMistakeCount}かい)</span>`;
+
+            // 紙吹雪
+            if (finalScore >= config.starThresholds.star3) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FFEB3B', '#76FF03', '#FFFFFF'] });
+            }
+
+            saveData(finalScore, stars, elapsedSec);
+        }
+
+        function saveData(score, stars, elapsedSec) {
+            const total = parseInt(localStorage.getItem(KEY_CLEAR) || 0) + 1;
+            localStorage.setItem(KEY_CLEAR, total);
+
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = parseInt(localStorage.getItem(todayKey) || 0) + 1;
+            localStorage.setItem(todayKey, daily);
+
+            const oldHigh = parseInt(localStorage.getItem(KEY_HS) || 0);
+            if (score > oldHigh) localStorage.setItem(KEY_HS, score);
+
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            history.unshift({ date: dateStr, score: score, stars: stars, time: elapsedSec });
+            if (history.length > 5) history.pop();
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
+
+            loadStats();
+            updateHistoryDisplay();
+        }
+
+        function resetRank() {
+            if(confirm("ハイスコアと　ランクを　リセットしますか？")) {
+                localStorage.removeItem(KEY_HS);
+                alert("リセットしました。");
+                location.reload();
+            }
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
