@@ -198,9 +198,28 @@
         "name": "１３　たしざん(2)",
         "apps": [
           {
-            "id": "63-5_kuriagari_tasizan",
-            "title": "くりあがりのあるたし算",
-            "path": "1nen/13_tashizan2/63-5_kuriagari_tasizan.html"
+            "id": "11_no_card",
+            "title": "１１の　かあど",
+            "path": "1nen/13_tashizan2/66_11_no_card.html",
+            "page": "66"
+          },
+          {
+            "id": "sakuranbo_zan_1",
+            "title": "さくらんぼざん①",
+            "path": "1nen/13_tashizan2/63_sakuranbo_zan_1.html",
+            "page": "63"
+          },
+          {
+            "id": "sakuranbo_zan_2",
+            "title": "さくらんぼざん②",
+            "path": "1nen/13_tashizan2/65_sakuranbo_zan_2.html",
+            "page": "65"
+          },
+          {
+            "id": "tashizan_card",
+            "title": "たしざんの　かあど",
+            "path": "1nen/13_tashizan2/66_tashizan_card.html",
+            "page": "66"
           }
         ]
       },
