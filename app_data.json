@@ -231,9 +231,22 @@
         "name": "１５　ひきざん(2)",
         "apps": [
           {
-            "id": "79-5_hikizan_kurisagari",
-            "title": "くりさがりのあるひきざん",
-            "path": "1nen/15_hikizan2/79-5_hikizan_kurisagari.html"
+            "id": "82_9_no_card",
+            "title": "９の　かあど",
+            "path": "1nen/15_hikizan2/82_9_no_card.html",
+            "page": "82"
+          },
+          {
+            "id": "kurisagari_hikizan",
+            "title": "くりさがりのある　ひきざん",
+            "path": "1nen/15_hikizan2/80_kurisagari_hikizan.html",
+            "page": "80"
+          },
+          {
+            "id": "sakuranbo_zan_3",
+            "title": "さくらんぼざん③",
+            "path": "1nen/15_hikizan2/79_sakuranbo_zan_3.html",
+            "page": "79"
           }
         ]
       },
@@ -241,14 +254,16 @@
         "name": "１６　0の たしざんと ひきざん",
         "apps": [
           {
-            "id": "88-2_0no_tasizan",
+            "id": "0_no_tashizan",
             "title": "０のたしざん",
-            "path": "1nen/16_zero_keisan/88-2_0no_tasizan.html"
+            "path": "1nen/16_zero_keisan/88_0_no_tashizan.html",
+            "page": "88"
           },
           {
-            "id": "89-4_0no_hikizan",
+            "id": "89_0_no_hikizan",
             "title": "０のひきざん",
-            "path": "1nen/16_zero_keisan/89-4_0no_hikizan.html"
+            "path": "1nen/16_zero_keisan/89_0_no_hikizan.html",
+            "page": "89"
           }
         ]
       },
@@ -260,14 +275,51 @@
         "name": "１８　大きい かず",
         "apps": [
           {
-            "id": "103-3_100madeno_kazu",
-            "title": "１００までのかず",
-            "path": "1nen/18_ookii_kazu/103-3_100madeno_kazu.html"
+            "id": "109_kazu_no_yomikata",
+            "title": "１０９　かずの　よみかた",
+            "path": "1nen/18_ookii_kazu/109_nedan_yomi_quiz.html"
           },
           {
-            "id": "100-3_kazuno_kakikata",
-            "title": "かずの　かきかた",
-            "path": "1nen/18_ookii_kazu/100-3_kazuno_kakikata.html"
+            "id": "107_okane_no_dashikata",
+            "title": "１８　大きいかず",
+            "path": "1nen/18_ookii_kazu/107_okane_no_dashikata.html",
+            "page": "107"
+          },
+          {
+            "id": "105_ato_ikutsu_de_100",
+            "title": "あといくつで１００？",
+            "path": "1nen/18_ookii_kazu/105_ato_ikutsu_de_100.html",
+            "page": "105"
+          },
+          {
+            "id": "105_kazu_card_no_narabikata",
+            "title": "かずかあどの　ならびかた",
+            "path": "1nen/18_ookii_kazu/105_kazu_card_no_narabikata.html",
+            "page": "105"
+          },
+          {
+            "id": "103_kazu_no_junjo",
+            "title": "かずの　ならび",
+            "path": "1nen/18_ookii_kazu/103_kazu_no_junjo.html",
+            "page": "103"
+          },
+          {
+            "id": "104_kazu_no_ookisa",
+            "title": "かずの　大きいほう",
+            "path": "1nen/18_ookii_kazu/104_kazu_no_ookisa.html",
+            "page": "104"
+          },
+          {
+            "id": "101_kazu_no_shikumi",
+            "title": "かずのしくみ（総合）",
+            "path": "1nen/18_ookii_kazu/101_kazu_no_shikumi.html",
+            "page": "101"
+          },
+          {
+            "id": "105_kazu_narabekae",
+            "title": "かずを　ならべよう",
+            "path": "1nen/18_ookii_kazu/105_kazu_narabekae.html",
+            "page": "105"
           }
         ]
       },
@@ -317,6 +369,16 @@
   {
     "grade": "2年",
     "units": [
+      {
+        "name": "〇　　わくわく　ぷろぐらみんぐ",
+        "apps": [
+          {
+            "id": "94_wakuwaku_programming",
+            "title": "クリア！",
+            "path": "1nen/wakuwaku_programning/94_wakuwaku_programming.html"
+          }
+        ]
+      },
       {
         "name": "１　　ひょうと グラフ",
         "apps": []

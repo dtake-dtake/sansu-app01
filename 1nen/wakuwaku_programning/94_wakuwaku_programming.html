@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>わくわく　ぷろぐらみんぐ</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-bg: #E0F7FA;
+            --c-primary: #00838F;
+            --c-accent: #FF6F00;
+            --c-btn-text: #fff;
+            
+            --c-up: #29B6F6;
+            --c-right: #FF7043;
+            --c-down: #66BB6A;
+            --c-left: #FFA726;
+
+            --cell-size: 65px; /* 基本サイズ */
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg);
+            color: #37474F;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px; margin: 0; min-height: 100vh;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- スタート画面 --- */
+        #start-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; max-width: 500px; margin-top: 30px; gap: 20px;
+        }
+        .title-logo {
+            font-size: 2rem; color: var(--c-primary); font-weight: 800;
+            text-shadow: 2px 2px 0 #fff; margin-bottom: 10px; text-align: center;
+        }
+        
+        .level-card {
+            background: #fff; width: 90%; padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1); border: 3px solid var(--c-primary);
+            cursor: pointer; transition: transform 0.1s; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        .level-card:active { transform: scale(0.98); }
+        .level-info h3 { margin: 0; font-size: 1.3rem; color: var(--c-primary); }
+        .level-info p { margin: 5px 0 0; font-size: 0.9rem; color: #555; }
+        .level-score {
+            background: #E0F2F1; padding: 5px 10px; border-radius: 10px;
+            font-weight: bold; color: #00695C; font-size: 0.9rem;
+        }
+
+        /* --- ゲーム画面 --- */
+        #game-screen { display: none; width: 100%; flex-direction: column; align-items: center; }
+
+        header {
+            width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+        }
+        .btn-back {
+            background: #B0BEC5; border: none; padding: 8px 15px; border-radius: 20px;
+            color: #fff; font-weight: bold; cursor: pointer;
+        }
+
+        #game-container {
+            display: flex; gap: 15px; align-items: flex-start;
+            flex-wrap: wrap; justify-content: center; width: 100%;
+        }
+
+        /* マップ */
+        #map-area {
+            position: relative; background: #fff; border: 5px solid var(--c-primary);
+            border-radius: 15px; padding: 5px; box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        #grid {
+            display: grid; gap: 2px; background: #B2DFDB;
+            /* grid-template-columns/rows はJSで設定 */
+        }
+        .cell {
+            background: #fff; display: flex; justify-content: center; align-items: center;
+            font-size: 2.2rem; /* アイテム大きく */
+        }
+        #robot {
+            position: absolute; display: flex; justify-content: center; align-items: center;
+            font-size: 2.5rem; z-index: 100; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* プログラム表示 */
+        #code-panel {
+            width: 150px; background: #fff; border-radius: 12px;
+            display: flex; flex-direction: column; height: 350px;
+            border: 3px solid #90A4AE;
+        }
+        #workspace-header {
+            background: #90A4AE; padding: 5px; font-size: 0.9rem;
+            text-align: center; font-weight: bold; color: #fff;
+        }
+        #workspace {
+            flex-grow: 1; overflow-y: auto; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
+            background: #ECEFF1; gap: 0;
+        }
+        .block {
+            width: 120px; height: 38px; color: #fff; font-weight: 800;
+            font-size: 0.85rem; display: flex; align-items: center; 
+            padding-left: 10px; margin-bottom: -4px;
+            clip-path: polygon(0% 0%, 20% 0%, 25% 10%, 45% 10%, 50% 0%, 100% 0%, 100% 90%, 50% 90%, 45% 100%, 25% 100%, 20% 90%, 0% 90%);
+        }
+        .b-up { background: var(--c-up); }
+        .b-right { background: var(--c-right); }
+        .b-down { background: var(--c-down); }
+        .b-left { background: var(--c-left); }
+        .b-active { filter: brightness(1.2); transform: scale(1.05); z-index: 10; }
+
+        /* 操作パネル */
+        #ui-panel {
+            width: 100%; max-width: 400px; margin-top: 15px;
+            display: flex; flex-direction: column; gap: 15px; align-items: center;
+        }
+
+        /* 十字キーレイアウト (3x3 Grid) */
+        .d-pad {
+            display: grid;
+            grid-template-columns: 80px 80px 80px;
+            grid-template-rows: 60px 60px 60px;
+            gap: 5px;
+        }
+        .d-btn {
+            border: none; border-radius: 12px; color: #fff; font-weight: 800;
+            font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            display: flex; justify-content: center; align-items: center; font-family: inherit;
+        }
+        .d-btn:active { transform: translateY(3px); box-shadow: none; }
+
+        /* Grid配置 */
+        .btn-up { grid-column: 2; grid-row: 1; background: var(--c-up); }
+        .btn-left { grid-column: 1; grid-row: 2; background: var(--c-left); }
+        .btn-right { grid-column: 3; grid-row: 2; background: var(--c-right); }
+        .btn-down { grid-column: 2; grid-row: 3; background: var(--c-down); }
+        /* 真ん中は空き */
+
+        .sub-controls { display: flex; gap: 10px; width: 100%; justify-content: center; }
+        .btn-sub {
+            background: #CFD8DC; color: #455A64; border: none; padding: 10px 15px;
+            border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.9rem;
+        }
+        .btn-run {
+            background: #FFCA28; color: #3E2723; padding: 15px; width: 90%;
+            font-size: 1.4rem; border: none; border-radius: 50px; font-weight: 800;
+            box-shadow: 0 6px 0 #FF8F00; cursor: pointer;
+        }
+        .btn-run:active { transform: translateY(3px); box-shadow: 0 2px 0 #FF8F00; }
+
+        /* モーダル */
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center;
+        }
+        .modal-content { 
+            background: #fff; padding: 30px; border-radius: 20px; 
+            text-align: center; border: 6px solid #FFD54F; width: 80%; max-width: 350px;
+            animation: popIn 0.3s;
+        }
+        @keyframes popIn { from { transform: scale(0.5); } to { transform: scale(1); } }
+
+        /* スマホ調整 */
+        @media (max-width: 500px) {
+            :root { --cell-size: 14vw; } /* マスサイズ調整 */
+            .d-pad { grid-template-columns: 60px 60px 60px; grid-template-rows: 50px 50px 50px; }
+            .d-btn { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <div class="title-logo">🤖 わくわく<br>ぷろぐらみんぐ</div>
+        
+        <div class="level-card" onclick="startGame(1)">
+            <div class="level-info">
+                <h3>れべる１ (かんたん)</h3>
+                <p>まっぷ: せまい / アイテム: 2こ</p>
+            </div>
+            <div class="level-score">クリア: <span id="lv1-count">0</span></div>
+        </div>
+
+        <div class="level-card" onclick="startGame(2)">
+            <div class="level-info">
+                <h3>れべる２ (ふつう)</h3>
+                <p>まっぷ: ふつう / アイテム: 3こ</p>
+            </div>
+            <div class="level-score">クリア: <span id="lv2-count">0</span></div>
+        </div>
+
+        <div class="level-card" onclick="startGame(3)">
+            <div class="level-info">
+                <h3>れべる３ (むずかしい)</h3>
+                <p>まっぷ: ひろい / アイテム: 4こ</p>
+            </div>
+            <div class="level-score">クリア: <span id="lv3-count">0</span></div>
+        </div>
+    </div>
+
+    <div id="game-screen">
+        <header>
+            <button class="btn-back" onclick="toTitle()">↩ もどる</button>
+            <div style="font-weight:bold; color:var(--c-primary);">
+                <span id="level-title-disp"></span>
+            </div>
+        </header>
+
+        <div id="game-container">
+            <div id="map-area">
+                <div id="robot"><span>🤖</span></div>
+                <div id="grid"></div>
+            </div>
+
+            <div id="code-panel">
+                <div id="workspace-header">プログラム</div>
+                <div id="workspace">
+                    <div id="empty-hint" style="color:#90A4AE; font-size:0.75rem; margin-top:30px; text-align:center;">
+                        ブロックを<br>えらんでね
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ui-panel">
+            <div class="d-pad">
+                <button class="d-btn btn-up" onclick="addCmd('up')">↑</button>
+                <button class="d-btn btn-left" onclick="addCmd('left')">←</button>
+                <button class="d-btn btn-right" onclick="addCmd('right')">→</button>
+                <button class="d-btn btn-down" onclick="addCmd('down')">↓</button>
+            </div>
+
+            <div class="sub-controls">
+                <button class="btn-sub" onclick="deleteOne()">ひとつ けす</button>
+                <button class="btn-sub" onclick="clearAll()">ぜんぶ けす</button>
+            </div>
+            
+            <button class="btn-run" id="run-btn" onclick="startProg()">スタート！</button>
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <h2 style="color:#FF6F00; margin:0 0 10px;">クリア！</h2>
+            <div style="font-size:3rem; margin:10px 0;">🎉</div>
+            <p style="font-weight:bold; margin-bottom:5px;">アイテム コンプリート！</p>
+            <p style="color:#00695C; font-size:0.9rem;">
+                <span id="current-lv-label"></span> クリア: <span id="new-clear-count" style="font-size:1.4rem; font-weight:bold;"></span> 回目
+            </p>
+            <button class="btn-run" style="font-size:1.1rem; margin-top:15px;" onclick="resetGameForNext()">つぎへ</button>
+            <button class="btn-sub" style="margin-top:10px; background:none;" onclick="toTitle()">タイトルへ</button>
+        </div>
+    </div>
+
+    <script>
+        // 設定データ
+        const LEVELS = {
+            1: { rows: 3, cols: 4, items: 2, label: "れべる１" },
+            2: { rows: 4, cols: 5, items: 3, label: "れべる２" }, // 教科書サイズ
+            3: { rows: 5, cols: 5, items: 4, label: "れべる３" }
+        };
+
+        // アイテムリスト (15種類)
+        const ALL_ITEMS = ['🔋','🔩','💡','⚙️','💊','💎','🔑','🍎','🧸','🎈','📷','🚗','🚀','⭐️','🍩'];
+
+        let currentLevel = 1;
+        let config = LEVELS[1];
+        let currentPos = { r: 0, c: 0 };
+        let startPos = { r: 0, c: 0 };
+        let cmds = [];
+        let items = [];
+        let isRunning = false;
+
+        // 初期化: スタート画面のクリア数表示
+        function initTitle() {
+            document.getElementById('lv1-count').textContent = localStorage.getItem('prog_lv1_clear') || 0;
+            document.getElementById('lv2-count').textContent = localStorage.getItem('prog_lv2_clear') || 0;
+            document.getElementById('lv3-count').textContent = localStorage.getItem('prog_lv3_clear') || 0;
+        }
+
+        // ゲーム開始
+        window.startGame = (lv) => {
+            currentLevel = lv;
+            config = LEVELS[lv];
+            
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+            document.getElementById('level-title-disp').textContent = config.label;
+
+            initGameBoard();
+        };
+
+        // タイトルへ戻る
+        window.toTitle = () => {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'flex';
+            initTitle(); // クリア数更新
+        };
+
+        // ゲーム盤面の初期化
+        function initGameBoard() {
+            // グリッド作成 (CSS GridをJSで動的設定)
+            const grid = document.getElementById('grid');
+            grid.style.gridTemplateRows = `repeat(${config.rows}, var(--cell-size))`;
+            grid.style.gridTemplateColumns = `repeat(${config.cols}, var(--cell-size))`;
+            grid.innerHTML = '';
+
+            // スタート位置: 左下 (行数-1, 0)
+            startPos = { r: config.rows - 1, c: 0 };
+            currentPos = { ...startPos };
+
+            // アイテム抽選
+            items = [];
+            let availableCells = [];
+            for(let r=0; r<config.rows; r++){
+                for(let c=0; c<config.cols; c++){
+                    // スタート位置以外
+                    if(r !== startPos.r || c !== startPos.c) {
+                        availableCells.push({r,c});
+                    }
+                }
+            }
+            // ランダムにセルを選ぶ
+            for(let i=0; i<config.items; i++){
+                if(availableCells.length === 0) break;
+                const idx = Math.floor(Math.random() * availableCells.length);
+                const pos = availableCells.splice(idx, 1)[0];
+                // アイコンもランダム
+                const icon = ALL_ITEMS[Math.floor(Math.random() * ALL_ITEMS.length)];
+                items.push({ ...pos, icon });
+            }
+
+            // セル生成
+            for (let r = 0; r < config.rows; r++) {
+                for (let c = 0; c < config.cols; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `c-${r}-${c}`;
+                    
+                    const it = items.find(i => i.r === r && i.c === c);
+                    if (it) cell.textContent = it.icon;
+                    
+                    grid.appendChild(cell);
+                }
+            }
+
+            // ロボットサイズ調整（セルサイズに合わせる）
+            const rb = document.getElementById('robot');
+            rb.style.width = 'var(--cell-size)';
+            rb.style.height = 'var(--cell-size)';
+            
+            clearAll(false); // 内部リセット
+        }
+
+        function updateRobot() {
+            const rb = document.getElementById('robot');
+            const target = document.getElementById(`c-${currentPos.r}-${currentPos.c}`);
+            if(target){
+                rb.style.left = target.offsetLeft + 'px';
+                rb.style.top = target.offsetTop + 'px';
+            }
+        }
+
+        // コマンド追加
+        window.addCmd = (type) => {
+            if (isRunning || cmds.length >= 15) return;
+            cmds.push(type);
+            renderWorkspace();
+        };
+
+        window.deleteOne = () => {
+            if (isRunning) return;
+            cmds.pop();
+            renderWorkspace();
+        };
+
+        window.clearAll = (render = true) => {
+            if (isRunning) return;
+            cmds = [];
+            currentPos = { ...startPos };
+            updateRobot();
+            if(render) renderWorkspace();
+            items.forEach(i => {
+                const el = document.getElementById(`c-${i.r}-${i.c}`);
+                if(el) el.style.opacity = '1';
+            });
+        };
+
+        function renderWorkspace() {
+            const ws = document.getElementById('workspace');
+            if (cmds.length === 0) {
+                ws.innerHTML = '<div id="empty-hint" style="color:#90A4AE; font-size:0.75rem; margin-top:30px; text-align:center;">ブロックを<br>えらんでね</div>';
+                return;
+            }
+            
+            const labels = { up:'↑うえ', right:'→みぎ', down:'↓した', left:'←ひだり' };
+            const classes = { up:'b-up', right:'b-right', down:'b-down', left:'b-left' };
+
+            ws.innerHTML = cmds.map((c, i) => `
+                <div class="block ${classes[c]}" id="b-${i}">
+                    ${labels[c]}
+                </div>
+            `).join('');
+            ws.scrollTop = ws.scrollHeight;
+        }
+
+        // プログラム実行
+        window.startProg = async () => {
+            if (isRunning || cmds.length === 0) return;
+            isRunning = true;
+            document.getElementById('run-btn').disabled = true;
+
+            // スタート位置へ
+            currentPos = { ...startPos };
+            updateRobot();
+            await new Promise(r => setTimeout(r, 400));
+
+            for (let i = 0; i < cmds.length; i++) {
+                const b = document.getElementById(`b-${i}`);
+                if(b) b.classList.add('b-active');
+                
+                // 移動処理
+                let nextR = currentPos.r;
+                let nextC = currentPos.c;
+
+                if (cmds[i] === 'up') nextR--;
+                else if (cmds[i] === 'right') nextC++;
+                else if (cmds[i] === 'down') nextR++;
+                else if (cmds[i] === 'left') nextC--;
+                
+                // 範囲内なら移動
+                if (nextR >= 0 && nextR < config.rows && nextC >= 0 && nextC < config.cols) {
+                    currentPos.r = nextR;
+                    currentPos.c = nextC;
+                }
+                
+                updateRobot();
+                await new Promise(r => setTimeout(r, 600));
+                
+                // アイテムチェック
+                const item = items.find(it => it.r === currentPos.r && it.c === currentPos.c);
+                if (item) {
+                    const cell = document.getElementById(`c-${item.r}-${item.c}`);
+                    if(cell) cell.style.opacity = '0.2';
+                }
+                
+                if(b) b.classList.remove('b-active');
+            }
+
+            // 判定
+            const collected = items.filter(it => 
+                document.getElementById(`c-${it.r}-${it.c}`).style.opacity === '0.2'
+            ).length;
+
+            if (collected === items.length) {
+                // クリア保存
+                const key = `prog_lv${currentLevel}_clear`;
+                const count = parseInt(localStorage.getItem(key) || 0) + 1;
+                localStorage.setItem(key, count);
+                
+                document.getElementById('current-lv-label').textContent = config.label;
+                document.getElementById('new-clear-count').textContent = count;
+                
+                confetti();
+                setTimeout(() => document.getElementById('modal').style.display = 'flex', 500);
+            } else {
+                alert("おしい！ アイテムを ぜんぶ とれるように かんがえてみてね！");
+            }
+
+            isRunning = false;
+            document.getElementById('run-btn').disabled = false;
+        };
+
+        window.resetGameForNext = () => {
+            document.getElementById('modal').style.display = 'none';
+            initGameBoard();
+        };
+
+        // 初期ロード
+        window.onload = initTitle;
+    </script>
+</body>
+</html>

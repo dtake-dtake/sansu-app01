@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>かずのしくみ（総合）</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        /* ▼▼▼ テーマ：メカニック・ファクトリー ▼▼▼ */
+        :root {
+            --c-bg-main: #ECEFF1;         /* 工場の壁色 */
+            --c-primary: #37474F;         /* 鉄骨のダークグレー */
+            --c-primary-light: #546E7A;   /* マシンのグレー */
+            --c-accent: #FFD600;          /* 注意喚起の黄色 */
+            --c-highlight: #00B0FF;       /* エネルギーの青 */
+            --c-text-main: #263238;       
+            
+            --c-card-bg: #FFFFFF;
+            --c-input-bg: #FFFFFF;
+            
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main); 
+            color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            /* 背景：方眼紙のようなグリッド */
+            background-image: 
+                linear-gradient(var(--c-primary-light) 1px, transparent 1px),
+                linear-gradient(90deg, var(--c-primary-light) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-color: #ECEFF1;
+            /* グリッドを薄く */
+            background-blend-mode: overlay;
+            opacity: 1;
+        }
+
+        h1, h2 { text-align: center; color: var(--c-primary); margin: 10px 0; letter-spacing: 1px; }
+        h1 { font-size: 1.5rem; text-shadow: 2px 2px 0 #fff; }
+        
+        h2 { 
+            font-size: 1.2rem; 
+            background: #fff;
+            border: 3px solid var(--c-primary);
+            padding: 8px 25px; 
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background-color: var(--c-primary); color: #fff;
+            font-weight: 800; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+            border: 2px solid var(--c-accent);
+        }
+
+        /* スタート画面 */
+        #start-area {
+            text-align: center; margin-top: 40px;
+            background: rgba(255,255,255,0.95);
+            padding: 40px; border-radius: 20px;
+            border: 4px solid var(--c-primary);
+            width: 90%; max-width: 600px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .stats-box {
+            background: #CFD8DC;
+            border-radius: 10px; padding: 15px; margin: 20px 0;
+            color: var(--c-primary); font-weight: bold;
+            border: 2px dashed var(--c-primary);
+        }
+
+        button {
+            font-family: var(--font-family);
+            font-size: 1.4rem; padding: 15px 40px; border: 3px solid var(--c-primary); border-radius: 50px;
+            background-color: var(--c-accent); color: var(--c-primary);
+            cursor: pointer; transition: transform 0.1s; font-weight: 800;
+            box-shadow: 0 6px 0 var(--c-primary);
+            margin: 10px;
+        }
+        button:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--c-primary); }
+
+        /* ゲーム画面 */
+        #game-area { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
+        
+        .progress-container {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px;
+            background: #fff; padding: 10px 20px; border-radius: 50px;
+            border: 2px solid var(--c-primary);
+        }
+        .question-counter { font-size: 1.2rem; font-weight: 800; color: var(--c-primary); }
+
+        /* 問題カード */
+        .problem-card {
+            width: 100%; 
+            background: var(--c-card-bg);
+            border: 4px solid var(--c-primary);
+            border-radius: 20px;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.1);
+            padding: 30px 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative;
+            margin-bottom: 20px;
+            min-height: 200px;
+        }
+
+        .problem-text {
+            font-size: 1.8rem; font-weight: 800; color: var(--c-primary);
+            text-align: center; line-height: 1.6; width: 100%;
+        }
+        .highlight { color: var(--c-highlight); font-size: 2.2rem;}
+        .accent { color: #E91E63; font-size: 2.2rem; }
+
+        /* 入力エリア（可変） */
+        .input-area {
+            display: flex; gap: 15px; align-items: center; justify-content: center;
+            margin-top: 25px; width: 100%;
+        }
+        
+        /* 答えの箱 */
+        .answer-box {
+            width: 100px; height: 80px;
+            border: 3px solid var(--c-primary);
+            border-radius: 12px;
+            background: #ECEFF1;
+            text-align: center;
+            font-size: 2.5rem; line-height: 74px;
+            color: var(--c-primary);
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .answer-box.active {
+            background-color: #FFF;
+            border-color: var(--c-highlight);
+            box-shadow: 0 0 15px var(--c-highlight);
+            transform: scale(1.05);
+        }
+        .answer-box.filled { background-color: #FFF; }
+        
+        .answer-label { font-size: 1.2rem; font-weight: bold; color: var(--c-primary-light); }
+
+        /* キーパッド */
+        .keypad-area {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            width: 100%; max-width: 350px;
+        }
+        .key-btn {
+            font-size: 1.8rem; padding: 15px 0; border-radius: 12px;
+            background: #fff; border: 2px solid var(--c-primary);
+            box-shadow: 0 4px 0 var(--c-primary-light);
+            color: var(--c-primary); font-weight: bold;
+            cursor: pointer; margin: 0;
+        }
+        .key-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .key-enter {
+            background: var(--c-accent); color: var(--c-primary);
+            border-color: var(--c-primary);
+            box-shadow: 0 4px 0 #FBC02D;
+        }
+        .key-bs {
+            background: #CFD8DC; color: var(--c-primary);
+            border-color: var(--c-primary-light);
+            box-shadow: 0 4px 0 #90A4AE;
+            font-size: 1.4rem; display:flex; align-items:center; justify-content:center;
+        }
+
+        /* フィードバック */
+        .feedback-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            pointer-events: none; z-index: 20; opacity: 0; transition: opacity 0.2s;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.8);
+        }
+        .mark { font-size: 10rem; font-weight: bold; -webkit-text-stroke: 4px #fff; filter: drop-shadow(0 0 10px rgba(0,0,0,0.2));}
+        .mark-correct { color: #E91E63; }
+        .mark-wrong { color: #0277BD; }
+
+        /* リザルト */
+        #result-area {
+            display: none;
+            width: 90%; max-width: 500px; margin: 20px auto; padding: 25px;
+            background: #fff; border-radius: 20px; 
+            border: 4px solid var(--c-primary); text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .status-stars { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FFB300; display:block; margin: 10px 0;}
+        
+        #history-area { margin-top: 20px; font-size: 0.9rem; text-align: left; background: #ECEFF1; padding:15px; border-radius:10px; border: 2px dashed var(--c-primary);}
+        #history-list { list-style: none; padding: 0; }
+        #history-list li { 
+            border-bottom: 1px dashed var(--c-primary-light); padding: 8px 0; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* モーダル */
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 50px; height: 50px; padding:0; margin:0;
+            border-radius: 50%; background: #fff; border: 3px solid var(--c-accent); 
+            color: var(--c-accent); font-size: 2rem; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 30px; border: 4px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 500px; position:relative; color: var(--c-primary);}
+        .close-modal { position:absolute; right:15px; top:10px; font-size: 30px; cursor: pointer; color:var(--c-primary);}
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="せつめい">？</button>
+
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">あそびかた</h3>
+        <p>３つの　タイプの　もんだいが　でるよ！</p>
+        <div style="background:#ECEFF1; padding:15px; border-radius:10px; margin:15px 0; line-height:1.6; font-size:0.9rem;">
+            <strong>① くらい（ばしょ）の　もんだい</strong><br>
+            「十のくらいが４、一のくらいが９」→ ４９<br><br>
+            <strong>② あわせる（ごうせい）　もんだい</strong><br>
+            「10が７つと、1が５つ」→ ７５<br><br>
+            <strong>③ わける（ぶんかい）　もんだい</strong><br>
+            「５６は、10が□つと、1が□つ」<br>
+            → ５ と ６ をにゅうりょく！
+        </div>
+        <button onclick="document.getElementById('info-modal').style.display='none'" style="width:100%; margin:20px 0 0 0;">わかった！</button>
+      </div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <div style="font-size:4rem; margin:10px 0;">🤖</div>
+        <p style="font-weight:bold; font-size:1.4rem; margin:10px 0; color:var(--c-primary);">かずを　つくったり<br>わけたり　しよう！</p>
+        
+        <div class="stats-box">
+            ハイスコア: <span id="high-score-display" style="font-size:1.5rem; color:var(--c-accent); text-shadow:1px 1px 0 #555;">0</span> 点
+        </div>
+        
+        <div style="margin:15px 0; font-size:0.95rem;">
+            きょうのクリア：<span id="daily-count-start">0</span> かい<br>
+            ごうけいクリア：<span id="total-count-start">0</span> かい
+        </div>
+
+        <button id="start-btn">はじめる (Enter)</button>
+    </div>
+
+    <div id="game-area">
+        <div class="progress-container">
+            <div class="question-counter">もんだい <span id="current-q-num">1</span> / <span id="total-q-num">6</span></div>
+            <div style="font-weight:bold; color:var(--c-primary);">101　かずのかきかた</div>
+        </div>
+
+        <div class="problem-card" id="current-problem-card">
+            <div class="feedback-overlay" id="feedback-overlay">
+                <div class="mark" id="feedback-mark"></div>
+            </div>
+            
+            <div class="problem-text" id="problem-text">
+                </div>
+
+            <div class="input-area" id="input-area"></div>
+        </div>
+
+        <div class="keypad-area">
+            <button class="key-btn" onclick="inputNum(7)">7</button>
+            <button class="key-btn" onclick="inputNum(8)">8</button>
+            <button class="key-btn" onclick="inputNum(9)">9</button>
+            
+            <button class="key-btn" onclick="inputNum(4)">4</button>
+            <button class="key-btn" onclick="inputNum(5)">5</button>
+            <button class="key-btn" onclick="inputNum(6)">6</button>
+            
+            <button class="key-btn" onclick="inputNum(1)">1</button>
+            <button class="key-btn" onclick="inputNum(2)">2</button>
+            <button class="key-btn" onclick="inputNum(3)">3</button>
+            
+            <button class="key-btn key-bs" onclick="deleteNum()">けす</button>
+            <button class="key-btn" onclick="inputNum(0)">0</button>
+            <button class="key-btn key-enter" id="enter-btn" onclick="handleEnterKey()">OK</button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="border:none; background:none; font-size:2rem; color:var(--c-primary); margin:0;">けっか はっぴょう</h2>
+        <div id="result-stars" class="status-stars"></div>
+        <div id="result-msg" style="font-size:1.5rem; font-weight:bold; margin:10px 0;"></div>
+        <div id="result-score" style="font-size:1.2rem;"></div>
+        
+        <div style="font-weight:bold; color:var(--c-accent); text-shadow:1px 1px 0 #555; margin:10px 0;">
+            ハイスコア: <span id="high-score-result">0</span> 点
+        </div>
+        
+        <div class="stats-box" style="margin:20px 0;">
+            きょうのクリア：<span id="daily-count-result" style="font-size:1.2rem;">0</span> かい<br>
+            ごうけいクリア：<span id="total-count-result" style="font-size:1.2rem;">0</span> かい
+        </div>
+
+        <div id="history-area">
+            <strong>これまでの きろく（さいしん5けん）</strong>
+            <ul id="history-list"></ul>
+        </div>
+        
+        <button id="back-to-start-btn" style="margin-top:20px;">さいしょに もどる (Enter)</button>
+        <div style="margin-top:10px;">
+            <button id="reset-rank-btn" style="font-size:0.8rem; background:#CFD8DC; color:#546E7A; border-color:#90A4AE; padding:8px 15px; border-width:1px; box-shadow:none;">ハイスコアをけす</button>
+        </div>
+    </div>
+
+    <script>
+    // グローバル関数定義
+    let inputNum, deleteNum, checkAnswer, handleEnterKey, setFocus;
+
+    (function(){
+        const config = {
+            appId: "101_kazu_no_shikumi",
+            mainTitle: "１８　大きい かず",
+            title: "大きい かずの しくみ",
+            page: 101,
+            baseScore: 100,
+            questionCount: 6, // 各2問×3パターン
+            targetTime: 60, // 目標タイム
+            starThresholds: { star5: 180, star4: 150, star3: 120, star2: 90 }
+        };
+
+        // 状態変数
+        let problems = [];
+        let currentProblemIndex = 0;
+        let inputs = {}; // 動的キー: 'val' or 'tens','ones'
+        let currentFocusId = ""; 
+        let inputFieldOrder = [];
+        let startTime = 0;
+        let totalMistakeCount = 0;
+        let isAnswering = false;
+
+        // ストレージキー
+        const KEY_HS = `${config.appId}:highScore`;
+        const KEY_CLEAR = `${config.appId}:totalClear`;
+        const KEY_DAILY_PREFIX = `${config.appId}:dailyClear_`;
+        const KEY_HISTORY = `${config.appId}:history`;
+
+        // DOM要素
+        const els = {
+            mainTitle: document.getElementById('main-title'),
+            subTitleText: document.getElementById('sub-title-text'),
+            pageCircle: document.getElementById('page-circle'),
+            startArea: document.getElementById('start-area'),
+            gameArea: document.getElementById('game-area'),
+            resultArea: document.getElementById('result-area'),
+            
+            problemText: document.getElementById('problem-text'),
+            inputArea: document.getElementById('input-area'),
+            
+            currentQNum: document.getElementById('current-q-num'),
+            feedbackOverlay: document.getElementById('feedback-overlay'),
+            feedbackMark: document.getElementById('feedback-mark'),
+            
+            startBtn: document.getElementById('start-btn'),
+            enterBtn: document.getElementById('enter-btn'),
+            backStartBtn: document.getElementById('back-to-start-btn'),
+            resetRankBtn: document.getElementById('reset-rank-btn')
+        };
+
+        function init() {
+            els.mainTitle.textContent = config.mainTitle;
+            els.subTitleText.textContent = config.title;
+            els.pageCircle.textContent = config.page;
+
+            loadStats();
+            updateHistoryDisplay();
+
+            els.startBtn.addEventListener('click', startGame);
+            els.backStartBtn.addEventListener('click', () => location.reload());
+            els.resetRankBtn.addEventListener('click', resetRank);
+
+            document.addEventListener('keydown', (e) => {
+                if (els.gameArea.style.display === 'flex' && !isAnswering) {
+                    if (e.key >= '0' && e.key <= '9') inputNum(parseInt(e.key));
+                    else if (e.key === 'Backspace') { e.preventDefault(); deleteNum(); }
+                    else if (e.key === 'ArrowLeft') { e.preventDefault(); moveFocus(-1); }
+                    else if (e.key === 'ArrowRight') { e.preventDefault(); moveFocus(1); }
+                    else if (e.key === 'Enter') { e.preventDefault(); handleEnterKey(); }
+                } else if (e.key === 'Enter') {
+                    if (els.startArea.style.display !== 'none') startGame();
+                    else if (els.resultArea.style.display !== 'none') location.reload();
+                }
+            });
+            
+            const modal = document.getElementById('info-modal');
+            document.getElementById('bulb-btn').onclick = () => modal.style.display = 'block';
+            document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
+            window.onclick = (e) => { if(e.target == modal) modal.style.display = 'none'; };
+        }
+
+        function loadStats() {
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = localStorage.getItem(todayKey) || 0;
+            const total = localStorage.getItem(KEY_CLEAR) || 0;
+            const highScore = localStorage.getItem(KEY_HS) || 0;
+
+            document.getElementById('daily-count-start').textContent = daily;
+            document.getElementById('total-count-start').textContent = total;
+            document.getElementById('high-score-display').textContent = highScore;
+            document.getElementById('high-score-result').textContent = highScore;
+            document.getElementById('daily-count-result').textContent = daily;
+            document.getElementById('total-count-result').textContent = total;
+        }
+
+        function updateHistoryDisplay() {
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            document.getElementById('history-list').innerHTML = history.map(h => `
+                <li>
+                    <span style="font-size:0.8rem; color:#555;">${h.date}</span>
+                    <span>${h.stars}</span>
+                    <span style="font-weight:bold; color:var(--c-primary);">${h.score}点</span>
+                </li>
+            `).join('');
+        }
+
+        function generateProblems() {
+            const problems = [];
+            // 3つのパターンを2問ずつ生成
+            
+            // パターン1: 位取り（十のくらいがA、一のくらいがB）
+            // 20〜99の範囲で生成（10〜19は「十」の扱いが特殊な場合があるので今回はシンプルに）
+            for(let i=0; i<2; i++) {
+                const tens = Math.floor(Math.random() * 8) + 2; // 2~9
+                const ones = Math.floor(Math.random() * 10);    // 0~9
+                problems.push({
+                    type: 1,
+                    text: `十のくらいが <span class="highlight">${tens}</span>、<br>一のくらいが <span class="accent">${ones}</span> の かずは？`,
+                    ans: tens * 10 + ones,
+                    inputMode: 'single'
+                });
+            }
+
+            // パターン2: 合成（10がAつ、1がBつ）
+            for(let i=0; i<2; i++) {
+                const tens = Math.floor(Math.random() * 8) + 2;
+                const ones = Math.floor(Math.random() * 10);
+                problems.push({
+                    type: 2,
+                    text: `<span class="highlight">10</span>が <span class="highlight">${tens}</span>つと、<br><span class="accent">1</span>が <span class="accent">${ones}</span>つで？`,
+                    ans: tens * 10 + ones,
+                    inputMode: 'single'
+                });
+            }
+
+            // パターン3: 分解（ABは、10が□つ、1が□つ）
+            for(let i=0; i<2; i++) {
+                const tens = Math.floor(Math.random() * 8) + 2;
+                const ones = Math.floor(Math.random() * 10);
+                const num = tens * 10 + ones;
+                problems.push({
+                    type: 3,
+                    text: `<span class="highlight" style="font-size:3rem;">${num}</span> は、<br>10が □つと、1が □つ`,
+                    ansTens: tens,
+                    ansOnes: ones,
+                    inputMode: 'double'
+                });
+            }
+
+            // シャッフル
+            for(let i = problems.length - 1; i > 0; i--){
+                const r = Math.floor(Math.random() * (i + 1));
+                [problems[i], problems[r]] = [problems[r], problems[i]];
+            }
+            return problems;
+        }
+
+        function startGame() {
+            problems = generateProblems();
+            currentProblemIndex = 0;
+            totalMistakeCount = 0;
+            startTime = Date.now();
+            els.startArea.style.display = 'none';
+            els.resultArea.style.display = 'none';
+            els.gameArea.style.display = 'flex';
+            showProblem();
+        }
+
+        function showProblem() {
+            isAnswering = false;
+            const p = problems[currentProblemIndex];
+            els.currentQNum.textContent = currentProblemIndex + 1;
+            
+            // 問題文表示
+            els.problemText.innerHTML = p.text;
+            
+            // 入力エリア生成
+            els.inputArea.innerHTML = "";
+            inputs = {};
+            inputFieldOrder = [];
+
+            if (p.inputMode === 'single') {
+                // 1つの入力欄
+                const el = createInputBox('val');
+                els.inputArea.appendChild(el);
+                inputs['val'] = "";
+                inputFieldOrder = ['val'];
+                setFocus('val');
+            } else {
+                // 2つの入力欄（分解用）
+                const wrapper1 = document.createElement('div');
+                wrapper1.style.textAlign = "center";
+                wrapper1.innerHTML = `<div class="answer-label">10が</div>`;
+                const el1 = createInputBox('tens');
+                wrapper1.appendChild(el1);
+                
+                const wrapper2 = document.createElement('div');
+                wrapper2.style.textAlign = "center";
+                wrapper2.innerHTML = `<div class="answer-label">1が</div>`;
+                const el2 = createInputBox('ones');
+                wrapper2.appendChild(el2);
+
+                els.inputArea.appendChild(wrapper1);
+                els.inputArea.appendChild(wrapper2);
+                
+                inputs['tens'] = "";
+                inputs['ones'] = "";
+                inputFieldOrder = ['tens', 'ones'];
+                setFocus('tens');
+            }
+        }
+
+        function createInputBox(id) {
+            const div = document.createElement('div');
+            div.className = 'answer-box';
+            div.id = 'input-' + id;
+            div.onclick = () => setFocus(id);
+            return div;
+        }
+
+        setFocus = (id) => {
+            currentFocusId = id;
+            document.querySelectorAll('.answer-box').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('input-' + id);
+            if(target) target.classList.add('active');
+        };
+
+        function moveFocus(direction) {
+            const currentIndex = inputFieldOrder.indexOf(currentFocusId);
+            if (currentIndex === -1) return;
+            let nextIndex = currentIndex + direction;
+            if (nextIndex < 0) nextIndex = 0;
+            if (nextIndex >= inputFieldOrder.length) nextIndex = inputFieldOrder.length - 1;
+            setFocus(inputFieldOrder[nextIndex]);
+        }
+
+        inputNum = (num) => {
+            if (isAnswering) return;
+            
+            const currentVal = inputs[currentFocusId];
+            if (currentVal.length >= 2) return; // 2桁まで（分解の場合は1桁で遷移させたいが、誤入力修正も考慮して制限は緩く）
+            
+            inputs[currentFocusId] += num;
+            updateInputDisplay();
+
+            // 分解モード（double）の時、1桁入力したら自動で次へ
+            const p = problems[currentProblemIndex];
+            if (p.inputMode === 'double' && currentFocusId === 'tens' && inputs['tens'].length === 1) {
+                setFocus('ones');
+            }
+        };
+
+        deleteNum = () => {
+            if (isAnswering) return;
+            if (inputs[currentFocusId] !== "") {
+                inputs[currentFocusId] = inputs[currentFocusId].slice(0, -1);
+                updateInputDisplay();
+            } else {
+                moveFocus(-1); // 空なら前へ
+            }
+        };
+
+        function updateInputDisplay() {
+            for (const key in inputs) {
+                const el = document.getElementById('input-' + key);
+                if(el) {
+                    el.textContent = inputs[key];
+                    if (inputs[key] !== "") el.classList.add('filled');
+                    else el.classList.remove('filled');
+                }
+            }
+        }
+
+        handleEnterKey = () => {
+            // 単一入力なら即チェック
+            // ダブル入力なら、埋まっていればチェック、そうでなければ移動
+            const p = problems[currentProblemIndex];
+            if (p.inputMode === 'single') {
+                checkAnswer();
+            } else {
+                if (inputs['tens'] !== "" && inputs['ones'] !== "") {
+                    checkAnswer();
+                } else {
+                    if (inputs['tens'] !== "" && currentFocusId === 'tens') setFocus('ones');
+                }
+            }
+        };
+
+        checkAnswer = () => {
+            if (isAnswering) return;
+            
+            // 空欄チェック
+            for (const key in inputs) {
+                if (inputs[key] === "") return;
+            }
+
+            const p = problems[currentProblemIndex];
+            isAnswering = true;
+            let isCorrect = false;
+
+            if (p.inputMode === 'single') {
+                isCorrect = (parseInt(inputs['val']) === p.ans);
+            } else {
+                // 分解モード
+                const uTens = parseInt(inputs['tens']);
+                const uOnes = parseInt(inputs['ones']);
+                isCorrect = (uTens === p.ansTens && uOnes === p.ansOnes);
+            }
+
+            if (isCorrect) {
+                showFeedback(true);
+                setTimeout(() => {
+                    currentProblemIndex++;
+                    if (currentProblemIndex < config.questionCount) {
+                        showProblem();
+                    } else {
+                        finishGame();
+                    }
+                }, 1000);
+            } else {
+                showFeedback(false);
+                totalMistakeCount++;
+                isAnswering = false;
+                // 入力クリア
+                for(const k in inputs) inputs[k] = "";
+                updateInputDisplay();
+                if(inputFieldOrder.length > 0) setFocus(inputFieldOrder[0]);
+            }
+        };
+
+        function showFeedback(isCorrect) {
+            const overlay = els.feedbackOverlay;
+            const mark = els.feedbackMark;
+            overlay.style.opacity = '1';
+            if (isCorrect) {
+                mark.textContent = '〇';
+                mark.className = 'mark mark-correct';
+            } else {
+                mark.textContent = '×';
+                mark.className = 'mark mark-wrong';
+            }
+            setTimeout(() => { overlay.style.opacity = '0'; }, 800);
+        }
+
+        function finishGame() {
+            els.gameArea.style.display = 'none';
+            els.resultArea.style.display = 'block';
+
+            const endTime = Date.now();
+            const elapsedSec = Math.floor((endTime - startTime) / 1000);
+            
+            // スコア計算
+            // 基準タイム(60秒)より早ければボーナス
+            let timeBonus = 0;
+            if (elapsedSec < config.targetTime) {
+                timeBonus = (config.targetTime - elapsedSec) * 2;
+            }
+            let score = config.baseScore + timeBonus - (totalMistakeCount * 5);
+            if (score < 0) score = 0;
+            if (totalMistakeCount === 0 && score < 100) score = 100;
+
+            let stars = "★☆☆☆☆";
+            if (score >= config.starThresholds.star5) stars = "★★★★★";
+            else if (score >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (score >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (score >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+            document.getElementById('result-stars').textContent = stars;
+            document.getElementById('result-msg').textContent = (totalMistakeCount === 0) ? "かんぺき！ マイスター！" : "よくがんばったね！";
+            document.getElementById('result-score').innerHTML = `スコア: <strong>${score}</strong> 点<br><span style="font-size:0.9rem; color:#555;">(タイム: ${elapsedSec}秒 / ミス: ${totalMistakeCount}回)</span>`;
+
+            if (score >= config.starThresholds.star3) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FFD600', '#00B0FF', '#FFFFFF'] });
+            }
+
+            saveData(score, stars, elapsedSec);
+        }
+
+        function saveData(score, stars, elapsedSec) {
+            const total = parseInt(localStorage.getItem(KEY_CLEAR) || 0) + 1;
+            localStorage.setItem(KEY_CLEAR, total);
+
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = parseInt(localStorage.getItem(todayKey) || 0) + 1;
+            localStorage.setItem(todayKey, daily);
+
+            const oldHigh = parseInt(localStorage.getItem(KEY_HS) || 0);
+            if (score > oldHigh) localStorage.setItem(KEY_HS, score);
+
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            history.unshift({ date: dateStr, score: score, stars: stars, time: elapsedSec });
+            if (history.length > 5) history.pop();
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
+
+            loadStats();
+            updateHistoryDisplay();
+        }
+
+        function resetRank() {
+            if(confirm("ハイスコアと　ランクを　リセットしますか？")) {
+                localStorage.removeItem(KEY_HS);
+                alert("リセットしました。");
+                location.reload();
+            }
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>

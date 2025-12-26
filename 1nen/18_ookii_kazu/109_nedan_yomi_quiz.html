@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>かずの　よみかた</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        /* ▼▼▼ テーマ：クイズ番組風（ネオン・ポップ） ▼▼▼ */
+        :root {
+            --c-bg: #1A237E;
+            --c-panel: #FFFFFF;
+            --c-text: #333333;
+            --c-accent: #FFD700;
+            --c-btn-bg: #3949AB;
+            --c-btn-text: #FFFFFF;
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg);
+            color: var(--c-panel);
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 50%, #283593 0%, #1A237E 100%);
+        }
+
+        h1, h2 { text-align: center; margin: 5px 0; letter-spacing: 1px; }
+        h1 { font-size: 1.4rem; color: var(--c-accent); text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        
+        h2 { 
+            font-size: 1.1rem; 
+            background: rgba(0,0,0,0.3);
+            border: 2px solid var(--c-accent);
+            padding: 5px 20px; 
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: var(--c-accent); color: var(--c-bg);
+            font-weight: 800; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+            box-shadow: 0 0 5px var(--c-accent);
+        }
+
+        /* スタート画面 */
+        #start-area {
+            text-align: center; margin-top: 40px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            padding: 40px; border-radius: 20px;
+            border: 5px solid var(--c-accent);
+            width: 90%; max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .stats-box {
+            background: #E8EAF6;
+            border-radius: 10px; padding: 10px; margin: 15px 0;
+            color: #1A237E; font-weight: bold;
+            border: 2px solid #3949AB;
+        }
+
+        /* ゲーム画面 */
+        #game-area {
+            display: none; /* 初期非表示 */
+            width: 100%; max-width: 800px;
+            flex-direction: column; align-items: center;
+        }
+
+        .top-status {
+            display: flex; justify-content: space-between; width: 100%; color: #fff; 
+            margin-bottom: 10px; font-weight: bold;
+        }
+
+        /* 問題表示カード */
+        .problem-card {
+            background: #fff;
+            color: var(--c-text);
+            width: 90%;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            border: 4px solid var(--c-accent);
+        }
+        
+        .item-icon { font-size: 3.5rem; display: block; margin-bottom: 0; }
+        .item-name { font-size: 1.2rem; font-weight: bold; color: #5C6BC0; }
+        .item-price { font-size: 3rem; font-weight: 800; color: #E91E63; line-height: 1.2; }
+        .item-unit { font-size: 1.5rem; color: #333; }
+
+        /* 入力欄 */
+        .answer-container {
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 10px; border-radius: 15px;
+            margin-bottom: 20px;
+            width: 100%; flex-wrap: wrap; gap: 5px;
+        }
+        .char-slot {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; font-weight: bold; color: #fff;
+        }
+        .char-slot.filled {
+            background: #fff; color: #333; border-color: #fff;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+        .fixed-unit {
+            font-size: 1.5rem; font-weight: bold; color: #fff; margin-left: 5px;
+        }
+
+        /* 文字パネルエリア (2x7) */
+        .panel-area {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            width: 100%; max-width: 650px;
+            margin-bottom: 20px;
+        }
+        .char-btn {
+            aspect-ratio: 1;
+            background: var(--c-btn-bg);
+            color: var(--c-btn-text);
+            font-size: 1.4rem; font-weight: bold;
+            border: none; border-radius: 10px;
+            box-shadow: 0 4px 0 #0D47A1;
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .char-btn:active { transform: translateY(4px); box-shadow: none; }
+        .char-btn:hover { background: #5C6BC0; }
+        .char-btn.used {
+            opacity: 0.3; pointer-events: none; transform: scale(0.9); box-shadow: none; background: #333;
+        }
+
+        /* 操作ボタン */
+        .control-area {
+            display: flex; gap: 15px; width: 100%; justify-content: center;
+        }
+        button.ctrl-btn {
+            padding: 15px 30px; font-size: 1.2rem; font-weight: bold;
+            border-radius: 50px; border: none; cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3); transition: all 0.1s;
+        }
+        button.ctrl-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .btn-delete { background: #FF5252; color: white; }
+        
+        /* 買える？買えない？判定エリア */
+        #judge-area {
+            display: none;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10;
+            flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 16px;
+        }
+        .judge-title { font-size: 1.4rem; color: #fff; margin-bottom: 20px; text-align: center; }
+        .judge-btns { display: flex; gap: 20px; }
+        .judge-btn {
+            width: 110px; height: 110px;
+            border-radius: 15px; border: 4px solid #fff;
+            font-size: 1.2rem; font-weight: bold; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 6px 0 rgba(255,255,255,0.3);
+        }
+        .judge-btn:hover { transform: scale(1.05); }
+        .btn-buy { background: #4CAF50; color: #fff; }
+        .btn-not-buy { background: #F44336; color: #fff; }
+        .judge-icon { font-size: 3rem; margin-bottom: 5px; }
+
+        /* リザルト画面 */
+        #result-area {
+            display: none;
+            background: rgba(255,255,255,0.95); color: #333;
+            padding: 30px; border-radius: 20px;
+            border: 5px solid var(--c-accent); text-align: center;
+            width: 90%; max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .status-stars { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; display:block; margin: 10px 0;}
+
+        /* フィードバック */
+        .feedback {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 10rem; font-weight: bold; opacity: 0; pointer-events: none; z-index: 100;
+            text-shadow: 0 0 20px rgba(255,255,255,0.8);
+            transition: opacity 0.2s;
+        }
+
+        #history-area { margin-top: 20px; font-size: 0.9rem; text-align: left; background: #E8EAF6; padding:15px; border-radius:10px; border: 2px dashed #1A237E;}
+        #history-list { list-style: none; padding: 0; }
+        #history-list li { 
+            border-bottom: 1px dashed #9FA8DA; padding: 8px 0; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* 共通ボタン */
+        .big-btn {
+            background: linear-gradient(45deg, #FF6F00, #FFCA28);
+            color: #fff; font-size: 1.5rem; font-weight: bold;
+            padding: 15px 50px; border: none; border-radius: 50px;
+            cursor: pointer; margin-top: 20px;
+            box-shadow: 0 6px 0 #E65100;
+            transition: transform 0.1s;
+        }
+        .big-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        /* レスポンシブ対応 */
+        @media (max-width: 500px) {
+            .char-btn { font-size: 1.2rem; border-radius: 6px;}
+            .panel-area { gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title">１０９　かずの　よみかた</h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle">109</span>
+        <span id="sub-title-text">ねだん 読み方クイズ！</span>
+    </h2>
+
+    <div id="start-area">
+        <div style="font-size:4rem;">🏷️🎤</div>
+        <p style="font-weight:bold; font-size:1.4rem; margin:10px 0;">ただしい　読み方を　えらぼう！<br>そのあと　100円で　かえるか　おしえてね。</p>
+        
+        <div class="stats-box">
+            ハイスコア: <span id="high-score-display">0</span> 点
+        </div>
+        <div style="margin:10px 0; font-size:0.9rem;">
+            きょうのクリア：<span id="daily-count-start">0</span> かい<br>
+            ごうけいクリア：<span id="total-count-start">0</span> かい
+        </div>
+
+        <button id="start-btn" class="big-btn" onclick="startGame()">はじめる (Enter)</button>
+    </div>
+
+    <div id="game-area">
+        <div class="top-status">
+            <span>もんだい <span id="q-num">1</span> / 5</span>
+            <span>スコア: <span id="current-score">0</span></span>
+        </div>
+
+        <div class="problem-card">
+            <div id="judge-area">
+                <div class="judge-title">100円玉 １まいで<br>かえますか？</div>
+                <div class="judge-btns">
+                    <button class="judge-btn btn-buy" id="btn-buy" onclick="answerJudge(true)">
+                        <span class="judge-icon">🙆</span>かえる
+                    </button>
+                    <button class="judge-btn btn-not-buy" id="btn-not-buy" onclick="answerJudge(false)">
+                        <span class="judge-icon">🙅</span>かえない
+                    </button>
+                </div>
+            </div>
+
+            <span class="item-icon" id="p-icon">✂️</span>
+            <div class="item-name" id="p-name">はさみ</div>
+            <div>
+                <span class="item-price" id="p-price">120</span>
+                <span class="item-unit">円</span>
+            </div>
+        </div>
+
+        <div class="answer-container">
+            <div id="answer-box" style="display:flex; gap:5px;"></div>
+            <div class="fixed-unit">えん</div>
+        </div>
+
+        <div class="panel-area" id="panel-area">
+            </div>
+
+        <div class="control-area">
+            <button class="ctrl-btn btn-delete" onclick="deleteChar()">１もじ けす (BS)</button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="color:#1A237E; border:none; background:none; box-shadow:none;">けっか はっぴょう！</h2>
+        <div id="result-stars" class="status-stars"></div>
+        <div id="result-msg" style="font-size:1.5rem; font-weight:bold; margin:10px 0;"></div>
+        <div id="result-score" style="font-size:1.2rem;"></div>
+        
+        <div style="font-weight:bold; color:#F57F17; margin:10px 0;">
+            ハイスコア: <span id="high-score-result">0</span> 点
+        </div>
+        
+        <div id="history-area">
+            <strong>これまでの きろく</strong>
+            <ul id="history-list"></ul>
+        </div>
+
+        <button id="restart-btn" class="big-btn" onclick="location.reload()">もういちど (Enter)</button>
+        <div style="margin-top:10px;">
+            <button id="reset-rank-btn" style="font-size:0.8rem; background:#CFD8DC; color:#546E7A; padding:8px 15px; border:none; border-radius:5px;">ハイスコアをけす</button>
+        </div>
+    </div>
+
+    <div id="fb-ok" class="feedback" style="color:#00E676;">⭕</div>
+    <div id="fb-ng" class="feedback" style="color:#FF1744;">❌</div>
+
+    <script>
+    (function(){
+        const config = {
+            appId: "109_kazu_no_yomikata",
+            baseScore: 100,
+            questionCount: 5,
+            targetTime: 60,
+            starThresholds: { star5: 180, star4: 150, star3: 120, star2: 80 }
+        };
+
+        // 問題データ（120円以下に限定。「えん」はデータから除外）
+        const PROBLEMS = [
+            { name: "はさみ", icon: "✂️", price: 120, yomi: "ひゃくにじゅう" },
+            { name: "のり", icon: "🧴", price: 95, yomi: "きゅうじゅうご" },
+            { name: "けしゴム", icon: "🧽", price: 78, yomi: "ななじゅうはち" },
+            { name: "ノート", icon: "📓", price: 103, yomi: "ひゃくさん" },
+            { name: "えんぴつ", icon: "✏️", price: 60, yomi: "ろくじゅう" },
+            { name: "クレヨン", icon: "🖍️", price: 110, yomi: "ひゃくじゅう" },
+            { name: "じょうぎ", icon: "📏", price: 84, yomi: "はちじゅうよん" },
+            { name: "チョコ", icon: "🍫", price: 35, yomi: "さんじゅうご" },
+            { name: "アメ", icon: "🍬", price: 10, yomi: "じゅう" },
+            { name: "ハンカチ", icon: "🤧", price: 115, yomi: "ひゃくじゅうご" }
+        ];
+
+        // ダミー文字候補
+        const DUMMY_CHARS = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゃゅょっ";
+
+        // 状態変数
+        let currentQuestions = [];
+        let qIndex = 0;
+        let currentInput = "";
+        let score = 0;
+        let startTime = 0;
+        let currentScreen = "start"; // start | game | result
+        let isJudging = false; // 判定モードかどうか
+
+        // ストレージキー
+        const KEY_HS = `${config.appId}:highScore`;
+        const KEY_CLEAR = `${config.appId}:totalClear`;
+        const KEY_DAILY_PREFIX = `${config.appId}:dailyClear_`;
+        const KEY_HISTORY = `${config.appId}:history`;
+
+        // DOM要素
+        const els = {
+            startArea: document.getElementById('start-area'),
+            gameArea: document.getElementById('game-area'),
+            resultArea: document.getElementById('result-area'),
+            startBtn: document.getElementById('start-btn'),
+            restartBtn: document.getElementById('restart-btn'),
+            resetRankBtn: document.getElementById('reset-rank-btn')
+        };
+
+        function init() {
+            loadStats();
+            updateHistoryDisplay();
+
+            els.startBtn.addEventListener('click', startGame);
+            els.restartBtn.addEventListener('click', () => location.reload());
+            els.resetRankBtn.addEventListener('click', resetRank);
+
+            // キーボード操作
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    if (currentScreen === 'start') {
+                        startGame();
+                    } else if (currentScreen === 'game') {
+                        // 判定モード中なら、左（かえる）を選択...したいところだが
+                        // 直感的ではないかもしれない。ここではEnter=次へ の機能はつけないでおく
+                    } else if (currentScreen === 'result') {
+                        location.reload();
+                    }
+                } else if (e.key === 'Backspace') {
+                    if (currentScreen === 'game' && !isJudging) {
+                        deleteChar();
+                    }
+                }
+            });
+            
+            // フォーカス
+            els.startBtn.focus();
+        }
+
+        function loadStats() {
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = localStorage.getItem(todayKey) || 0;
+            const total = localStorage.getItem(KEY_CLEAR) || 0;
+            const highScore = localStorage.getItem(KEY_HS) || 0;
+
+            document.getElementById('daily-count-start').textContent = daily;
+            document.getElementById('total-count-start').textContent = total;
+            document.getElementById('high-score-display').textContent = highScore;
+            document.getElementById('high-score-result').textContent = highScore;
+        }
+
+        function updateHistoryDisplay() {
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            document.getElementById('history-list').innerHTML = history.map(h => `
+                <li>
+                    <span style="font-size:0.8rem; color:#555;">${h.date}</span>
+                    <span>${h.stars}</span>
+                    <span style="font-weight:bold; color:#1A237E;">${h.score}点</span>
+                </li>
+            `).join('');
+        }
+
+        window.startGame = function() {
+            // 問題選出
+            const pool = [...PROBLEMS];
+            currentQuestions = [];
+            for(let i=0; i<config.questionCount; i++) {
+                if(pool.length === 0) break;
+                const r = Math.floor(Math.random() * pool.length);
+                currentQuestions.push(pool[r]);
+                pool.splice(r, 1);
+            }
+
+            qIndex = 0;
+            score = 0;
+            startTime = Date.now();
+            currentScreen = "game";
+
+            els.startArea.style.display = 'none';
+            els.gameArea.style.display = 'flex';
+            showProblem();
+        };
+
+        function showProblem() {
+            const q = currentQuestions[qIndex];
+            
+            document.getElementById('q-num').textContent = qIndex + 1;
+            document.getElementById('current-score').textContent = score;
+            document.getElementById('p-icon').textContent = q.icon;
+            document.getElementById('p-name').textContent = q.name;
+            document.getElementById('p-price').textContent = q.price;
+            
+            currentInput = "";
+            isJudging = false;
+            document.getElementById('judge-area').style.display = 'none';
+            
+            // 入力欄生成
+            const ansBox = document.getElementById('answer-box');
+            ansBox.innerHTML = "";
+            for(let i=0; i<q.yomi.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'char-slot';
+                ansBox.appendChild(slot);
+            }
+
+            generatePanels(q.yomi);
+        }
+
+        function generatePanels(correctYomi) {
+            const panelArea = document.getElementById('panel-area');
+            panelArea.innerHTML = "";
+
+            let chars = correctYomi.split('');
+            // 2x7=14文字になるようにダミー追加
+            const targetCount = 14; 
+            while(chars.length < targetCount) {
+                const r = Math.floor(Math.random() * DUMMY_CHARS.length);
+                chars.push(DUMMY_CHARS[r]);
+            }
+
+            // シャッフル
+            chars.sort(() => Math.random() - 0.5);
+
+            chars.forEach((char, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'char-btn';
+                btn.textContent = char;
+                btn.onclick = () => inputChar(char, btn);
+                panelArea.appendChild(btn);
+            });
+        }
+
+        window.inputChar = function(char, btnElement) {
+            if(isJudging) return;
+            const q = currentQuestions[qIndex];
+            
+            if (currentInput.length < q.yomi.length) {
+                currentInput += char;
+                
+                btnElement.classList.add('used');
+                // 履歴を残す（削除時に使用）
+                btnElement.dataset.historyIndex = currentInput.length - 1;
+
+                updateAnswerBox();
+                checkYomi();
+            }
+        };
+
+        window.deleteChar = function() {
+            if(isJudging) return;
+            if (currentInput.length > 0) {
+                const delIndex = currentInput.length - 1;
+                currentInput = currentInput.slice(0, -1);
+                
+                const btns = document.querySelectorAll('.char-btn.used');
+                btns.forEach(btn => {
+                    if (parseInt(btn.dataset.historyIndex) === delIndex) {
+                        btn.classList.remove('used');
+                        delete btn.dataset.historyIndex;
+                    }
+                });
+
+                updateAnswerBox();
+            }
+        };
+
+        function updateAnswerBox() {
+            const slots = document.querySelectorAll('.char-slot');
+            slots.forEach((slot, i) => {
+                if (i < currentInput.length) {
+                    slot.textContent = currentInput[i];
+                    slot.classList.add('filled');
+                } else {
+                    slot.textContent = "";
+                    slot.classList.remove('filled');
+                }
+            });
+        }
+
+        function checkYomi() {
+            const q = currentQuestions[qIndex];
+            if (currentInput === q.yomi) {
+                playSuccess();
+                isJudging = true;
+                setTimeout(() => {
+                    document.getElementById('judge-area').style.display = 'flex';
+                }, 500);
+            } else if (currentInput.length === q.yomi.length) {
+                playError();
+            }
+        }
+
+        window.answerJudge = function(canBuy) {
+            const q = currentQuestions[qIndex];
+            const actuallyCanBuy = (q.price <= 100);
+
+            if (canBuy === actuallyCanBuy) {
+                playSuccess();
+                score += 20; 
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                
+                setTimeout(() => {
+                    nextProblem();
+                }, 1000);
+            } else {
+                playError();
+                setTimeout(() => {
+                    nextProblem();
+                }, 1000);
+            }
+        };
+
+        function nextProblem() {
+            qIndex++;
+            if (qIndex < config.questionCount) {
+                showProblem();
+            } else {
+                finishGame();
+            }
+        }
+
+        function playSuccess() {
+            const el = document.getElementById('fb-ok');
+            el.style.opacity = 1;
+            el.style.transform = "translate(-50%, -50%) scale(1.2)";
+            setTimeout(() => { el.style.opacity = 0; el.style.transform = "translate(-50%, -50%) scale(1)"; }, 500);
+        }
+
+        function playError() {
+            const el = document.getElementById('fb-ng');
+            el.style.opacity = 1;
+            el.style.transform = "translate(-50%, -50%) scale(1.2)";
+            setTimeout(() => { el.style.opacity = 0; el.style.transform = "translate(-50%, -50%) scale(1)"; }, 500);
+        }
+
+        function finishGame() {
+            currentScreen = "result";
+            els.gameArea.style.display = 'none';
+            els.resultArea.style.display = 'block';
+            els.restartBtn.focus();
+
+            const endTime = Date.now();
+            const elapsedSec = Math.floor((endTime - startTime) / 1000);
+            
+            // スコア計算
+            let timeBonus = 0;
+            if (elapsedSec < config.targetTime) {
+                timeBonus = (config.targetTime - elapsedSec) * 2;
+            }
+            // 基本点(最大100) + ボーナス
+            let finalScore = score + timeBonus; 
+            if (score === 100 && finalScore < 120) finalScore += 20; // 全問正解ボーナス
+
+            let stars = "★☆☆☆☆";
+            if (finalScore >= config.starThresholds.star5) stars = "★★★★★";
+            else if (finalScore >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (finalScore >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (finalScore >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+            document.getElementById('result-stars').textContent = stars;
+            document.getElementById('result-msg').textContent = "おつかれさま！";
+            document.getElementById('result-score').innerHTML = `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:0.9rem; color:#555;">(タイム: ${elapsedSec}秒)</span>`;
+
+            saveData(finalScore, stars, elapsedSec);
+        }
+
+        function saveData(score, stars, elapsedSec) {
+            const total = parseInt(localStorage.getItem(KEY_CLEAR) || 0) + 1;
+            localStorage.setItem(KEY_CLEAR, total);
+
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = parseInt(localStorage.getItem(todayKey) || 0) + 1;
+            localStorage.setItem(todayKey, daily);
+
+            const oldHigh = parseInt(localStorage.getItem(KEY_HS) || 0);
+            if (score > oldHigh) localStorage.setItem(KEY_HS, score);
+
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            history.unshift({ date: dateStr, score: score, stars: stars, time: elapsedSec });
+            if (history.length > 5) history.pop();
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
+
+            loadStats();
+            updateHistoryDisplay();
+        }
+
+        function resetRank() {
+            if(confirm("ハイスコアと　ランクを　リセットしますか？")) {
+                localStorage.removeItem(KEY_HS);
+                alert("リセットしました。");
+                location.reload();
+            }
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>かずかあどの　ならびかた</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+    <style>
+        /* ▼▼▼ テーマ：かずの きしゃポッポ（青空・線路・機関車） ▼▼▼ */
+        :root {
+            --c-bg-main: #E3F2FD;         /* 青空 */
+            --c-primary: #1565C0;         /* 機関車の青 */
+            --c-primary-light: #64B5F6;   /* 車両の水色 */
+            --c-accent: #FDD835;          /* ライトの黄色 */
+            --c-track: #5D4037;           /* 線路の茶色 */
+            --c-text-main: #263238;       
+            
+            --c-card-bg: #FFFFFF;
+            --c-input-focus: #FFF9C4;
+            --c-focus-border: #FF6F00;
+            
+            --font-family: "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main); 
+            color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            /* 背景：雲と線路 */
+            background-image: 
+                radial-gradient(white 20%, transparent 20%),
+                radial-gradient(white 10%, transparent 10%);
+            background-size: 80px 80px, 150px 150px;
+            background-position: 10px 10px, 50px 50px;
+            overflow-x: hidden;
+        }
+
+        h1, h2 { text-align: center; color: var(--c-primary); margin: 5px 0; letter-spacing: 1px; text-shadow: 1px 1px 0 #fff; }
+        h1 { font-size: 1.4rem; }
+        
+        h2 { 
+            font-size: 1.1rem; 
+            background: #fff;
+            border: 2px solid var(--c-primary);
+            padding: 5px 20px; 
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            background-color: var(--c-primary); color: #fff;
+            font-weight: 800; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* スタート画面 */
+        #start-area {
+            text-align: center; margin-top: 40px;
+            background: rgba(255,255,255,0.95);
+            padding: 40px; border-radius: 20px;
+            border: 5px solid var(--c-primary);
+            width: 90%; max-width: 600px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .stats-box {
+            background: #BBDEFB;
+            border-radius: 10px; padding: 10px; margin: 15px 0;
+            color: var(--c-primary); font-weight: bold;
+            border: 2px solid var(--c-primary);
+        }
+
+        button {
+            font-family: var(--font-family);
+            font-size: 1.4rem; padding: 12px 30px; border: 3px solid var(--c-primary); border-radius: 50px;
+            background-color: #fff; color: var(--c-primary);
+            cursor: pointer; transition: transform 0.1s; font-weight: 800;
+            box-shadow: 0 4px 0 #0D47A1;
+            margin: 10px;
+        }
+        button:active { transform: translateY(4px); box-shadow: none; }
+
+        /* ゲーム画面レイアウト（GIGA端末対応） */
+        #game-area { 
+            display: none; 
+            width: 100%; max-width: 1000px; 
+            flex-direction: column; align-items: center; 
+        }
+
+        .question-counter {
+            font-size: 1.2rem; font-weight: bold; color: var(--c-primary); margin-bottom: 5px;
+        }
+
+        /* 列車エリア */
+        .train-scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 10px;
+            /* スクロールバー装飾 */
+            scrollbar-width: thin;
+            scrollbar-color: var(--c-primary-light) var(--c-bg-main);
+            
+            /* ▼▼▼ 修正：中身を中央揃えにする設定 ▼▼▼ */
+            text-align: center; 
+        }
+        
+        .train-container {
+            display: inline-flex; /* 横並び維持 */
+            align-items: center; 
+            padding: 10px 20px;
+            min-width: max-content; /* 内容に合わせて幅確保 */
+            text-align: left; /* コンテナ内は左寄せ（配置崩れ防止） */
+        }
+
+        /* 線路（背景） */
+        .train-container::before {
+            content: ""; position: absolute; bottom: 35px; left: 0; right: 0; height: 4px;
+            background: var(--c-track); z-index: -1;
+        }
+
+        /* 機関車 */
+        .locomotive {
+            width: 70px; height: 60px;
+            background: var(--c-primary);
+            border-radius: 10px 20px 5px 5px;
+            position: relative;
+            margin-right: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 2rem;
+            box-shadow: 0 4px 0 #0D47A1;
+            flex-shrink: 0;
+        }
+        .locomotive::before { content: ""; position: absolute; top: -12px; left: 10px; width: 12px; height: 12px; background: var(--c-primary); }
+        .locomotive::after { content: ""; position: absolute; bottom: -4px; left: 5px; width: 50px; height: 8px; background: #333; border-radius: 4px; }
+
+        /* 車両（カード） */
+        .train-car {
+            width: 65px; height: 65px;
+            background: #fff;
+            border: 3px solid var(--c-primary);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; font-weight: 800; color: var(--c-primary);
+            position: relative;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            margin-right: 6px;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        /* 連結器 */
+        .train-car:not(:last-child)::after {
+            content: ""; position: absolute; right: -9px; top: 50%;
+            width: 9px; height: 6px; background: #555;
+            transform: translateY(-50%); z-index: -1;
+        }
+        /* 車輪 */
+        .train-car::before {
+            content: ""; position: absolute; bottom: -6px; left: 8px; right: 8px;
+            height: 6px; background: #555; border-radius: 3px;
+        }
+
+        /* 空欄（入力ターゲット） */
+        .train-car.target {
+            background-color: #E1F5FE;
+            color: var(--c-primary-light);
+            cursor: pointer;
+        }
+        /* 選択中の空欄 */
+        .train-car.focused {
+            background-color: var(--c-input-focus);
+            border-color: var(--c-focus-border);
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(255, 111, 0, 0.4);
+        }
+        /* 入力済み */
+        .train-car.filled {
+            color: var(--c-primary-dark);
+            font-weight: bold;
+        }
+
+        /* 入力エリアレイアウト */
+        .control-panel {
+            display: flex; gap: 20px; align-items: flex-start; justify-content: center;
+            width: 100%; flex-wrap: wrap;
+        }
+
+        .message-area {
+            font-size: 1.2rem; font-weight: bold; color: var(--c-primary);
+            margin-bottom: 10px; width: 100%; text-align: center;
+        }
+
+        /* キーパッド */
+        .keypad-area {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+            width: 280px;
+        }
+        .key-btn {
+            font-size: 1.6rem; padding: 12px 0; border-radius: 10px;
+            background: #fff; border: 2px solid var(--c-primary);
+            box-shadow: 0 4px 0 #90CAF9;
+            color: var(--c-primary); font-weight: bold;
+            cursor: pointer; margin: 0;
+        }
+        .key-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .key-enter {
+            background: var(--c-accent); color: #F57F17;
+            border-color: #FBC02D;
+            box-shadow: 0 4px 0 #F57F17;
+            grid-column: span 1;
+        }
+        .key-bs {
+            background: #FFCCBC; color: #BF360C;
+            border-color: #FFAB91;
+            box-shadow: 0 4px 0 #D84315;
+        }
+        .check-btn {
+            grid-column: span 3;
+            background: var(--c-primary); color: #fff;
+            border-color: #0D47A1;
+            box-shadow: 0 4px 0 #0D47A1;
+            margin-top: 5px;
+        }
+
+        /* フィードバック */
+        .feedback-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            pointer-events: none; z-index: 50; opacity: 0; transition: opacity 0.2s;
+            background: rgba(0,0,0,0.5);
+        }
+        .mark { font-size: 10rem; font-weight: bold; -webkit-text-stroke: 3px #fff; }
+        .mark-correct { color: #E91E63; }
+        .mark-wrong { color: #1976D2; }
+
+        /* リザルト */
+        #result-area {
+            display: none;
+            width: 90%; max-width: 500px; margin: 20px auto; padding: 25px;
+            background: #fff; border-radius: 20px; 
+            border: 5px solid var(--c-primary); text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .status-stars { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FBC02D; display:block; margin: 10px 0;}
+        
+        #history-area { margin-top: 20px; font-size: 0.9rem; text-align: left; background: #E3F2FD; padding:15px; border-radius:10px; border: 2px dashed var(--c-primary);}
+        #history-list { list-style: none; padding: 0; }
+        #history-list li { 
+            border-bottom: 1px dashed var(--c-primary); padding: 8px 0; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* モーダル */
+        #bulb-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 50px; height: 50px; padding:0; margin:0;
+            border-radius: 50%; background: #fff; border: 3px solid #FFD700; 
+            color: #FFD700; font-size: 2rem; 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 100;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 30px; border: 4px solid var(--c-primary); border-radius: 20px; width: 85%; max-width: 500px; position:relative;}
+        .close-modal { position:absolute; right:15px; top:10px; font-size: 30px; cursor: pointer; color:var(--c-primary);}
+    </style>
+</head>
+<body>
+    <button id="bulb-btn" aria-label="せつめい">？</button>
+
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">あそびかた</h3>
+        <p>きまりを見つけて、空いている車両に数字を入れよう！</p>
+        <div style="background:#E3F2FD; padding:15px; border-radius:10px; margin:15px 0; line-height:1.6;">
+            <strong>① マスをえらぶ</strong><br>
+            空いている車両をタッチして、きいろくする。<br><br>
+            <strong>② すうじをいれる</strong><br>
+            下のキーボードで数字を入れる。<br><br>
+            <strong>③ ぜんぶいれたら「できた！」</strong><br>
+            すべての車両をうめてね。<br>
+            <br>
+            ※きまりは「１つふえる」「２つふえる」「１０ふえる」などがあるよ。
+        </div>
+        <button onclick="document.getElementById('info-modal').style.display='none'" style="width:100%; margin:20px 0 0 0;">わかった！</button>
+      </div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <div style="font-size:4rem; margin:10px 0;">🚂🚃</div>
+        <p style="font-weight:bold; font-size:1.4rem; margin:10px 0; color:var(--c-primary);">きまりを　みつけよう！<br>かずの　きしゃポッポ</p>
+        
+        <div class="stats-box">
+            ハイスコア: <span id="high-score-display" style="font-size:1.5rem; color:#E65100;">0</span> 点
+        </div>
+        
+        <div style="margin:15px 0; font-size:0.95rem; color:#263238;">
+            きょうのクリア：<span id="daily-count-start">0</span> かい<br>
+            ごうけいクリア：<span id="total-count-start">0</span> かい
+        </div>
+
+        <button id="start-btn">はじめる (Enter)</button>
+    </div>
+
+    <div id="game-area">
+        <div class="question-counter">もんだい <span id="current-q-num">1</span> / <span id="total-q-num">3</span></div>
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+        <div class="message-area">空いている車両をタッチしてね</div>
+
+        <div class="train-scroll-wrapper">
+            <div class="train-container" id="train-container">
+                </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="keypad-area">
+                <button class="key-btn" onclick="inputNum(7)">7</button>
+                <button class="key-btn" onclick="inputNum(8)">8</button>
+                <button class="key-btn" onclick="inputNum(9)">9</button>
+                
+                <button class="key-btn" onclick="inputNum(4)">4</button>
+                <button class="key-btn" onclick="inputNum(5)">5</button>
+                <button class="key-btn" onclick="inputNum(6)">6</button>
+                
+                <button class="key-btn" onclick="inputNum(1)">1</button>
+                <button class="key-btn" onclick="inputNum(2)">2</button>
+                <button class="key-btn" onclick="inputNum(3)">3</button>
+                
+                <button class="key-btn key-bs" onclick="deleteNum()">けす</button>
+                <button class="key-btn" onclick="inputNum(0)">0</button>
+                <button class="key-btn key-enter" onclick="moveNextFocus()">次へ</button>
+                
+                <button class="key-btn check-btn" onclick="checkAnswer()">できた！</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <h2 style="border:none; background:none; font-size:2rem; color:var(--c-primary); margin:0;">けっか はっぴょう</h2>
+        <div id="result-stars" class="status-stars"></div>
+        <div id="result-msg" style="font-size:1.5rem; font-weight:bold; margin:10px 0;"></div>
+        <div id="result-score" style="font-size:1.2rem;"></div>
+        
+        <div style="font-weight:bold; color:#E65100; margin:10px 0;">
+            ハイスコア: <span id="high-score-result">0</span> 点
+        </div>
+        
+        <div class="stats-box" style="margin:20px 0;">
+            きょうのクリア：<span id="daily-count-result" style="color:#3E2723; font-size:1.2rem;">0</span> かい<br>
+            ごうけいクリア：<span id="total-count-result" style="color:#3E2723; font-size:1.2rem;">0</span> かい
+        </div>
+
+        <div id="history-area">
+            <strong>これまでの きろく（さいしん5けん）</strong>
+            <ul id="history-list"></ul>
+        </div>
+        
+        <button id="back-to-start-btn" style="margin-top:20px;">さいしょに もどる (Enter)</button>
+        <div style="margin-top:10px;">
+            <button id="reset-rank-btn" style="font-size:0.8rem; background:#E0F2F1; color:#00695C; border-color:#80CBC4; padding:8px 15px; border-width:1px; box-shadow:none;">ハイスコアをけす</button>
+        </div>
+    </div>
+
+    <div class="feedback-overlay" id="feedback-overlay">
+        <div class="mark" id="feedback-mark"></div>
+    </div>
+
+    <script>
+    (function(){
+        const config = {
+            appId: "105_kazu_card_no_narabikata",
+            mainTitle: "１８　大きい　かず",
+            title: "かずかあどの　ならびかた",
+            page: 105,
+            baseScore: 100,
+            questionCount: 3, // 全3問
+            targetTime: 60,
+            starThresholds: { star5: 180, star4: 160, star3: 140, star2: 120 }
+        };
+
+        let problems = [];
+        let currentProblemIndex = 0;
+        let startTime = 0;
+        let totalMistakeCount = 0;
+        let isAnswering = false;
+        
+        // ユーザーの入力状態管理
+        let userInputs = {}; // { index: "value", ... }
+        let currentFocusIndex = null;
+        let emptyIndices = []; // 今回の問題の空欄インデックスリスト
+
+        const KEY_HS = `${config.appId}:highScore`;
+        const KEY_CLEAR = `${config.appId}:totalClear`;
+        const KEY_DAILY_PREFIX = `${config.appId}:dailyClear_`;
+        const KEY_HISTORY = `${config.appId}:history`;
+
+        const els = {
+            startArea: document.getElementById('start-area'),
+            gameArea: document.getElementById('game-area'),
+            resultArea: document.getElementById('result-area'),
+            trainContainer: document.getElementById('train-container'),
+            currentQNum: document.getElementById('current-q-num'),
+            progressFill: document.getElementById('progress-fill'),
+            startBtn: document.getElementById('start-btn'),
+            backStartBtn: document.getElementById('back-to-start-btn'),
+            resetRankBtn: document.getElementById('reset-rank-btn'),
+            feedbackOverlay: document.getElementById('feedback-overlay'),
+            feedbackMark: document.getElementById('feedback-mark')
+        };
+
+        function init() {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('sub-title-text').textContent = config.title;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('total-q-num').textContent = config.questionCount;
+
+            loadStats();
+            updateHistoryDisplay();
+
+            els.startBtn.addEventListener('click', startGame);
+            els.backStartBtn.addEventListener('click', () => location.reload());
+            els.resetRankBtn.addEventListener('click', resetRank);
+
+            document.addEventListener('keydown', (e) => {
+                if (els.gameArea.style.display === 'flex' && !isAnswering) {
+                    if (e.key >= '0' && e.key <= '9') inputNum(parseInt(e.key));
+                    else if (e.key === 'Backspace') { e.preventDefault(); deleteNum(); }
+                    else if (e.key === 'Enter') { e.preventDefault(); checkAnswer(); }
+                    else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); moveNextFocus(); }
+                    else if (e.key === 'ArrowLeft') { e.preventDefault(); movePrevFocus(); }
+                } else if (e.key === 'Enter') {
+                    if (els.startArea.style.display !== 'none') startGame();
+                    else if (els.resultArea.style.display !== 'none') location.reload();
+                }
+            });
+
+            const modal = document.getElementById('info-modal');
+            document.getElementById('bulb-btn').onclick = () => modal.style.display = 'block';
+            document.querySelector('.close-modal').onclick = () => modal.style.display = 'none';
+            window.onclick = (e) => { if(e.target == modal) modal.style.display = 'none'; };
+        }
+
+        function loadStats() {
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = localStorage.getItem(todayKey) || 0;
+            const total = localStorage.getItem(KEY_CLEAR) || 0;
+            const highScore = localStorage.getItem(KEY_HS) || 0;
+
+            document.getElementById('daily-count-start').textContent = daily;
+            document.getElementById('total-count-start').textContent = total;
+            document.getElementById('high-score-display').textContent = highScore;
+            document.getElementById('high-score-result').textContent = highScore;
+            document.getElementById('daily-count-result').textContent = daily;
+            document.getElementById('total-count-result').textContent = total;
+        }
+
+        function updateHistoryDisplay() {
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            document.getElementById('history-list').innerHTML = history.map(h => `
+                <li>
+                    <span style="font-size:0.8rem; color:#555;">${h.date}</span>
+                    <span>${h.stars}</span>
+                    <span style="font-weight:bold; color:var(--c-primary);">${h.score}点</span>
+                </li>
+            `).join('');
+        }
+
+        function generateProblems() {
+            const arr = [];
+            // パターン定義: type, diff, min, max
+            // +1, -1, +2, -2, +5, +10
+            const patterns = [
+                { type: 'inc1', diff: 1, min: 1, max: 80 },
+                { type: 'dec1', diff: -1, min: 20, max: 90 },
+                { type: 'inc2', diff: 2, min: 2, max: 80 },
+                { type: 'dec2', diff: -2, min: 20, max: 90 },
+                { type: 'inc5', diff: 5, min: 5, max: 60 },
+                { type: 'inc10', diff: 10, min: 10, max: 30 }
+            ];
+
+            const shuffledPatterns = patterns.sort(() => Math.random() - 0.5);
+            
+            for(let i=0; i<3; i++) {
+                const pat = shuffledPatterns[i % shuffledPatterns.length];
+                let start;
+                
+                if (pat.diff === 10) start = Math.floor(Math.random() * 4) * 10 + 10;
+                else if (pat.diff === 5) start = Math.floor(Math.random() * 10) * 5 + 5;
+                else if (Math.abs(pat.diff) === 2) start = Math.floor(Math.random() * 35) * 2 + (pat.type.includes('dec') ? 20 : 2);
+                else start = Math.floor(Math.random() * (pat.max - pat.min)) + pat.min;
+
+                const sequence = Array.from({length: 8}, (_, k) => start + k * pat.diff);
+                arr.push(createProblemData(sequence));
+            }
+            return arr;
+        }
+
+        function createProblemData(sequence) {
+            // 8個のうち、3連続で表示されている場所を作る (0-5)
+            const visibleStart = Math.floor(Math.random() * 6);
+            const visibleIndices = [visibleStart, visibleStart + 1, visibleStart + 2];
+            
+            // 残り5個のうち、あと1個を表示させる（計4個表示、4個空欄）
+            const allIndices = [0,1,2,3,4,5,6,7];
+            const remaining = allIndices.filter(i => !visibleIndices.includes(i));
+            const extraVisible = remaining[Math.floor(Math.random() * remaining.length)];
+            visibleIndices.push(extraVisible);
+            
+            const hiddenIndices = allIndices.filter(i => !visibleIndices.includes(i)).sort((a,b)=>a-b);
+            
+            return { sequence, hiddenIndices };
+        }
+
+        function startGame() {
+            problems = generateProblems();
+            currentProblemIndex = 0;
+            totalMistakeCount = 0;
+            startTime = Date.now();
+            
+            els.startArea.style.display = 'none';
+            els.resultArea.style.display = 'none';
+            els.gameArea.style.display = 'flex';
+            
+            showProblem();
+        }
+
+        function showProblem() {
+            isAnswering = false;
+            userInputs = {};
+            currentFocusIndex = null;
+            
+            const p = problems[currentProblemIndex];
+            emptyIndices = p.hiddenIndices;
+            
+            els.currentQNum.textContent = currentProblemIndex + 1;
+            els.progressFill.style.width = `${(currentProblemIndex / config.questionCount) * 100}%`;
+            
+            els.trainContainer.innerHTML = '';
+            
+            const loco = document.createElement('div');
+            loco.className = 'locomotive';
+            loco.textContent = '🚂';
+            els.trainContainer.appendChild(loco);
+            
+            p.sequence.forEach((num, idx) => {
+                const car = document.createElement('div');
+                car.className = 'train-car';
+                car.id = `car-${idx}`;
+                
+                if (p.hiddenIndices.includes(idx)) {
+                    car.classList.add('target');
+                    car.textContent = '';
+                    userInputs[idx] = "";
+                    car.onclick = () => setFocus(idx);
+                } else {
+                    car.textContent = num;
+                }
+                els.trainContainer.appendChild(car);
+            });
+
+            if (emptyIndices.length > 0) {
+                setFocus(emptyIndices[0]);
+            }
+        }
+
+        function setFocus(idx) {
+            if (currentFocusIndex !== null) {
+                const prev = document.getElementById(`car-${currentFocusIndex}`);
+                if (prev) prev.classList.remove('focused');
+            }
+            
+            currentFocusIndex = idx;
+            const curr = document.getElementById(`car-${idx}`);
+            if (curr) curr.classList.add('focused');
+        }
+
+        window.inputNum = function(num) {
+            if (isAnswering || currentFocusIndex === null) return;
+            
+            let val = userInputs[currentFocusIndex];
+            if (val.length >= 3) return; 
+            
+            val += num;
+            userInputs[currentFocusIndex] = val;
+            updateCarDisplay(currentFocusIndex);
+        };
+
+        window.deleteNum = function() {
+            if (isAnswering || currentFocusIndex === null) return;
+            
+            let val = userInputs[currentFocusIndex];
+            val = val.slice(0, -1);
+            userInputs[currentFocusIndex] = val;
+            updateCarDisplay(currentFocusIndex);
+        };
+        
+        window.moveNextFocus = function() {
+            if (isAnswering || currentFocusIndex === null) return;
+            const currentPos = emptyIndices.indexOf(currentFocusIndex);
+            if (currentPos !== -1 && currentPos < emptyIndices.length - 1) {
+                setFocus(emptyIndices[currentPos + 1]);
+            } else {
+                setFocus(emptyIndices[0]);
+            }
+        };
+        
+        window.movePrevFocus = function() {
+            if (isAnswering || currentFocusIndex === null) return;
+            const currentPos = emptyIndices.indexOf(currentFocusIndex);
+            if (currentPos > 0) {
+                setFocus(emptyIndices[currentPos - 1]);
+            } else {
+                setFocus(emptyIndices[emptyIndices.length - 1]);
+            }
+        };
+
+        function updateCarDisplay(idx) {
+            const car = document.getElementById(`car-${idx}`);
+            const val = userInputs[idx];
+            car.textContent = val;
+            if (val !== "") car.classList.add('filled');
+            else car.classList.remove('filled');
+        }
+
+        window.checkAnswer = function() {
+            if(isAnswering) return;
+            
+            for (let idx of emptyIndices) {
+                if (userInputs[idx] === "") return; 
+            }
+            
+            isAnswering = true;
+            const p = problems[currentProblemIndex];
+            let allCorrect = true;
+            
+            for (let idx of emptyIndices) {
+                if (parseInt(userInputs[idx]) !== p.sequence[idx]) {
+                    allCorrect = false;
+                    break;
+                }
+            }
+            
+            if (allCorrect) {
+                showFeedback(true);
+                setTimeout(() => {
+                    currentProblemIndex++;
+                    if(currentProblemIndex < config.questionCount) {
+                        showProblem();
+                    } else {
+                        finishGame();
+                    }
+                }, 1000);
+            } else {
+                showFeedback(false);
+                totalMistakeCount++;
+                isAnswering = false;
+            }
+        };
+
+        function showFeedback(isCorrect) {
+            const overlay = els.feedbackOverlay;
+            const mark = els.feedbackMark;
+            overlay.style.opacity = '1';
+            if (isCorrect) {
+                mark.textContent = '〇';
+                mark.className = 'mark mark-correct';
+            } else {
+                mark.textContent = '×';
+                mark.className = 'mark mark-wrong';
+            }
+            setTimeout(() => { overlay.style.opacity = '0'; }, 800);
+        }
+
+        function finishGame() {
+            els.gameArea.style.display = 'none';
+            els.resultArea.style.display = 'block';
+
+            const endTime = Date.now();
+            const elapsedSec = Math.floor((endTime - startTime) / 1000);
+            
+            let timeBonus = 0;
+            if (elapsedSec < config.targetTime) {
+                timeBonus = (config.targetTime - elapsedSec) * 3; 
+            }
+            let score = config.baseScore + timeBonus - (totalMistakeCount * 5);
+            
+            if (score < 100) score = 100;
+
+            let stars = "★☆☆☆☆";
+            if (score >= config.starThresholds.star5) stars = "★★★★★";
+            else if (score >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (score >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (score >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+            document.getElementById('result-stars').textContent = stars;
+            document.getElementById('result-msg').textContent = (totalMistakeCount === 0) ? "すごい！ きそくマスター！" : "よくがんばったね！";
+            document.getElementById('result-score').innerHTML = `スコア: <strong>${score}</strong> 点<br><span style="font-size:0.9rem; color:#555;">(タイム: ${elapsedSec}秒 / ミス: ${totalMistakeCount}回)</span>`;
+
+            if (score >= config.starThresholds.star3) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#1565C0', '#FDD835', '#FFFFFF'] });
+            }
+
+            saveData(score, stars, elapsedSec);
+        }
+
+        function saveData(score, stars, elapsedSec) {
+            const total = parseInt(localStorage.getItem(KEY_CLEAR) || 0) + 1;
+            localStorage.setItem(KEY_CLEAR, total);
+
+            const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
+            const daily = parseInt(localStorage.getItem(todayKey) || 0) + 1;
+            localStorage.setItem(todayKey, daily);
+
+            const oldHigh = parseInt(localStorage.getItem(KEY_HS) || 0);
+            if (score > oldHigh) localStorage.setItem(KEY_HS, score);
+
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            history.unshift({ date: dateStr, score: score, stars: stars, time: elapsedSec });
+            if (history.length > 5) history.pop();
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
+
+            loadStats();
+            updateHistoryDisplay();
+        }
+
+        function resetRank() {
+            if(confirm("ハイスコアと　ランクを　リセットしますか？")) {
+                localStorage.removeItem(KEY_HS);
+                alert("リセットしました。");
+                location.reload();
+            }
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
