@@ -348,6 +348,8 @@
         function saveData() {
             const ls = localStorage;
             ls.setItem(`${config.appId}:total`, totalClearCount);
+            ls.setItem(`${config.appId}:clearCount`, totalClearCount);
+            ls.setItem(`${config.appId}:status`, "★★★★★");
             const todayKey = `${config.appId}:daily-${new Date().toISOString().slice(0, 10)}`;
             ls.setItem(todayKey, dailyCount);
             updateStatsDisplay();

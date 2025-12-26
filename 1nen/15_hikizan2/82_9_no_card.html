@@ -325,6 +325,8 @@
         const KEY_CLEAR = `${config.appId}:totalClear`;
         const KEY_DAILY_PREFIX = `${config.appId}:dailyClear_`;
         const KEY_HISTORY = `${config.appId}:history`;
+        const KEY_CLEAR_COUNT = `${config.appId}:clearCount`;
+        const KEY_STATUS = `${config.appId}:status`;
 
         // DOM要素
         const els = {
@@ -543,6 +545,8 @@
         function saveData(score, stars, elapsedSec) {
             const total = parseInt(localStorage.getItem(KEY_CLEAR) || 0) + 1;
             localStorage.setItem(KEY_CLEAR, total);
+            localStorage.setItem(KEY_CLEAR_COUNT, total);
+            localStorage.setItem(KEY_STATUS, stars);
 
             const todayKey = KEY_DAILY_PREFIX + new Date().toLocaleDateString('ja-JP');
             const daily = parseInt(localStorage.getItem(todayKey) || 0) + 1;
