@@ -104,11 +104,6 @@
         "name": "８　　かずしらべ",
         "apps": [
           {
-            "id": "10_to_ikutsu_v7_final",
-            "title": "10と いくつ",
-            "path": "1nen/08_kazu_shirabe/035_10_to_ikutsu.html"
-          },
-          {
             "id": "kazu_shirabe_v4",
             "title": "かずしらべ",
             "path": "1nen/08_kazu_shirabe/027_kazu_shirabe.html"
@@ -275,11 +270,6 @@
         "name": "１８　大きい かず",
         "apps": [
           {
-            "id": "109_kazu_no_yomikata",
-            "title": "１０９　かずの　よみかた",
-            "path": "1nen/18_ookii_kazu/109_nedan_yomi_quiz.html"
-          },
-          {
             "id": "107_okane_no_dashikata",
             "title": "１８　大きいかず",
             "path": "1nen/18_ookii_kazu/107_okane_no_dashikata.html",
@@ -304,6 +294,12 @@
             "page": "103"
           },
           {
+            "id": "109_kazu_no_yomikata",
+            "title": "かずの　よみかた",
+            "path": "1nen/18_ookii_kazu/109_nedan_yomi_quiz.html",
+            "page": "109"
+          },
+          {
             "id": "104_kazu_no_ookisa",
             "title": "かずの　大きいほう",
             "path": "1nen/18_ookii_kazu/104_kazu_no_ookisa.html",
@@ -325,7 +321,14 @@
       },
       {
         "name": "１９　なんじなんぷん",
-        "apps": []
+        "apps": [
+          {
+            "id": "nanji_nanpun_113",
+            "title": "１９　なんじ　なんぷん",
+            "path": "1nen/19_nanji_nanpun/113_nanji_nanpun.html",
+            "page": "113"
+          }
+        ]
       },
       {
         "name": "２０　おなじ かずずつ",
@@ -335,24 +338,28 @@
         "name": "２１　100までの かずの けいさん",
         "apps": [
           {
-            "id": "120_nanjuuno_keisan",
-            "title": "なんじゅうの けいさん",
-            "path": "1nen/21_100made_kazu/120_nanjuuno_keisan.html"
+            "id": "120_100made_no_kazu_v3",
+            "title": "２１　100までの かず",
+            "path": "1nen/21_100made_kazu/120_100made_no_kazu.html",
+            "page": "120"
           },
           {
-            "id": "121-6,8_nanjuno_keisan",
-            "title": "なんじゅうの　けいさん⑵",
-            "path": "1nen/21_100made_kazu/121-6,8_nanjuno_keisan.html"
+            "id": "121_kazu_no_kumiawase",
+            "title": "２１　100までの かず",
+            "path": "1nen/21_100made_kazu/121_kazu_no_kumiawase.html",
+            "page": "121"
           },
           {
-            "id": "123-12_niketa_hiku_hitoketa_kurisagarinasi",
-            "title": "二けた−一けた（くりさがりなし）",
-            "path": "1nen/21_100made_kazu/123-12_niketa_hiku_hitoketa_kurisagarinasi.html"
+            "id": "122_tasu_10made",
+            "title": "２１　100までの かず",
+            "path": "1nen/21_100made_kazu/122_tasu_10made.html",
+            "page": "122"
           },
           {
-            "id": "122-10_niketa_tasu_hitoketa_kuriagarinasi",
-            "title": "二けた＋一けた（くりあがりなし）",
-            "path": "1nen/21_100made_kazu/122-10_niketa_tasu_hitoketa_kuriagarinasi.html"
+            "id": "123_hiku_10made",
+            "title": "２１　100までの かず",
+            "path": "1nen/21_100made_kazu/123_hiku_10made.html",
+            "page": "123"
           }
         ]
       },

@@ -7,22 +7,22 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
     <style>
-        /* ▼▼▼ テーマ：ドリーミー・ラベンダー（紫） ▼▼▼ */
+        /* ▼▼▼ テーマ：オーシャン・アドベンチャー（海） ▼▼▼ */
         :root {
-            --c-bg-main: #F3E5F5;         /* 薄い紫 */
-            --c-primary: #8E24AA;         /* メインの紫 */
-            --c-primary-dark: #4A148C;    /* 濃い紫 */
-            --c-primary-light: #E1BEE7;   /* 明るい紫 */
-            --c-accent: #FFD600;          /* 黄色（補色アクセント） */
-            --c-button-bg: #9C27B0;       /* ボタン背景 */
-            --c-button-hover: #7B1FA2;    
+            --c-bg-main: #E0F7FA;         /* 薄い水色 */
+            --c-primary: #006064;         /* 深い青緑 */
+            --c-primary-dark: #00363A;    /* さらに暗い青緑 */
+            --c-primary-light: #B2EBF2;   /* 明るい水色 */
+            --c-accent: #FF6F00;          /* オレンジ（補色） */
+            --c-button-bg: #0097A7;       /* ボタン背景 */
+            --c-button-hover: #00838F;
             
-            --c-text-main: #4A148C;       
+            --c-text-main: #006064;       
             --c-text-white: #ffffff;
             
             --c-clock-face: #ffffff;
-            --c-hand-hour: #E91E63;       /* 短針（赤ピンク） */
-            --c-hand-minute: #2196F3;     /* 長針（青） */
+            --c-hand-hour: #D81B60;       /* 短針（目立つピンク赤） */
+            --c-hand-minute: #0277BD;     /* 長針（青） */
             
             --font-family: "M PLUS Rounded 1c", sans-serif;
         }
@@ -33,12 +33,10 @@
             padding: 20px; display: flex; flex-direction: column; align-items: center;
             -webkit-tap-highlight-color: transparent;
             min-height: 100vh;
-            /* 背景パターン：星と月 */
             background-image: 
-                radial-gradient(var(--c-primary-light) 15%, transparent 16%),
-                radial-gradient(var(--c-primary-light) 15%, transparent 16%);
-            background-size: 30px 30px;
-            background-position: 0 0, 15px 15px;
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.4) 2%, transparent 2.5%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.4) 4%, transparent 4.5%);
+            background-size: 100px 100px;
         }
 
         h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; letter-spacing: 1px;}
@@ -133,7 +131,21 @@
             min-width: 200px; text-align: center;
             margin-bottom: 20px;
             display: flex; justify-content: center; align-items: baseline; gap: 5px;
+            transition: border-color 0.2s, background-color 0.2s;
         }
+        .answer-display.error-shake {
+            animation: shake 0.4s;
+            border-color: #D32F2F;
+            background-color: #FFEBEE;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
         .ans-hour { color: var(--c-primary-dark); border-bottom: 3px solid #ccc; min-width: 50px; display:inline-block; }
         .ans-suffix { font-size: 1.8rem; color: #555; }
         .ans-half { color: var(--c-accent); margin-left: 10px; }
@@ -154,20 +166,20 @@
         
         .key-half { 
             grid-column: span 1; 
-            background: #FFF9C4; /* 薄い黄色 */
-            border-color: #FBC02D; border-bottom-color: #F57F17;
-            color: #E65100; font-size: 1.3rem;
+            background: #E1F5FE;
+            border-color: #0288D1; border-bottom-color: #01579B;
+            color: #01579B; font-size: 1.3rem;
         }
         .key-half.active {
-            background: #FFEB3B; transform: translateY(4px); border-bottom: 2px solid #F57F17;
+            background: #4FC3F7; color: #fff; transform: translateY(4px); border-bottom: 2px solid #01579B;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .key-del { background: #CFD8DC; border-color: #90A4AE; border-bottom-color: #546E7A; font-size: 1.2rem; color: #455A64;}
         .key-enter { 
             grid-column: span 1; 
-            background: var(--c-accent); color: #3E2723; 
-            border-color: #FFB300; border-bottom-color: #FF6F00;
+            background: var(--c-accent); color: #fff; 
+            border-color: #EF6C00; border-bottom-color: #E65100;
         }
 
         /* フィードバック */
@@ -189,12 +201,46 @@
         }
         .status-stars { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FFB300; display:block; margin: 10px 0;}
         
-        #history-area { margin-top: 20px; font-size: 0.9rem; text-align: left; background: var(--c-bg-main); padding:15px; border-radius:10px; border: 2px dashed var(--c-primary);}
-        #history-list { list-style: none; padding: 0; }
-        #history-list li { 
-            border-bottom: 1px dashed var(--c-primary); padding: 8px 0; 
+        /* 履歴エリア */
+        .history-container {
+            margin-top: 20px; font-size: 0.9rem; text-align: left; 
+            background: #E0F2F1; padding:15px; 
+            border-radius:12px; border: 3px solid var(--c-primary);
+        }
+        .history-title {
+            font-weight: bold; color: var(--c-primary-dark); font-size: 1rem;
+            border-bottom: 2px dashed var(--c-primary); padding-bottom: 5px; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
         }
+        
+        .history-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
+        .history-list li { 
+            background: #fff; border-radius: 8px; margin-bottom: 8px; padding: 8px 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid var(--c-primary-light);
+        }
+        
+        /* 履歴アイテム内のレイアウト変更：縦並びにして被りを防ぐ */
+        .hist-left { 
+            display: flex; flex-direction: column; align-items: flex-start; 
+            gap: 2px; flex: 1;
+        }
+        .hist-right { 
+            display: flex; flex-direction: column; align-items: flex-end; 
+            gap: 2px;
+        }
+        
+        .hist-date { 
+            font-size: 0.75rem; color: #666; letter-spacing: 0.5px;
+            font-family: monospace; /* 等幅フォントで数字を揃える */
+        }
+        .hist-stars { 
+            color: #FFD700; letter-spacing: -2px; font-size: 1.1rem; 
+            text-shadow: 1px 1px 0 #FFECB3;
+            line-height: 1.2;
+        }
+        .hist-score { font-weight: 800; font-size: 1.2rem; color: var(--c-primary); line-height: 1.2; }
+        .hist-time { font-size: 0.85rem; color: #888; }
 
         /* モーダル */
         #bulb-btn {
@@ -217,16 +263,7 @@
       <div class="modal-content">
         <span class="close-modal">&times;</span>
         <h3 style="text-align:center; color:var(--c-primary); margin-top:0;">あそびかた</h3>
-        <p>とけいを　みて　なんじか　あててね。</p>
-        <div style="background:#F3E5F5; padding:15px; border-radius:10px; margin:15px 0; line-height:1.6;">
-            <strong>① 〇じ（ぴったり）</strong><br>
-            ながい　はりが　<strong>１２</strong>　のとき。<br>
-            <br>
-            <strong>② 〇じはん（はん）</strong><br>
-            ながい　はりが　<strong>６</strong>　のとき。<br>
-            みじかい　はりは　すうじと　すうじの　あいだにあるよ。
-        </div>
-        <p>「はん」ボタンをおすと、「はん」がついたり　きえたりするよ。</p>
+        <div id="instruction-content"></div>
         <button onclick="document.getElementById('info-modal').style.display='none'" style="width:100%; margin:20px 0 0 0;">わかった！</button>
       </div>
     </div>
@@ -251,6 +288,14 @@
         </div>
 
         <button id="start-btn">はじめる (Enter)</button>
+        
+        <div class="history-container">
+            <div class="history-title">
+                <span>これまでの きろく</span>
+                <span style="font-size:0.8rem; color:#666;">さいしん10けん</span>
+            </div>
+            <ul id="start-history-list" class="history-list"></ul>
+        </div>
     </div>
 
     <div id="game-area">
@@ -259,21 +304,21 @@
 
         <div class="clock-container">
             <svg class="clock-face" viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r="95" fill="white" stroke="#8E24AA" stroke-width="4" />
+                <circle cx="100" cy="100" r="95" fill="white" stroke="#006064" stroke-width="4" />
                 
                 <g id="clock-marks"></g>
                 
-                <line id="hour-hand" x1="100" y1="100" x2="100" y2="50" stroke="#E91E63" stroke-width="8" stroke-linecap="round" />
-                <line id="minute-hand" x1="100" y1="100" x2="100" y2="25" stroke="#2196F3" stroke-width="5" stroke-linecap="round" />
+                <line id="hour-hand" x1="100" y1="100" x2="100" y2="50" stroke="#D81B60" stroke-width="8" stroke-linecap="round" />
+                <line id="minute-hand" x1="100" y1="100" x2="100" y2="25" stroke="#0277BD" stroke-width="5" stroke-linecap="round" />
                 
-                <circle cx="100" cy="100" r="5" fill="#4A148C" />
+                <circle cx="100" cy="100" r="5" fill="#006064" />
             </svg>
             <div class="feedback-overlay" id="feedback-overlay">
                 <div class="mark" id="feedback-mark"></div>
             </div>
         </div>
 
-        <div class="answer-display">
+        <div class="answer-display" id="answer-display">
             <span id="display-hour" class="ans-hour">&nbsp;&nbsp;</span>
             <span class="ans-suffix">じ</span>
             <span id="display-half" class="ans-half"></span>
@@ -317,9 +362,12 @@
             ごうけいクリア：<span id="total-count-result" style="color:#E91E63; font-size:1.2rem;">0</span> かい
         </div>
 
-        <div id="history-area">
-            <strong>これまでの きろく（さいしん5けん）</strong>
-            <ul id="history-list"></ul>
+        <div class="history-container">
+            <div class="history-title">
+                <span>これまでの きろく</span>
+                <span style="font-size:0.8rem; color:#666;">さいしん10けん</span>
+            </div>
+            <ul id="result-history-list" class="history-list"></ul>
         </div>
         
         <button id="back-to-start-btn" style="margin-top:20px;">さいしょに もどる (Enter)</button>
@@ -341,7 +389,19 @@
             baseScore: 100,
             targetTimePerQuestion: 8, 
             questionCount: 10,
-            starThresholds: { star5: 180, star4: 150, star3: 100, star2: 80 }
+            starThresholds: { star5: 180, star4: 150, star3: 100, star2: 80 },
+            instructionHtml: `
+                <p>とけいを　みて　なんじか　あててね。</p>
+                <div style="background:#E0F7FA; padding:15px; border-radius:10px; margin:15px 0; line-height:1.6; border:2px dashed #006064;">
+                    <strong>① 〇じ（ぴったり）</strong><br>
+                    ながい　はりが　<strong>１２</strong>　のとき。<br>
+                    <br>
+                    <strong>② 〇じはん（はん）</strong><br>
+                    ながい　はりが　<strong>６</strong>　のとき。<br>
+                    みじかい　はりは　すうじと　すうじの　あいだにあるよ。
+                </div>
+                <p>「はん」ボタンをおすと、「はん」がついたり　きえたりするよ。</p>
+            `
         };
 
         // 状態変数
@@ -366,13 +426,18 @@
             mainTitle: document.getElementById('main-title'),
             subTitleText: document.getElementById('sub-title-text'),
             pageCircle: document.getElementById('page-circle'),
+            instructionContent: document.getElementById('instruction-content'),
             
             startArea: document.getElementById('start-area'),
             highScoreDisplay: document.getElementById('high-score-display'),
             dailyCountStart: document.getElementById('daily-count-start'),
             totalCountStart: document.getElementById('total-count-start'),
             startBtn: document.getElementById('start-btn'),
-
+            
+            // 履歴リスト（2箇所）
+            startHistoryList: document.getElementById('start-history-list'),
+            resultHistoryList: document.getElementById('result-history-list'),
+            
             gameArea: document.getElementById('game-area'),
             currentQNum: document.getElementById('current-q-num'),
             totalQNum: document.getElementById('total-q-num'),
@@ -382,6 +447,7 @@
             hourHand: document.getElementById('hour-hand'),
             minuteHand: document.getElementById('minute-hand'),
             
+            answerDisplayBox: document.getElementById('answer-display'),
             displayHour: document.getElementById('display-hour'),
             displayHalf: document.getElementById('display-half'),
             btnHalf: document.getElementById('btn-half'),
@@ -396,7 +462,7 @@
             highScoreResult: document.getElementById('high-score-result'),
             dailyCountResult: document.getElementById('daily-count-result'),
             totalCountResult: document.getElementById('total-count-result'),
-            historyList: document.getElementById('history-list'),
+            
             backStartBtn: document.getElementById('back-to-start-btn'),
             resetRankBtn: document.getElementById('reset-rank-btn')
         };
@@ -406,6 +472,7 @@
             els.subTitleText.textContent = config.title;
             els.pageCircle.textContent = config.page;
             els.totalQNum.textContent = config.questionCount;
+            els.instructionContent.innerHTML = config.instructionHtml;
 
             drawClockFace();
             loadStats();
@@ -415,19 +482,22 @@
             els.backStartBtn.addEventListener('click', () => location.reload());
             els.resetRankBtn.addEventListener('click', resetRank);
 
-            // キーボード対応（数字キーで時間は入力できるようにする）
+            // キーボード対応
             document.addEventListener('keydown', (e) => {
-                if (els.gameArea.style.display === 'flex' && !isAnswering) {
-                    // 1-9
+                if (els.gameArea.style.display === 'flex') {
+                    if (isAnswering) return;
+                    
                     if (e.key >= '1' && e.key <= '9') inputHour(parseInt(e.key));
-                    // 10, 11, 12 はキーボードでは難しいので、BackspaceとEnterのみ対応
-                    if (e.key === 'Backspace') deleteInput();
+                    if (e.key === 'Backspace' || e.key === 'Delete') deleteInput();
+                    
                     if (e.key === 'Enter') checkAnswer();
-                    // 'h'キーで「はん」切り替え
                     if (e.key === 'h' || e.key === 'H') toggleHalf();
                 } else if (e.key === 'Enter') {
                     if (els.startArea.style.display !== 'none') startGame();
                     else if (els.resultArea.style.display !== 'none') location.reload();
+                    
+                    const modal = document.getElementById('info-modal');
+                    if (modal.style.display === 'block') modal.style.display = 'none';
                 }
             });
             
@@ -441,11 +511,10 @@
             let svgContent = "";
             for (let i = 1; i <= 12; i++) {
                 const angle = (i * 30) * (Math.PI / 180);
-                const r = 75; // 文字の配置半径
+                const r = 75; 
                 const x = 100 + r * Math.sin(angle);
                 const y = 100 - r * Math.cos(angle);
                 
-                // 目盛り線
                 const r1 = 85;
                 const r2 = 95;
                 const x1 = 100 + r1 * Math.sin(angle);
@@ -453,8 +522,8 @@
                 const x2 = 100 + r2 * Math.sin(angle);
                 const y2 = 100 - r2 * Math.cos(angle);
                 
-                svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#8E24AA" stroke-width="3" />`;
-                svgContent += `<text x="${x}" y="${y}" fill="#4A148C" font-size="16" font-weight="bold" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">${i}</text>`;
+                svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#006064" stroke-width="3" />`;
+                svgContent += `<text x="${x}" y="${y}" fill="#006064" font-size="16" font-weight="bold" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif">${i}</text>`;
             }
             els.clockMarks.innerHTML = svgContent;
         }
@@ -475,20 +544,32 @@
 
         function updateHistoryDisplay() {
             const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
-            els.historyList.innerHTML = history.map(h => `
-                <li>
-                    <span style="font-size:0.8rem; color:#555;">${h.date}</span>
-                    <span>${h.stars}</span>
-                    <span style="font-weight:bold; color:var(--c-primary);">${h.score}点 <span style="font-size:0.85rem; color:#333; margin-left:5px;">(${h.time}びょう)</span></span>
-                </li>
-            `).join('');
+            
+            const listHtml = history.length === 0 
+                ? '<li style="justify-content:center; color:#888;">まだ　きろくは　ありません</li>'
+                : history.map(h => `
+                    <li>
+                        <div class="hist-left">
+                            <span class="hist-date">${h.date}</span>
+                            <span class="hist-stars">${h.stars}</span>
+                        </div>
+                        <div class="hist-right">
+                            <span class="hist-score">${h.score}点</span>
+                            <span class="hist-time">(${h.time}びょう)</span>
+                        </div>
+                    </li>
+                `).join('');
+
+            // スタート画面とリザルト画面の両方を更新
+            if(els.startHistoryList) els.startHistoryList.innerHTML = listHtml;
+            if(els.resultHistoryList) els.resultHistoryList.innerHTML = listHtml;
         }
 
         function generateProblems() {
             const arr = [];
             for (let i = 0; i < config.questionCount; i++) {
                 const hour = Math.floor(Math.random() * 12) + 1; 
-                const isHalf = Math.random() < 0.5; // 50%確率で30分
+                const isHalf = Math.random() < 0.5; 
                 const minute = isHalf ? 30 : 0;
                 arr.push({ hour, minute });
             }
@@ -508,7 +589,6 @@
 
         function showProblem() {
             isAnswering = false;
-            // 入力リセット
             inputH = null;
             inputIsHalf = false;
             updateInputDisplay();
@@ -517,51 +597,44 @@
             els.currentQNum.textContent = currentProblemIndex + 1;
             els.progressFill.style.width = `${(currentProblemIndex / config.questionCount) * 100}%`;
             
-            // 時計の針をセット
             setClockHands(p.hour, p.minute);
         }
 
         function setClockHands(hour, minute) {
-            // 長針 (分)
-            const minAngle = minute * 6; // 0分=0度, 30分=180度
+            const minAngle = minute * 6; 
             els.minuteHand.setAttribute("transform", `rotate(${minAngle}, 100, 100)`);
             
-            // 短針 (時)
-            // 30分の時は、時間の角度 + 15度 (0.5時間分)
-            const hourBaseAngle = (hour % 12) * 30; // 12時は0度扱い
+            const hourBaseAngle = (hour % 12) * 30; 
             const hourAddAngle = (minute / 60) * 30;
             const hourAngle = hourBaseAngle + hourAddAngle;
             
-            // 12時の位置が0度になるようにSVGを描画しているが、
-            // rotationはデフォルトで右(3時)が0度ではなく、
-            // SVG座標系で transform rotate は中心回転を指定すればそのまま時計回りに回る。
-            // 描画時の初期位置: 時針(12時方向), 分針(12時方向) にしているので
-            // そのまま角度指定でOK。
             els.hourHand.setAttribute("transform", `rotate(${hourAngle}, 100, 100)`);
         }
 
-        // 入力操作
         inputHour = (h) => {
             if (isAnswering) return;
+            els.answerDisplayBox.classList.remove('error-shake');
             inputH = h;
             updateInputDisplay();
         };
 
         toggleHalf = () => {
             if (isAnswering) return;
+            els.answerDisplayBox.classList.remove('error-shake');
             inputIsHalf = !inputIsHalf;
             updateInputDisplay();
         };
 
         deleteInput = () => {
             if (isAnswering) return;
+            els.answerDisplayBox.classList.remove('error-shake');
             inputH = null;
             inputIsHalf = false;
             updateInputDisplay();
         };
 
         function updateInputDisplay() {
-            els.displayHour.textContent = inputH !== null ? inputH : "\u00A0\u00A0"; // 空白
+            els.displayHour.textContent = inputH !== null ? inputH : "\u00A0\u00A0"; 
             
             if (inputIsHalf) {
                 els.displayHalf.textContent = "はん";
@@ -574,17 +647,20 @@
 
         checkAnswer = () => {
             if (isAnswering) return;
-            if (inputH === null) return; // 時間未入力なら何もしない
+            
+            if (inputH === null) {
+                els.answerDisplayBox.classList.remove('error-shake');
+                void els.answerDisplayBox.offsetWidth; 
+                els.answerDisplayBox.classList.add('error-shake');
+                return;
+            }
 
             const p = problems[currentProblemIndex];
-            isAnswering = true;
-
-            // 正誤判定
-            // 正解: 時間が一致 かつ 分(0or30)の状態が一致
             const correctHalf = (p.minute === 30);
             
             if (inputH === p.hour && inputIsHalf === correctHalf) {
-                // 正解
+                isAnswering = true;
+                els.answerDisplayBox.classList.remove('error-shake');
                 showFeedback(true);
                 setTimeout(() => {
                     currentProblemIndex++;
@@ -595,11 +671,11 @@
                     }
                 }, 800);
             } else {
-                // 不正解
                 showFeedback(false);
                 totalMistakeCount++;
-                // 入力リセットせず、ユーザーに修正させる
-                isAnswering = false;
+                els.answerDisplayBox.classList.remove('error-shake');
+                void els.answerDisplayBox.offsetWidth; 
+                els.answerDisplayBox.classList.add('error-shake');
             }
         };
 
@@ -624,25 +700,20 @@
             const endTime = Date.now();
             const elapsedSec = Math.floor((endTime - startTime) / 1000);
             
-            // スコア計算
-            const standardTime = config.targetTimePerQuestion * config.questionCount; // 80秒
+            const standardTime = config.targetTimePerQuestion * config.questionCount; 
             
-            // タイムボーナス
             let timeBonus = 0;
             if (elapsedSec < standardTime) {
                 timeBonus = Math.floor((standardTime - elapsedSec) * 2.0); 
             }
             
-            // ミスペナルティ
             const mistakePenalty = totalMistakeCount * 5;
             
             let finalScore = config.baseScore + timeBonus - mistakePenalty;
             if (finalScore < 0) finalScore = 0;
             
-            // 全問正解保証
             if (totalMistakeCount === 0 && finalScore < 100) finalScore = 100;
 
-            // スター判定
             let stars = "★☆☆☆☆";
             if (finalScore >= config.starThresholds.star5) stars = "★★★★★";
             else if (finalScore >= config.starThresholds.star4) stars = "★★★★☆";
@@ -653,9 +724,8 @@
             els.resultMsg.textContent = (totalMistakeCount === 0) ? "すごい！ かんぺき！" : "よくがんばったね！";
             els.resultScore.innerHTML = `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:0.9rem; color:#555;">(タイム: ${elapsedSec}びょう / ミス: ${totalMistakeCount}かい)</span>`;
 
-            // 紙吹雪
             if (finalScore >= config.starThresholds.star3) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#AB47BC', '#FFD700', '#FFFFFF'] });
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#4FC3F7', '#FFD700', '#FFFFFF'] });
             }
 
             saveData(finalScore, stars, elapsedSec);
@@ -676,10 +746,11 @@
 
             const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]');
             const now = new Date();
-            const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;   
+            // 年/月/日 時:分:秒
+            const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;   
             
             history.unshift({ date: dateStr, score: score, stars: stars, time: elapsedSec });
-            if (history.length > 5) history.pop();
+            if (history.length > 10) history.pop();
             localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
 
             loadStats();
