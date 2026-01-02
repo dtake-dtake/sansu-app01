@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大きな数の筆算（３けた×３けた）</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：コズミック・ゲート（深宇宙×ネオン） ▼▼▼ */
+        :root {
+            --c-bg-main: #1a1a2e;
+            --c-panel-bg: #16213e;
+            --c-primary: #0f3460;
+            --c-accent: #e94560;
+            --c-text-main: #e0e0e0;
+            --c-grid-line: #533483;
+            --c-border-line: #e94560;
+            
+            --c-correct-bg: #1b5e20;
+            --c-wrong-bg: #5c1b28;
+            --c-input-focus: #0f3460;
+            
+            --c-carry-text: #ffd700;
+            --c-carry-bg: rgba(255, 215, 0, 0.1);
+            
+            --cell-size: 46px;
+            --font-family: "Hiragino Kaku Gothic ProN", "NotosansJP", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--c-bg-main);
+            color: var(--c-text-main);
+            padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(0deg, transparent 24%, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,0.05) 75%, rgba(255,255,255,0.05) 76%, transparent 77%);
+            background-size: 30px 30px, 60px 60px;
+        }
+
+        h1 { color: #e94560; font-size: 1.8rem; margin: 10px 0; text-shadow: 0 0 10px rgba(233, 69, 96, 0.5); }
+        h2 { 
+            font-size: 1.2rem; color: #fff; 
+            background: linear-gradient(90deg, var(--c-primary), var(--c-accent)); 
+            padding: 8px 20px; border-radius: 20px; margin-bottom: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn {
+            font-size: 1.2rem; padding: 12px 30px; border-radius: 50px; border: none;
+            cursor: pointer; font-weight: bold; transition: all 0.2s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4); color: #fff;
+            font-family: var(--font-family);
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-start { 
+            background: linear-gradient(45deg, #e94560, #c0392b); 
+            font-size: 1.6rem; padding: 15px 60px; margin-top: 20px;
+            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+        }
+        .btn-check { background: var(--c-primary); border: 2px solid #533483; }
+
+        #start-area, #result-area {
+            background: var(--c-panel-bg); padding: 40px; border-radius: 20px; text-align: center;
+            max-width: 500px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--c-grid-line);
+        }
+        #game-area { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 600px; }
+
+        .problem-wrapper {
+            background: var(--c-panel-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            display: inline-block;
+            border: 1px solid var(--c-grid-line);
+            scroll-margin-block: 150px; /* スクロール時の余白 */
+        }
+
+        /* グリッドレイアウト */
+        .grid-container {
+            display: grid;
+            /* 7列 */
+            grid-template-columns: repeat(7, var(--cell-size));
+            /* 8行: A, B, Line, P1, P2, P3, Line, Total */
+            grid-template-rows: repeat(8, var(--cell-size));
+            
+            border-top: 1px dashed var(--c-grid-line);
+            border-left: 1px dashed var(--c-grid-line);
+            position: relative;
+        }
+
+        .cell {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; font-family: 'Courier New', monospace; font-weight: bold;
+            position: relative;
+            border-right: 1px dashed var(--c-grid-line);
+            border-bottom: 1px dashed var(--c-grid-line);
+            box-sizing: border-box;
+            color: #fff;
+        }
+        
+        /* 計算の太線 */
+        .line-border { border-bottom: 3px solid var(--c-border-line) !important; }
+        
+        /* 入力フィールド */
+        input[type="number"], input[type="tel"] {
+            width: 100%; height: 100%;
+            font-size: 1.8rem; text-align: center; border: none;
+            outline: none; background: transparent;
+            font-family: inherit; font-weight: bold; color: #fff;
+            padding: 0; margin: 0;
+            -moz-appearance: textfield; border-radius: 0;
+            z-index: 2;
+        }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        input:focus {
+            background-color: rgba(233, 69, 96, 0.2); 
+            box-shadow: inset 0 0 0 2px var(--c-accent);
+        }
+        
+        /* くり上がりメモ (B案：セル内フローティング) */
+        .carry-note {
+            position: absolute;
+            width: 18px; height: 18px;
+            font-size: 0.75rem; color: var(--c-carry-text);
+            border: 1px dotted var(--c-carry-text) !important;
+            background: var(--c-carry-bg);
+            border-radius: 4px;
+            top: 2px; left: 2px;
+            z-index: 10;
+            line-height: 16px;
+            text-align: center;
+        }
+        /* 1段目（かけられる数）の上のくり上がりは従来通り */
+        .carry-top {
+            top: -15px; left: 50%; transform: translateX(-50%);
+            border-radius: 50%;
+        }
+
+        .carry-note:focus {
+            box-shadow: 0 0 0 1px var(--c-carry-text);
+            transform: scale(1.5);
+            background: #000;
+            z-index: 20;
+        }
+        
+        .correct-bg { background-color: var(--c-correct-bg) !important; transition: background 0.3s; }
+        .wrong-bg { background-color: var(--c-wrong-bg) !important; transition: background 0.3s; }
+
+        .history-list {
+            list-style: none; padding: 0; text-align: left; margin-top: 20px;
+            background: rgba(255,255,255,0.05); border-radius: 10px; padding: 15px;
+        }
+        .history-list li {
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0;
+            display: flex; justify-content: space-between; font-size: 0.9rem;
+        }
+
+        /* モーダル */
+        .modal { display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.8); backdrop-filter: blur(4px); }
+        .modal-content { background-color: var(--c-panel-bg); margin: 10% auto; padding: 30px; width: 90%; max-width: 500px; border-radius: 15px; position: relative; border: 2px solid var(--c-accent); }
+        .close-btn { float: right; font-size: 28px; cursor: pointer; color: #fff; }
+        
+        #bulb-btn { position: absolute; top: 15px; right: 15px; background: transparent; border: 2px solid #FFD700; border-radius: 50%; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #FFD700; font-weight: bold; transition: transform 0.2s;}
+        #bulb-btn:hover { transform: scale(1.1); background: rgba(255,215,0,0.1); }
+    </style>
+</head>
+<body>
+    <button id="bulb-btn">？</button>
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 style="color:var(--c-accent);">３けた×３けたの筆算</h3>
+            <p>① 位（くらい）をそろえて書こう。</p>
+            <p>② <span style="color:#FFD700; border:1px dotted #FFD700; padding:0 4px;">□</span> 小さなマスは「くり上がり」のメモだよ。</p>
+            <p>③ エンターキーを押すと、次のマスに進めるよ。</p>
+            <p>④ まるつけの後、まちがいがあると自動でそこに飛ぶよ。</p>
+        </div>
+    </div>
+
+    <header>
+        <h1>大きな数の筆算</h1>
+        <h2>20　3けた×3けた</h2>
+    </header>
+
+    <div id="start-area">
+        <p>３けた×３けたの筆算にチャレンジ！<br>全５問</p>
+        <button id="start-btn" class="btn btn-start">スタート！</button>
+        <div style="margin-top: 20px;">
+            <div style="font-size:0.9rem; color:#888; text-align:left;">これまでのきろく</div>
+            <ul id="start-history" class="history-list"></ul>
+        </div>
+    </div>
+
+    <div id="game-area">
+        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:10px; padding:0 10px;">
+            <span id="q-counter">問 1 / 5</span>
+            <button onclick="location.reload()" style="background:transparent; border:1px solid #666; color:#aaa; border-radius:15px; padding:2px 10px; cursor:pointer; font-size:0.8rem;">やめる</button>
+        </div>
+
+        <div id="problem-container">
+            </div>
+
+        <div style="text-align: center; margin-top:10px;">
+            <button id="check-btn" class="btn btn-check">まるつけ (Enter)</button>
+            <div id="message-box" style="height: 1.5rem; margin-top: 10px; color: #fff; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <div id="result-area" style="display:none;">
+        <h2 style="color:var(--c-accent); background:none; border:none; font-size:2rem; box-shadow:none;">ミッション完了！</h2>
+        <div id="result-score" style="font-size:2.5rem; font-weight:bold; color:var(--c-accent); margin:10px 0;"></div>
+        <div id="result-msg" style="margin-bottom:20px;"></div>
+        <button onclick="location.reload()" class="btn btn-check">タイトルへ</button>
+        
+        <div style="margin-top: 20px;">
+            <div style="font-size:0.9rem; color:#888; text-align:left;">きろく</div>
+            <ul id="result-history" class="history-list"></ul>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        const config = {
+            appId: "hissan_3x3_refined",
+            qCount: 5,
+            passScore: 80
+        };
+
+        let problems = [];
+        let currentIdx = 0;
+        let mistakes = 0; 
+        let totalScore = 100;
+        let correctionMode = false; // まちがい訂正モードかどうか
+        const KEY_HISTORY = `${config.appId}:history`;
+
+        // DOM Elements
+        const container = document.getElementById('problem-container');
+        const startArea = document.getElementById('start-area');
+        const gameArea = document.getElementById('game-area');
+        const resultArea = document.getElementById('result-area');
+        const checkBtn = document.getElementById('check-btn');
+        const msgBox = document.getElementById('message-box');
+
+        function init() {
+            renderHistory();
+            document.getElementById('start-btn').onclick = startGame;
+            checkBtn.onclick = handleCheckOrNext;
+            
+            // Modal
+            const modal = document.getElementById('info-modal');
+            document.getElementById('bulb-btn').onclick = () => modal.style.display = 'block';
+            document.querySelector('.close-btn').onclick = () => modal.style.display = 'none';
+            window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+
+            // Global Keydown
+            document.addEventListener('keydown', (e) => {
+                if (startArea.style.display !== 'none' && e.key === 'Enter') {
+                    startGame();
+                } else if (gameArea.style.display !== 'none' && e.key === 'Enter') {
+                    // 入力中のエンターは各inputのリスナーで処理、ここはボタンへのフォーカス移動などを補完
+                }
+            });
+        }
+
+        function startGame() {
+            problems = generateProblems(config.qCount);
+            currentIdx = 0;
+            totalScore = 100;
+            mistakes = 0;
+            correctionMode = false;
+            
+            startArea.style.display = 'none';
+            resultArea.style.display = 'none';
+            gameArea.style.display = 'flex';
+            
+            showProblem();
+        }
+
+        function generateProblems(n) {
+            const arr = [];
+            for (let i=0; i<n; i++) {
+                const a = Math.floor(Math.random() * 900) + 100; 
+                const b = Math.floor(Math.random() * 900) + 100;
+                arr.push(createProblemData(a, b));
+            }
+            return arr;
+        }
+
+        function createProblemData(a, b) {
+            const b_str = String(b);
+            const b_ones = parseInt(b_str[2]);
+            const b_tens = parseInt(b_str[1]);
+            const b_huns = parseInt(b_str[0]);
+
+            const p1 = a * b_ones;
+            const p2 = a * b_tens;
+            const p3 = a * b_huns;
+            const total = a * b;
+
+            return { 
+                a, b, p1, p2, p3, total,
+                carries: {
+                    p1: getMultiplicationCarries(a, b_ones),
+                    p2: getMultiplicationCarries(a, b_tens),
+                    p3: getMultiplicationCarries(a, b_huns),
+                    total: getAdditionCarries(p1, p2, p3)
+                }
+            };
+        }
+
+        function getMultiplicationCarries(a, d) {
+            const a_str = String(a);
+            const carries = [];
+            let carry = 0;
+            for (let i = a_str.length - 1; i >= 0; i--) {
+                const digit = parseInt(a_str[i]);
+                const val = digit * d + carry;
+                carry = Math.floor(val / 10);
+                carries.push(carry); 
+            }
+            carries.push(carry);
+            return carries;
+        }
+
+        function getAdditionCarries(p1, p2, p3) {
+            const carries = [];
+            let carry = 0;
+            for(let i=0; i<8; i++) {
+                const d1 = getDigitVal(p1, i);
+                const d2 = getDigitVal(p2, i - 1);
+                const d3 = getDigitVal(p3, i - 2);
+                const sum = d1 + d2 + d3 + carry;
+                carry = Math.floor(sum / 10);
+                carries.push(carry);
+            }
+            return carries;
+        }
+
+        function getDigitVal(num, pos) {
+            if (pos < 0) return 0;
+            const s = String(num);
+            if (pos >= s.length) return 0;
+            return parseInt(s[s.length - 1 - pos]);
+        }
+
+        function showProblem() {
+            correctionMode = false;
+            const p = problems[currentIdx];
+            msgBox.textContent = "";
+            checkBtn.disabled = false;
+            checkBtn.textContent = "まるつけ (Enter)";
+            checkBtn.classList.remove('btn-next'); 
+            document.getElementById('q-counter').textContent = `問 ${currentIdx + 1} / ${config.qCount}`;
+
+            container.innerHTML = "";
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'problem-wrapper';
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid-container';
+
+            // 7列 x 8行
+            // R1: A
+            // R2: × B
+            // R3: Line
+            // R4: P1 (ones)
+            // R5: P2 (tens)
+            // R6: P3 (huns)
+            // R7: Line
+            // R8: Total
+
+            const strA = String(p.a).padStart(3, ' ');
+            const strB = String(p.b).padStart(3, ' ');
+            const inputOrder = [];
+
+            for (let r=1; r<=8; r++) {
+                for (let c=1; c<=7; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (r === 2 || r === 7) cell.classList.add('line-border');
+
+                    const colFromRight = 7 - c; // 0=右端
+
+                    if (r === 1) { // Multiplicand
+                        if (colFromRight < 3) cell.textContent = strA[2 - colFromRight];
+                    } else if (r === 2) { // Multiplier
+                        if (colFromRight < 3) cell.textContent = strB[2 - colFromRight];
+                        if (colFromRight === 3) cell.textContent = "×";
+                    } else if (r === 3 || r === 7) {
+                         // Line rows, empty
+                    } else if (r >= 4 && r <= 6) { // P1, P2, P3
+                        const shift = r - 4; 
+                        const targetVal = [p.p1, p.p2, p.p3][r-4];
+                        const carriesArr = [p.carries.p1, p.carries.p2, p.carries.p3][r-4];
+                        const strVal = String(targetVal);
+                        
+                        const digitPos = colFromRight - shift; 
+                        
+                        // 入力欄生成
+                        if (digitPos >= 0 && digitPos < strVal.length) {
+                            const correctDigit = strVal[strVal.length - 1 - digitPos];
+                            
+                            // くり上がりメモ (B案：セル内左上)
+                            // digitPosの計算のために、前の桁(digitPos-1)からの繰り上がりが必要
+                            if (digitPos > 0) {
+                                const carryVal = carriesArr[digitPos - 1];
+                                if (carryVal > 0) {
+                                    const cInp = createInput(`carry-${r}-${c}`, carryVal, r, c, true);
+                                    cell.appendChild(cInp);
+                                    inputOrder.push(cInp);
+                                }
+                            } else {
+                                // 一番右の桁の繰り上がりはない（0）
+                            }
+
+                            const inp = createInput(`inp-${r}-${c}`, correctDigit, r, c);
+                            cell.appendChild(inp);
+                            inputOrder.push(inp);
+                        } else {
+                            // 範囲外だが、先頭の繰り上がりがある場合 (例: 500 x 3 = 1500)
+                            // 配列上のロジックでP1, P2, P3のstrValには全桁含まれているので、
+                            // 上記if分岐でカバーされているはず。
+                        }
+
+                    } else if (r === 8) { // Total
+                        const strTotal = String(p.total);
+                        if (colFromRight < strTotal.length) {
+                            const correctDigit = strTotal[strTotal.length - 1 - colFromRight];
+                            
+                            // 足し算の繰り上がり
+                            if (colFromRight > 0) {
+                                const carryVal = p.carries.total[colFromRight - 1];
+                                if (carryVal > 0) {
+                                    const cInp = createInput(`carry-${r}-${c}`, carryVal, r, c, true);
+                                    cell.appendChild(cInp);
+                                    inputOrder.push(cInp);
+                                }
+                            }
+                            const inp = createInput(`inp-${r}-${c}`, correctDigit, r, c);
+                            cell.appendChild(inp);
+                            inputOrder.push(inp);
+                        }
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+            
+            wrapper.appendChild(grid);
+            container.appendChild(wrapper);
+
+            // 入力順序のソート (行 -> 右から左)
+            inputOrder.sort((a, b) => {
+                const ra = parseInt(a.dataset.r);
+                const rb = parseInt(b.dataset.r);
+                if (ra !== rb) return ra - rb;
+                
+                const ca = parseInt(a.dataset.c);
+                const cb = parseInt(b.dataset.c);
+                if (ca !== cb) return cb - ca; 
+                
+                // 同じセルなら Carry -> Main
+                if (a.classList.contains('carry-note') && !b.classList.contains('carry-note')) return -1;
+                return 0;
+            });
+
+            // イベント設定
+            inputOrder.forEach((inp, idx) => {
+                inp.dataset.idx = idx;
+                
+                // 自動スクロール機能
+                inp.addEventListener('focus', () => {
+                    setTimeout(() => {
+                        inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 50); // 少し遅延させてキーボード出現に対応
+                });
+
+                inp.addEventListener('input', (e) => {
+                    if (e.target.value.length >= 1) {
+                        e.target.value = e.target.value.slice(-1);
+                        if (idx < inputOrder.length - 1) {
+                            inputOrder[idx + 1].focus();
+                        } else {
+                            checkBtn.focus();
+                        }
+                    }
+                });
+                
+                inp.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value === '') {
+                        if (idx > 0) {
+                            e.preventDefault();
+                            inputOrder[idx - 1].focus();
+                        }
+                    }
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (correctionMode) {
+                            // 訂正モードでのEnterスキップ機能
+                            moveToNextWrong(idx);
+                        } else {
+                            // 通常時は次へ、最後ならまるつけ
+                            if (idx < inputOrder.length - 1) {
+                                inputOrder[idx + 1].focus();
+                            } else {
+                                handleCheckOrNext();
+                            }
+                        }
+                    }
+                });
+            });
+
+            if(inputOrder.length > 0) setTimeout(() => inputOrder[0].focus(), 100);
+        }
+
+        function createInput(id, correctVal, r, c, isCarry = false) {
+            const inp = document.createElement('input');
+            inp.type = 'number';
+            inp.id = id;
+            inp.dataset.correct = correctVal;
+            inp.dataset.r = r;
+            inp.dataset.c = c;
+            
+            if (isCarry) {
+                inp.classList.add('carry-note');
+                inp.placeholder = ""; 
+            }
+            return inp;
+        }
+
+        // 不正解の入力欄を探してフォーカスする機能
+        function moveToNextWrong(currentInputIdx) {
+            const inputs = Array.from(document.querySelectorAll('input'));
+            // 現在地より後ろの不正解を探す
+            let nextWrong = inputs.find((inp, i) => i > currentInputIdx && inp.classList.contains('wrong-bg'));
+            
+            if (!nextWrong) {
+                // 後ろになければ最初から探す
+                nextWrong = inputs.find((inp, i) => inp.classList.contains('wrong-bg'));
+            }
+
+            if (nextWrong) {
+                nextWrong.focus();
+                nextWrong.select();
+            } else {
+                // もう間違いがないならボタンへ
+                checkBtn.focus();
+            }
+        }
+
+        function handleCheckOrNext() {
+            // まるつけボタン or 次へボタンの分岐
+            if (checkBtn.classList.contains('btn-next')) {
+                nextProblem();
+                return;
+            }
+
+            const inputs = document.querySelectorAll('input');
+            let allCorrect = true;
+            let hasEmpty = false;
+            let firstWrongInput = null;
+
+            inputs.forEach(inp => {
+                inp.classList.remove('correct-bg', 'wrong-bg');
+                
+                const userVal = inp.value;
+                const ansVal = String(inp.dataset.correct);
+                const isCarry = inp.classList.contains('carry-note');
+                
+                if (userVal === '') {
+                    if (!isCarry) hasEmpty = true; // くり上がりは空欄OK
+                } else if (userVal === ansVal) {
+                    inp.classList.add('correct-bg');
+                    if(!isCarry) inp.readOnly = true; 
+                } else {
+                    inp.classList.add('wrong-bg');
+                    allCorrect = false;
+                    if (!firstWrongInput && !isCarry) firstWrongInput = inp; // 最初のメイン間違い
+                    if (!firstWrongInput && isCarry) firstWrongInput = inp; // なければくり上がり間違い
+                }
+            });
+
+            if (hasEmpty) {
+                msgBox.textContent = "まだ入力していないマスがあるよ（くり上がりは空欄でもOK）";
+                msgBox.style.color = "#FFCDD2";
+                return;
+            }
+
+            if (allCorrect) {
+                msgBox.textContent = "正解！";
+                msgBox.style.color = "#C8E6C9";
+                if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                
+                checkBtn.textContent = "次の問題へ";
+                checkBtn.classList.add('btn-next');
+                checkBtn.focus();
+            } else {
+                msgBox.textContent = "まちがいがあるよ。直してみよう。(Enterで次へ)";
+                msgBox.style.color = "#FFCDD2";
+                mistakes++;
+                totalScore -= 5;
+                correctionMode = true; // 訂正モードON
+
+                // ナビゲーション機能：最初の間違いへフォーカス
+                if (firstWrongInput) {
+                    firstWrongInput.focus();
+                    firstWrongInput.select();
+                }
+            }
+        }
+
+        function nextProblem() {
+            currentIdx++;
+            if (currentIdx >= config.qCount) {
+                endGame();
+            } else {
+                showProblem();
+            }
+        }
+
+        function endGame() {
+            gameArea.style.display = 'none';
+            resultArea.style.display = 'block';
+            
+            const finalScore = Math.max(0, totalScore);
+            document.getElementById('result-score').textContent = `${finalScore}点`;
+            
+            let msg = "すばらしい！宇宙レベルの計算力だ！";
+            if (finalScore < 100) msg = "よくがんばったね！";
+            document.getElementById('result-msg').textContent = msg;
+
+            saveHistory(finalScore);
+        }
+
+        function saveHistory(score) {
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]");
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            history.unshift({ date: dateStr, score: score });
+            if (history.length > 5) history.pop();
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]");
+            const html = history.map(h => `<li><span>${h.date}</span><span>${h.score}点</span></li>`).join('');
+            document.getElementById('start-history').innerHTML = html;
+            document.getElementById('result-history').innerHTML = html;
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>

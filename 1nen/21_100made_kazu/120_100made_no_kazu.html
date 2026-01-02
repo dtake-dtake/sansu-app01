@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>２１　100までの かずの けいさん</title>
+    
+    <meta name="app-title" content="10のたばで　かんがえよう">
+    
+    <title>10の たばで かんがえよう</title>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
     <style>
@@ -37,6 +41,7 @@
             font-size: 1.2rem; background: #fff; border: 2px solid var(--c-primary);
             padding: 5px 20px; border-radius: 50px; color: var(--c-primary);
             margin-bottom: 20px; box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 10px;
         }
 
         .page-circle {
@@ -45,7 +50,6 @@
             background-color: var(--c-primary); color: #fff;
             font-weight: 800; font-size: 1.2rem; line-height: 1; flex-shrink: 0;
             box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            margin-right: 10px;
         }
 
         /* コンテナ */
@@ -165,25 +169,20 @@
 </head>
 <body>
 
-    <h1>２１　100までの かず</h1>
-    <h2 id="subtitle">
-        <span class="page-circle">120</span>
-        10の たばで かんがえよう
+    <h1 id="main-title"></h1>
+    <h2 id="subtitle-container">
+        <span id="page-badge" class="page-circle"></span>
+        <span id="subtitle-text"></span>
     </h2>
 
     <div class="app-container">
         
         <div id="start-screen">
             <div style="font-size:5rem; margin:10px;">🤖</div>
-            <p style="font-size:1.4rem; line-height:1.6; font-weight:bold;">
-                100までの けいさん<br>
-                ぜんぶで 10もん！
-            </p>
-            <div style="background:#E0F7FA; padding:15px; border-radius:10px; margin:15px 0; font-size:1rem;">
-                <b>★ポイント★</b><br>
-                「40 + 20」 は 「4 + 2」<br>
-                10の たばで かんがえてね。
-            </div>
+            <p id="start-message" style="font-size:1.4rem; line-height:1.6; font-weight:bold;">
+                </p>
+            <div id="point-box" style="background:#E0F7FA; padding:15px; border-radius:10px; margin:15px 0; font-size:1rem;">
+                </div>
             <button id="start-btn" class="btn-large" onclick="startGame()">スタート (Enter)</button>
             
             <div class="history-container">
@@ -249,14 +248,35 @@
     </div>
 
     <script>
+    // ▼▼▼ 設定エリア（ここを変更すると画面やゲームバランスが変わります） ▼▼▼
     const config = {
+        // 基本情報
         appId: "120_100made_no_kazu_v3",
-        page: 120, // ページ番号を追加
-        questionCount: 10,
-        baseScore: 100, // 時間がかかっても満点ならこれ
-        targetTimePerQuestion: 5, // 1問あたりの目標秒数(これより早ければボーナス)
-        penaltyPerMistake: 5,     // 1ミスあたりの減点
-        starThresholds: { star5: 150, star4: 130, star3: 110, star2: 101 }
+        page: 120,
+
+        // 画面表示用テキスト
+        display: {
+            mainTitle: "２１　100までの かず",
+            subtitle: "10の たばで かんがえよう",  // ← ここが画面上のサブタイトル
+            startMessage: "100までの けいさん<br>ぜんぶで 10もん！",
+            point: "<b>★ポイント★</b><br>「40 + 20」 は 「4 + 2」<br>10の たばで かんがえてね。"
+        },
+
+        // ゲーム設定（難易度など）
+        settings: {
+            questionCount: 10,       // 問題数
+            baseScore: 100,          // 基礎点
+            targetTimePerQuestion: 5,// 1問あたりの目標タイム（秒）
+            penaltyPerMistake: 5     // 1ミスあたりの減点
+        },
+
+        // ランク基準（★の数）
+        rank: {
+            star5: 150, 
+            star4: 130, 
+            star3: 110, 
+            star2: 101
+        }
     };
 
     let questions = [];
@@ -272,8 +292,17 @@
     const KEY_HISTORY = `${config.appId}:history`;
 
     function init() {
+        // 設定に基づいて画面のテキストを更新
+        document.getElementById('main-title').textContent = config.display.mainTitle;
+        document.getElementById('page-badge').textContent = config.page;
+        document.getElementById('subtitle-text').textContent = config.display.subtitle;
+        document.getElementById('start-message').innerHTML = config.display.startMessage;
+        document.getElementById('point-box').innerHTML = config.display.point;
+        document.getElementById('q-remaining').textContent = config.settings.questionCount;
+
         updateHistoryDisplay();
-        // エンターキー対応
+
+        // キーボード操作のイベントリスナー
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 if (document.getElementById('start-screen').style.display !== 'none') {
@@ -351,9 +380,9 @@
         const q = questions[currentQIdx];
         
         // 進捗バー更新
-        const progressPercent = (currentQIdx / config.questionCount) * 100;
+        const progressPercent = (currentQIdx / config.settings.questionCount) * 100;
         document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-        document.getElementById('q-remaining').textContent = config.questionCount - currentQIdx;
+        document.getElementById('q-remaining').textContent = config.settings.questionCount - currentQIdx;
         
         // 問題テキスト
         document.getElementById('question-text').textContent = `${q.v1} ${q.type} ${q.v2} = `;
@@ -399,14 +428,14 @@
             
             isAnswering = false;
             // 進捗バーを100%にする（最後の問題のとき）
-            if(currentQIdx === config.questionCount - 1) {
+            if(currentQIdx === config.settings.questionCount - 1) {
                 document.getElementById('progress-bar').style.width = '100%';
                 document.getElementById('q-remaining').textContent = 0;
             }
 
             setTimeout(() => {
                 currentQIdx++;
-                if(currentQIdx < config.questionCount) {
+                if(currentQIdx < config.settings.questionCount) {
                     showQuestion();
                 } else {
                     finishGame();
@@ -443,7 +472,7 @@
         // スコア計算
         const endTime = Date.now();
         const elapsedSec = Math.floor((endTime - startTime) / 1000);
-        const standardTime = config.targetTimePerQuestion * config.questionCount; // 目安時間
+        const standardTime = config.settings.targetTimePerQuestion * config.settings.questionCount; // 目安時間
         
         // タイムボーナス
         let timeBonus = 0;
@@ -452,9 +481,9 @@
         }
         
         // ミスペナルティ
-        const mistakePenalty = mistakeCount * config.penaltyPerMistake;
+        const mistakePenalty = mistakeCount * config.settings.penaltyPerMistake;
         
-        let finalScore = config.baseScore + timeBonus - mistakePenalty;
+        let finalScore = config.settings.baseScore + timeBonus - mistakePenalty;
         if (finalScore < 0) finalScore = 0;
         
         // 全問正解（ノーミス）保証: 時間がかかってもミス0なら100点
@@ -464,10 +493,10 @@
 
         // ランク判定
         let stars = "★☆☆☆☆";
-        if (finalScore >= config.starThresholds.star5) stars = "★★★★★";
-        else if (finalScore >= config.starThresholds.star4) stars = "★★★★☆";
-        else if (finalScore >= config.starThresholds.star3) stars = "★★★☆☆";
-        else if (finalScore >= config.starThresholds.star2) stars = "★★☆☆☆";
+        if (finalScore >= config.rank.star5) stars = "★★★★★";
+        else if (finalScore >= config.rank.star4) stars = "★★★★☆";
+        else if (finalScore >= config.rank.star3) stars = "★★★☆☆";
+        else if (finalScore >= config.rank.star2) stars = "★★☆☆☆";
 
         // 表示更新
         document.getElementById('result-stars').textContent = stars;

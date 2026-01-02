@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="app-title" content="分数と長さ">
+    <title>分数と長さ</title>
+    <style>
+        :root {
+            /* ベーステーマ（JSでランダムに上書きされます） */
+            --primary-color: #4A90E2;
+            --secondary-color: #f0f8ff;
+            --accent-color: #FF9800;
+            --text-color: #333;
+            --bg-pattern: radial-gradient(#e0f7fa 10%, transparent 10%);
+        }
+
+        body {
+            font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fdfdfd;
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 600px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            border-top: 8px solid var(--primary-color);
+        }
+
+        /* ヘッダーエリア */
+        h1 {
+            font-size: 1.2rem;
+            color: #666;
+            margin: 0;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin: 0 0 15px 0;
+        }
+
+        /* ステータスバー */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: bold;
+            background: var(--secondary-color);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* 説明ボタン */
+        .hint-btn {
+            background: #FFEB3B;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .instruction-card {
+            display: none;
+            background: #fff3e0;
+            border: 2px solid #ffb74d;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        /* 分数表示用CSS */
+        .fraction {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        .fraction .top {
+            border-bottom: 2px solid currentColor;
+            display: block;
+            padding: 0 2px;
+        }
+        .fraction .bottom {
+            display: block;
+            padding: 0 2px;
+        }
+
+        /* 問題エリア */
+        .question-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+            font-size: 1.3rem;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .question-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        input[type="tel"] {
+            width: 60px;
+            height: 40px;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin: 0 5px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="tel"]:focus {
+            border-color: var(--primary-color);
+            background-color: #f0f8ff;
+        }
+
+        input.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        input.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        /* コントロール */
+        .controls {
+            margin-top: 20px;
+        }
+
+        button.primary-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        button.primary-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        /* オーバーレイ（スタート・リザルト） */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .start-title {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .record-area {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #666;
+            background: #eee;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* キラキラエフェクト */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+            z-index: 999;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="overlay">
+        <h1 id="start-main-title" class="start-title">ロード中...</h1>
+        <div id="start-subtitle" style="font-size: 1.2rem; margin-bottom: 30px;"></div>
+        <button class="primary-btn" onclick="startGame()">スタート (Enter)</button>
+        <div class="record-area" id="record-display">
+            きろく：まだありません
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1 id="main-title"></h1>
+            <h2 id="sub-title"></h2>
+        </header>
+
+        <div class="status-bar">
+            <span>タイム: <span id="timer">0</span>秒</span>
+            <span><button class="hint-btn" onclick="toggleInstruction()">💡</button></span>
+        </div>
+
+        <div id="instruction-area" class="instruction-card"></div>
+
+        <div id="questions-container">
+            </div>
+
+        <div class="controls">
+            <button id="check-btn" class="primary-btn" onclick="checkAnswers()">まるつけ</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="overlay hidden">
+        <h2 style="color: var(--primary-color); font-size: 2rem;">クリア！</h2>
+        <div style="font-size: 1.5rem; margin: 20px;">
+            スコア: <span id="score-display"></span>点
+        </div>
+        <div id="result-comment" style="font-size: 1.2rem; margin-bottom: 20px;"></div>
+        <button class="primary-btn" onclick="resetGame()">もう一回</button>
+        <button style="margin-top:10px; background:none; border:none; color:#666; text-decoration:underline; cursor:pointer;" onclick="resetRecords()">きろくを消す</button>
+    </div>
+
+<script>
+/**
+ * 一問一答算数アプリ開発1230版
+ * 単元：分数（3年下 p.41）
+ * 要件：Config構造化、メタデータ対応、ナビゲーション強化版
+ */
+
+// 1. Configの定義
+const config = {
+    appId: "bunsu_length_p41",
+    page: 41,
+    display: {
+        title: "１６　分数",
+        subtitle: "分数と長さ",
+        startMessage: "Enterキーでスタート！",
+        instruction: `
+            <strong>ポイント</strong><br>
+            <span class="fraction"><span class="top">b</span><span class="bottom">a</span></span> m は、
+            <span class="fraction"><span class="top">1</span><span class="bottom">a</span></span> m の <strong>b</strong> こ分です。<br>
+            <hr style="margin:5px 0; border:0; border-top:1px dashed #ccc;">
+            例：<span class="fraction"><span class="top">2</span><span class="bottom">7</span></span> m は、
+            <span class="fraction"><span class="top">1</span><span class="bottom">7</span></span> m の <strong>2</strong> こ分。<br>
+            ※ <strong>1m</strong> は、
+            <span class="fraction"><span class="top">7</span><span class="bottom">7</span></span> m と同じだから、<strong>7</strong> こ分だよ。
+        `
+    },
+    settings: {
+        questionCount: 6,
+        baseScore: 100,
+        targetTime: 60, // 秒
+    },
+    rank: {
+        star5: 180, // スコア基準
+        star4: 160,
+        star3: 140,
+        star2: 120,
+        star1: 100
+    }
+};
+
+// 状態管理
+let questions = [];
+let startTime = 0;
+let timerInterval = null;
+let isGradingMode = false; // まるつけ後かどうか
+
+// 2. 初期化処理 (テーマ設定・テキスト反映)
+function init() {
+    setRandomTheme();
+    
+    // HTMLへのテキスト反映
+    document.getElementById('main-title').textContent = config.display.title;
+    document.getElementById('sub-title').textContent = config.display.subtitle;
+    document.getElementById('start-main-title').textContent = config.display.subtitle;
+    document.getElementById('start-subtitle').textContent = config.display.title;
+    document.getElementById('instruction-area').innerHTML = config.display.instruction;
+    document.title = config.display.subtitle; // titleタグの同期
+
+    updateRecordDisplay();
+
+    // エンターキーでのスタート待機
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && document.getElementById('start-screen').classList.contains('hidden') === false) {
+            startGame();
+        }
+    });
+}
+
+// ランダムテーマ作成
+function setRandomTheme() {
+    const themes = [
+        { primary: "#4A90E2", bg: "#e0f7fa" }, // スカイブルー
+        { primary: "#66BB6A", bg: "#e8f5e9" }, // ミントグリーン
+        { primary: "#FF7043", bg: "#fbe9e7" }, // コーラルオレンジ
+        { primary: "#AB47BC", bg: "#f3e5f5" }, // ラベンダー
+        { primary: "#26A69A", bg: "#e0f2f1" }  // ティール
+    ];
+    const theme = themes[Math.floor(Math.random() * themes.length)];
+    
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', theme.primary);
+    root.style.setProperty('--bg-pattern', `radial-gradient(${theme.bg} 20%, transparent 20%)`);
+}
+
+// 3. ゲームロジック
+function startGame() {
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
+    generateQuestions();
+    
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById('timer').textContent = elapsed;
+    }, 1000);
+    
+    isGradingMode = false;
+    
+    // 最初の入力欄にフォーカス
+    setTimeout(() => {
+        const firstInput = document.querySelector('input[type="tel"]');
+        if(firstInput) firstInput.focus();
+    }, 100);
+}
+
+function generateQuestions() {
+    const container = document.getElementById('questions-container');
+    container.innerHTML = '';
+    questions = [];
+
+    for (let i = 0; i < config.settings.questionCount; i++) {
+        // 分母 (2〜9)
+        const denominator = Math.floor(Math.random() * 8) + 2;
+        // 分子 (1〜denominator)
+        let numerator = Math.floor(Math.random() * denominator) + 1;
+        
+        // 5回に1回くらいの確率で、1m (denominator/denominator) を出す
+        let isOneMeter = false;
+        if (i === config.settings.questionCount - 1 || Math.random() < 0.2) {
+             numerator = denominator;
+             // 50%の確率で表記を「1m」にする
+             if (Math.random() < 0.5) isOneMeter = true;
+        }
+
+        const qObj = {
+            id: i,
+            denominator: denominator,
+            numerator: numerator,
+            answer: numerator
+        };
+        questions.push(qObj);
+
+        // HTML生成
+        const row = document.createElement('div');
+        row.className = 'question-row';
+        
+        // 問題文: 「X m は 1/Y m の 何こ分？」
+        let displayFraction = "";
+        if (isOneMeter) {
+            displayFraction = `1m`;
+        } else {
+            displayFraction = `<span class="fraction"><span class="top">${numerator}</span><span class="bottom">${denominator}</span></span> m`;
+        }
+
+        const unitFraction = `<span class="fraction"><span class="top">1</span><span class="bottom">${denominator}</span></span> m`;
+
+        row.innerHTML = `
+            <div class="question-text">
+                ${displayFraction} は、${unitFraction} の
+                <input type="tel" id="q-${i}" pattern="[0-9]*" onkeydown="handleInputKey(event, ${i})">
+                こ分
+            </div>
+        `;
+        container.appendChild(row);
+    }
+}
+
+// キー入力制御（ナビゲーション強化）
+function handleInputKey(event, currentIndex) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        
+        if (!isGradingMode) {
+            // 通常モード: 次の入力欄へ
+            const nextInput = document.getElementById(`q-${currentIndex + 1}`);
+            if (nextInput) {
+                nextInput.focus();
+            } else {
+                // 最後の問題ならまるつけ実行
+                checkAnswers();
+            }
+        } else {
+            // ▼▼▼ 間違い訂正モードの特別処理 ▼▼▼
+            // 現在の入力が不正解のままか確認
+            const currentInput = document.getElementById(`q-${currentIndex}`);
+            // 次の「不正解」フィールドを探す
+            let nextWrongIndex = -1;
+            
+            for (let i = currentIndex + 1; i < config.settings.questionCount; i++) {
+                const input = document.getElementById(`q-${i}`);
+                if (input && input.classList.contains('incorrect')) {
+                    nextWrongIndex = i;
+                    break;
+                }
+            }
+            
+            if (nextWrongIndex !== -1) {
+                // 次の間違いへジャンプ
+                const target = document.getElementById(`q-${nextWrongIndex}`);
+                target.focus();
+                target.select();
+            } else {
+                // 以降に間違いがない場合、先頭から探す（ループ）か、ボタンへ
+                // ここでは「修正完了」とみなしてボタンへフォーカス
+                document.getElementById('check-btn').focus();
+            }
+        }
+    }
+}
+
+function checkAnswers() {
+    clearInterval(timerInterval);
+    let correctCount = 0;
+    let firstIncorrectId = null;
+
+    questions.forEach(q => {
+        const input = document.getElementById(`q-${q.id}`);
+        const userVal = parseInt(input.value);
+        
+        input.classList.remove('correct', 'incorrect');
+        
+        if (userVal === q.answer) {
+            input.classList.add('correct');
+            input.readOnly = true; // 正解は編集不可に
+            correctCount++;
+        } else {
+            input.classList.add('incorrect');
+            input.readOnly = false; // 不正解は編集可能
+            if (firstIncorrectId === null) {
+                firstIncorrectId = q.id;
+            }
+        }
+    });
+
+    if (correctCount === questions.length) {
+        showResult();
+    } else {
+        // まるつけ後モードへ
+        isGradingMode = true;
+        // タイム計測再開（修正時間も含むため）
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = elapsed;
+        }, 1000);
+
+        // ▼▼▼ ナビゲーション強化：最初の間違いへフォーカス・全選択 ▼▼▼
+        if (firstIncorrectId !== null) {
+            const target = document.getElementById(`q-${firstIncorrectId}`);
+            setTimeout(() => {
+                target.focus();
+                target.select(); // 数値を全選択して書き換えやすくする
+            }, 100);
+        }
+    }
+}
+
+function showResult() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    
+    // スコア計算
+    let score = config.settings.baseScore;
+    const timeBonus = Math.max(0, config.settings.targetTime - elapsed);
+    score += timeBonus;
+    
+    // ランク判定
+    let stars = "";
+    if (score >= config.rank.star5) stars = "★★★★★";
+    else if (score >= config.rank.star4) stars = "★★★★";
+    else if (score >= config.rank.star3) stars = "★★★";
+    else if (score >= config.rank.star2) stars = "★★";
+    else stars = "★";
+
+    document.getElementById('score-display').textContent = score;
+    document.getElementById('result-comment').innerHTML = `タイム: ${elapsed}秒<br>ランク: ${stars}`;
+    document.getElementById('result-screen').classList.remove('hidden');
+    
+    saveRecord(score, elapsed, stars);
+    celebrate();
+}
+
+// 4. データ保存・ユーティリティ
+function saveRecord(score, time, rank) {
+    const record = {
+        date: new Date().toLocaleString(),
+        score: score,
+        time: time,
+        rank: rank
+    };
+    localStorage.setItem(config.appId, JSON.stringify(record));
+    updateRecordDisplay();
+}
+
+function updateRecordDisplay() {
+    const data = localStorage.getItem(config.appId);
+    const display = document.getElementById('record-display');
+    if (data) {
+        const r = JSON.parse(data);
+        display.innerHTML = `
+            <strong>前回のきろく</strong><br>
+            日時: ${r.date}<br>
+            スコア: ${r.score} (${r.rank})<br>
+            タイム: ${r.time}秒
+        `;
+    } else {
+        display.innerHTML = "きろく：まだありません";
+    }
+}
+
+function resetRecords() {
+    if(confirm("きろくを消しますか？")) {
+        localStorage.removeItem(config.appId);
+        updateRecordDisplay();
+    }
+}
+
+function resetGame() {
+    document.getElementById('result-screen').classList.add('hidden');
+    document.getElementById('start-screen').classList.remove('hidden');
+}
+
+function toggleInstruction() {
+    const area = document.getElementById('instruction-area');
+    area.style.display = area.style.display === 'block' ? 'none' : 'block';
+}
+
+// 紙吹雪エフェクト
+function celebrate() {
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+// 起動時実行
+window.onload = init;
+
+</script>
+</body>
+</html>

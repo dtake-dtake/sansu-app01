@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分数の表し方</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ▼▼▼ テーマ：森のピクニック（緑・オレンジ・木漏れ日） ▼▼▼ */
+        :root {
+            --c-bg-main: #F1F8E9;         /* 薄い緑 */
+            --c-primary: #558B2F;         /* 濃い緑 */
+            --c-primary-dark: #33691E;    /* もっと濃い緑 */
+            --c-primary-light: #DCEDC8;   /* 明るい緑 */
+            --c-accent: #FF6F00;          /* 鮮やかなオレンジ */
+            
+            --c-button-bg: #689F38;       
+            --c-button-hover: #33691E;    
+            
+            --c-result-area-bg: #ffffff;
+            --c-card-bg: #ffffff;
+            --c-history-bg: #F9FBE7;      
+            
+            --c-text-main: #37474F;       
+            --c-text-on-button: #ffffff;
+            
+            --c-feedback-correct-bg: #C5E1A5; 
+            --c-feedback-wrong-bg: #FFCCBC;   
+            
+            --font-main: "Hiragino Maru Gothic Pro", "M PLUS Rounded 1c", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--c-bg-main); color: var(--c-text-main);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            /* 木の葉のパターン */
+            background-image: 
+                radial-gradient(#AED581 15%, transparent 16%),
+                radial-gradient(#AED581 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+
+        h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; text-shadow: 1px 1px 0 #fff; }
+        h1 { font-size: 1.6rem; letter-spacing: 2px; }
+        
+        h2 { 
+            font-size: 1.3rem; 
+            background: #fff;
+            border: 2px solid var(--c-primary);
+            padding: 6px 20px; 
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 0 rgba(51, 105, 30, 0.2);
+        }
+
+        .page-circle {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background-color: var(--c-accent); color: #fff;
+            font-weight: bold; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+            box-shadow: 0 2px 0 #E65100;
+        }
+
+        /* スタート画面 */
+        #start-area { 
+            text-align: center; margin-top: 40px; 
+            background: rgba(255,255,255,0.9);
+            padding: 40px 20px;
+            border-radius: 20px;
+            border: 4px solid var(--c-primary);
+            max-width: 500px; width: 90%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* ゲームエリア */
+        #problems-section { display: none; width: 100%; max-width: 650px; }
+        #problems-container { display: flex; flex-direction: column; gap: 25px; margin-top: 20px; }
+
+        .problem-card {
+            background: var(--c-card-bg); 
+            border-radius: 15px; padding: 20px;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.1);
+            border: 2px solid var(--c-primary-light);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .problem-card:focus-within {
+            border-color: var(--c-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(255, 111, 0, 0.2);
+        }
+
+        .problem-header {
+            font-weight: bold; font-size: 1.2rem; color: var(--c-primary-dark);
+            margin-bottom: 15px; display: flex; align-items: flex-start; gap: 10px;
+        }
+        .q-mark {
+            background: var(--c-primary); color: #fff; padding: 2px 8px; border-radius: 5px; font-size: 1rem;
+        }
+
+        /* テープ図（分数ぬりえ） */
+        .tape-container {
+            margin: 15px 0;
+            user-select: none;
+        }
+        .tape-label { text-align: center; font-size: 0.9rem; margin-bottom: 5px; color: #555; }
+        .tape-bar {
+            display: flex; width: 100%; height: 50px;
+            border: 3px solid #333; border-radius: 8px;
+            overflow: hidden; background: #fff;
+            cursor: pointer;
+        }
+        .tape-segment {
+            flex: 1; border-right: 1px dashed #999;
+            background-color: transparent;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+        .tape-segment:last-child { border-right: none; }
+        .tape-segment.filled { background-color: #42A5F5; } /* 教科書の水色に寄せる */
+        .tape-segment:hover { background-color: #E3F2FD; }
+        .tape-segment.filled:hover { background-color: #64B5F6; }
+
+        /* 分数表示用ユーティリティ */
+        .fraction-display {
+            display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em;
+            margin: 0 5px;
+        }
+        .frac-num { border-bottom: 2px solid #333; padding-bottom: 1px; display: block; line-height: 1.2; }
+        .frac-denom { display: block; line-height: 1.2; padding-top: 1px; }
+
+        /* 分数入力エリア */
+        .fraction-input-wrapper {
+            display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+            vertical-align: middle; margin: 0 5px;
+        }
+        .input-numerator, .input-denominator, .input-integer {
+            width: 50px; height: 40px; font-size: 1.5rem; text-align: center;
+            border: 2px solid #ccc; border-radius: 8px;
+            font-family: inherit; font-weight: bold; color: var(--c-text-main);
+            background: #fff; outline: none;
+        }
+        .input-integer { width: 70px; } /* 整数用は少し広く */
+        
+        .fraction-line {
+            width: 100%; height: 2px; background-color: #333; margin: 2px 0;
+        }
+        
+        /* 状態クラス */
+        .input-correct { background-color: var(--c-feedback-correct-bg); border-color: var(--c-primary); }
+        .input-incorrect { background-color: var(--c-feedback-wrong-bg); border-color: #D32F2F; }
+
+        /* ボタン */
+        button {
+            font-family: var(--font-main);
+            font-size: 1.3rem; padding: 12px 30px; border: none; border-radius: 50px;
+            background-color: var(--c-button-bg); color: var(--c-text-on-button);
+            cursor: pointer; transition: all 0.2s; font-weight: bold;
+            box-shadow: 0 4px 0 var(--c-primary-dark);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--c-primary-dark); }
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--c-primary-dark); }
+        button:disabled { background-color: #B0BEC5; box-shadow: none; transform: none; cursor: not-allowed; }
+
+        .button-area { text-align: center; margin: 40px 0; display: flex; justify-content: center; gap: 20px;}
+
+        /* リザルト */
+        #result-area {
+            display: none; max-width: 600px; margin: 20px auto; padding: 30px;
+            background: var(--c-result-area-bg); border-radius: 20px; text-align: center;
+            border: 4px solid var(--c-primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .status-stars { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FF8F00; display: block; margin: 10px 0; }
+        
+        /* モーダル */
+        #bulb-btn {
+            position: fixed; top: 15px; right: 15px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #fff; border: 3px solid #FFD700; color: #FBC02D;
+            font-size: 1.8rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 999;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { 
+            background-color: #fff; margin: 15% auto; padding: 30px; 
+            border: 4px solid var(--c-primary); border-radius: 20px; 
+            width: 85%; max-width: 500px; position: relative;
+        }
+        .close-modal { position: absolute; right: 20px; top: 15px; font-size: 2rem; cursor: pointer; color: #aaa; }
+        
+        /* アニメーション */
+        @keyframes pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .pop-anim { animation: pop 0.3s ease-out; }
+
+    </style>
+</head>
+<body>
+    <button id="bulb-btn">？</button>
+
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 style="text-align:center; color:var(--c-primary);">あそびかた</h3>
+            <div id="instruction-content"></div>
+            <button onclick="document.getElementById('info-modal').style.display='none'" style="width:100%; margin-top:20px; font-size:1rem; padding:10px; border:none; background:var(--c-button-bg); color:#fff; border-radius:10px; cursor:pointer;">わかった！</button>
+        </div>
+    </div>
+
+    <h1 id="main-title"></h1>
+    <h2 id="sub-title">
+        <span id="page-circle" class="page-circle"></span>
+        <span id="sub-title-text"></span>
+    </h2>
+
+    <div id="start-area">
+        <h3 style="color:var(--c-primary); margin-top:0;">森のぶんすう教室</h3>
+        <p style="font-size:1.1rem; line-height:1.8;">
+            テープの色をぬったり、<br>
+            数字を入れて、分数をかんせいさせよう！
+        </p>
+        <button id="start-btn">スタート (Enter)</button>
+        
+        <div style="margin-top:30px; text-align:left; font-size:0.9rem; background:var(--c-history-bg); padding:15px; border-radius:10px;">
+            <div>🏆 ハイスコア: <span id="start-highscore">0</span> 点</div>
+            <div>💮 今日のクリア: <span id="start-daily">0</span> 回</div>
+        </div>
+    </div>
+
+    <div id="problems-section">
+        <div id="problems-container">
+            </div>
+        <div class="button-area">
+            <button id="check-btn">まるつけ</button>
+        </div>
+    </div>
+
+    <div id="result-area">
+        <div id="result-msg" style="font-size:1.8rem; font-weight:bold; color:var(--c-primary);"></div>
+        <div id="result-stars" class="status-stars"></div>
+        <div id="result-score" style="font-size:1.4rem; margin:15px 0;"></div>
+        
+        <div style="margin:20px 0; background:var(--c-history-bg); padding:15px; border-radius:10px; text-align:left; font-size:0.95rem;">
+            <div style="border-bottom:1px dashed #ccc; padding-bottom:5px; margin-bottom:5px; font-weight:bold;">これまでのきろく</div>
+            <ul id="history-list" style="list-style:none; padding:0; margin:0;"></ul>
+        </div>
+
+        <div class="button-area">
+            <button id="retry-btn">もういちど</button>
+            <button id="reset-btn" style="background-color:#FF7043; font-size:1rem; padding:10px 20px;">きろくを消す</button>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        // ▼▼▼ コンフィグ設定 ▼▼▼
+        const config = {
+            appId: "41_bunsu_no_arawashikata", 
+            mainTitle: "16 分数",
+            title: "分数の表し方",
+            page: 41,
+            baseScore: 100,
+            questionCount: 5, 
+            instructionHtml: `
+                <p><strong>【色ぬり問題】</strong><br>
+                テープをクリックして、指定された長さぶんだけ色をぬろう。<br>
+                そのあと、分母（下の数）と分子（上の数）を入力してね。</p>
+                <hr style="border:1px dashed #ccc; margin:10px 0;">
+                <p><strong>【いくつ分？問題】</strong><br>
+                <span class="fraction-display" style="vertical-align:middle; font-size:1.1rem;"><span class="frac-num">1</span><span class="frac-denom">〇</span></span>
+                が何こあるかを答えよう。<br>
+                「1m」は
+                「<span class="fraction-display" style="vertical-align:middle; font-size:1.1rem;"><span class="frac-num">〇</span><span class="frac-denom">〇</span></span> m」
+                と同じだよ！</p>
+            `,
+            starThresholds: { star5: 90, star4: 80, star3: 60, star2: 40 }
+        };
+
+        // 状態管理
+        let problems = [];
+        let startTime = 0;
+        let highScore = 0;
+        let totalClearCount = 0;
+        let dailyClearCount = 0;
+        let statusStars = "―";
+        let isRetryMode = false; // まるつけ後の訂正モードかどうか
+
+        // ローカルストレージキー
+        const KEY_HS = `${config.appId}_highscore`;
+        const KEY_CLEAR = `${config.appId}_clearcount`;
+        const KEY_DAILY = `${config.appId}_daily_${new Date().toLocaleDateString()}`;
+        const KEY_HISTORY = `${config.appId}_history`;
+        const KEY_STATUS = `${config.appId}_status`;
+
+        // ▼▼▼ データ保存・読込 ▼▼▼
+        function loadData() {
+            highScore = parseInt(localStorage.getItem(KEY_HS) || 0);
+            totalClearCount = parseInt(localStorage.getItem(KEY_CLEAR) || 0);
+            dailyClearCount = parseInt(localStorage.getItem(KEY_DAILY) || 0);
+            statusStars = localStorage.getItem(KEY_STATUS) || "―";
+            
+            document.getElementById('start-highscore').textContent = highScore;
+            document.getElementById('start-daily').textContent = dailyClearCount;
+        }
+
+        function saveData(score, stars) {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem(KEY_HS, highScore);
+            }
+            totalClearCount++;
+            dailyClearCount++;
+            localStorage.setItem(KEY_CLEAR, totalClearCount);
+            localStorage.setItem(KEY_DAILY, dailyClearCount);
+            localStorage.setItem(KEY_STATUS, stars);
+
+            // 履歴
+            let history = JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]");
+            const now = new Date();
+            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+            history.unshift({ score: score, time: timeStr });
+            if (history.length > 5) history.pop();
+            localStorage.setItem(KEY_HISTORY, JSON.stringify(history));
+        }
+
+        function resetData() {
+            if(!confirm("ハイスコアときろくをリセットしますか？\n（クリア回数は残ります）")) return;
+            localStorage.removeItem(KEY_HS);
+            localStorage.removeItem(KEY_STATUS);
+            localStorage.removeItem(KEY_HISTORY);
+            highScore = 0;
+            statusStars = "―";
+            loadData();
+            alert("リセットしました！");
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('start-area').style.display = 'block';
+        }
+
+        // ▼▼▼ 問題生成ロジック ▼▼▼
+        function generateProblems() {
+            problems = [];
+            
+            // パターン1: 色塗り問題 (P41-5の変形)
+            // 「1mをN等分したMこ分の長さ」
+            // 2問作成
+            for (let i = 0; i < 2; i++) {
+                const denom = Math.floor(Math.random() * 5) + 3; // 3~7
+                const num = Math.floor(Math.random() * (denom - 1)) + 1; // 1 ~ denom-1
+                
+                problems.push({
+                    type: 'coloring',
+                    denom: denom,
+                    num: num,
+                    userColorCount: 0,
+                    text: `1m を ${denom}等分 した ${num}こ分 の長さ`,
+                    qNum: i + 1
+                });
+            }
+
+            // パターン2: いくつ分？ (P41-6の変形)
+            // 「M/N m は 1/N m の何こ分？」
+            for (let i = 0; i < 2; i++) {
+                const denom = Math.floor(Math.random() * 6) + 3; // 3~8
+                const num = Math.floor(Math.random() * (denom - 2)) + 2; // 2 ~ denom-1
+                
+                problems.push({
+                    type: 'count',
+                    denom: denom,
+                    num: num,
+                    target: 'fraction', // 分数が提示される
+                    qNum: i + 3
+                });
+            }
+
+            // パターン3: 1mはいくつ分？ (P41-6-3の変形)
+            const denomLast = Math.floor(Math.random() * 6) + 3;
+            problems.push({
+                type: 'count',
+                denom: denomLast,
+                num: denomLast,
+                target: '1m', // "1m"と提示される
+                qNum: 5
+            });
+
+            return problems;
+        }
+
+        // ▼▼▼ UI生成 ▼▼▼
+        function renderProblems() {
+            const container = document.getElementById('problems-container');
+            container.innerHTML = "";
+
+            problems.forEach((p, index) => {
+                const card = document.createElement('div');
+                card.className = 'problem-card';
+                card.dataset.index = index; // インデックスを保持
+
+                let html = `<div class="problem-header"><span class="q-mark">${index + 1}</span> `;
+
+                if (p.type === 'coloring') {
+                    html += `<div>${p.text}にあたるところに色をぬりましょう。<br>また、長さが何mになるか書きましょう。</div></div>`;
+                    
+                    // テープ図生成
+                    html += `<div class="tape-container">
+                        <div class="tape-label">1m</div>
+                        <div class="tape-bar" id="tape-${index}">`;
+                    for(let k=0; k<p.denom; k++){
+                        html += `<div class="tape-segment" onclick="toggleSegment(${index}, ${k}, this)"></div>`;
+                    }
+                    html += `</div></div>`;
+
+                    // 分数入力欄
+                    html += `<div style="text-align:center; margin-top:10px; font-size:1.2rem;">
+                        <div class="fraction-input-wrapper">
+                            <input type="tel" class="input-numerator input-field" data-index="${index}" data-key="num">
+                            <div class="fraction-line"></div>
+                            <input type="tel" class="input-denominator input-field" data-index="${index}" data-key="denom">
+                        </div>
+                        <span> m </span>
+                    </div>`;
+
+                } else if (p.type === 'count') {
+                    // 問題文構築
+                    let targetHtml = "";
+                    if (p.target === 'fraction') {
+                        // 分数表示
+                        targetHtml = `<span class="fraction-display" style="font-size:1.3em;"><span class="frac-num">${p.num}</span><span class="frac-denom">${p.denom}</span></span> m`;
+                    } else {
+                        targetHtml = `<span style="font-size:1.3em;">1 m</span>`;
+                    }
+                    
+                    // 基準となる分数（1/N）
+                    const unitHtml = `<span class="fraction-display" style="font-size:1.3em;"><span class="frac-num">1</span><span class="frac-denom">${p.denom}</span></span> m`;
+
+                    html += `</div>`; // header close
+                    
+                    // すっきりレイアウト
+                    html += `<div style="text-align:center; font-size:1.6rem; margin:15px 0; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; line-height:1.8;">
+                        <div>${targetHtml} <span style="font-size:0.9em">は、</span></div>
+                        <div>${unitHtml} <span style="font-size:0.9em">の</span></div>
+                        <div style="white-space:nowrap;">
+                            <input type="tel" class="input-integer input-field" data-index="${index}" data-key="ans">
+                            <span style="font-size:0.9em">こ分</span>
+                        </div>
+                    </div>`;
+                }
+
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+
+            // フォーカス時の自動スクロール
+            document.querySelectorAll('.input-field').forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    setTimeout(() => {
+                        const card = e.target.closest('.problem-card');
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100); 
+                });
+                
+                // Enterキー処理用リスナー
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleEnterKey(e);
+                });
+            });
+        }
+
+        // テープ図クリック処理
+        window.toggleSegment = function(probIndex, segIndex, el) {
+            const p = problems[probIndex];
+            const clickedNum = segIndex + 1;
+
+            p.userColorCount = clickedNum;
+            
+            const bar = document.getElementById(`tape-${probIndex}`);
+            const segments = bar.children;
+            for(let i=0; i<segments.length; i++) {
+                if (i < clickedNum) segments[i].classList.add('filled');
+                else segments[i].classList.remove('filled');
+            }
+        };
+
+        // ▼▼▼ まるつけロジック ▼▼▼
+        function checkAnswers() {
+            const inputs = document.querySelectorAll('.input-field');
+            let allCorrect = true;
+            let firstWrongInput = null;
+            let score = 0;
+
+            problems.forEach((p, index) => {
+                let isProbCorrect = true;
+                const card = document.querySelector(`.problem-card[data-index="${index}"]`);
+                card.classList.remove('pop-anim'); // アニメーションリセット
+
+                if (p.type === 'coloring') {
+                    // 色塗りチェック
+                    const bar = document.getElementById(`tape-${index}`);
+                    if (p.userColorCount !== p.num) {
+                        isProbCorrect = false;
+                        bar.style.borderColor = "#D32F2F";
+                    } else {
+                        bar.style.borderColor = "#333";
+                    }
+
+                    // 入力チェック
+                    const inpNum = card.querySelector('.input-numerator');
+                    const inpDenom = card.querySelector('.input-denominator');
+                    
+                    inpNum.classList.remove('input-correct', 'input-incorrect', 'is-incorrect');
+                    inpDenom.classList.remove('input-correct', 'input-incorrect', 'is-incorrect');
+
+                    if (parseInt(inpNum.value) === p.num) {
+                        inpNum.classList.add('input-correct');
+                    } else {
+                        inpNum.classList.add('input-incorrect', 'is-incorrect');
+                        isProbCorrect = false;
+                        if (!firstWrongInput) firstWrongInput = inpNum;
+                    }
+
+                    if (parseInt(inpDenom.value) === p.denom) {
+                        inpDenom.classList.add('input-correct');
+                    } else {
+                        inpDenom.classList.add('input-incorrect', 'is-incorrect');
+                        isProbCorrect = false;
+                        if (!firstWrongInput) firstWrongInput = inpDenom;
+                    }
+
+                } else if (p.type === 'count') {
+                    const inp = card.querySelector('.input-integer');
+                    inp.classList.remove('input-correct', 'input-incorrect', 'is-incorrect');
+                    
+                    if (parseInt(inp.value) === p.num) {
+                        inp.classList.add('input-correct');
+                    } else {
+                        inp.classList.add('input-incorrect', 'is-incorrect');
+                        isProbCorrect = false;
+                        if (!firstWrongInput) firstWrongInput = inp;
+                    }
+                }
+
+                if (isProbCorrect) {
+                    score += (config.baseScore / config.questionCount);
+                    card.style.background = "#F1F8E9"; // 薄い緑へ
+                } else {
+                    allCorrect = false;
+                    card.style.background = "#FFEBEE"; // 薄い赤へ
+                    card.classList.add('pop-anim'); // 揺らす
+                }
+            });
+
+            if (allCorrect) {
+                showResult(score);
+            } else {
+                isRetryMode = true;
+                document.getElementById('check-btn').textContent = "もういちどチェック";
+                if (firstWrongInput) {
+                    setTimeout(() => {
+                        firstWrongInput.focus();
+                        firstWrongInput.select();
+                    }, 100);
+                }
+            }
+        }
+
+        function handleEnterKey(e) {
+            e.preventDefault(); 
+            
+            if (!isRetryMode) {
+                moveFocusToNext(e.target);
+            } else {
+                moveToNextIncorrect(e.target);
+            }
+        }
+
+        function moveFocusToNext(currentEl) {
+            const allInputs = Array.from(document.querySelectorAll('.input-field'));
+            const idx = allInputs.indexOf(currentEl);
+            if (idx >= 0 && idx < allInputs.length - 1) {
+                allInputs[idx + 1].focus();
+            } else {
+                document.getElementById('check-btn').focus();
+            }
+        }
+
+        function moveToNextIncorrect(currentEl) {
+            const allInputs = Array.from(document.querySelectorAll('.input-field'));
+            const idx = allInputs.indexOf(currentEl);
+            
+            let nextWrong = null;
+            for (let i = idx + 1; i < allInputs.length; i++) {
+                if (allInputs[i].classList.contains('is-incorrect')) {
+                    nextWrong = allInputs[i];
+                    break;
+                }
+            }
+
+            if (nextWrong) {
+                nextWrong.focus();
+                nextWrong.select();
+            } else {
+                document.getElementById('check-btn').focus();
+            }
+        }
+
+        function showResult(score) {
+            if (score > 99) score = 100;
+            score = Math.round(score);
+
+            const resultArea = document.getElementById('result-area');
+            const problemsSec = document.getElementById('problems-section');
+            
+            problemsSec.style.display = 'none';
+            resultArea.style.display = 'block';
+            
+            let stars = "★☆☆☆☆";
+            if (score >= config.starThresholds.star5) stars = "★★★★★";
+            else if (score >= config.starThresholds.star4) stars = "★★★★☆";
+            else if (score >= config.starThresholds.star3) stars = "★★★☆☆";
+            else if (score >= config.starThresholds.star2) stars = "★★☆☆☆";
+
+            document.getElementById('result-stars').textContent = stars;
+            document.getElementById('result-score').textContent = score + " 点";
+
+            let msg = "";
+            if (score === 100) {
+                msg = "すごい！パーフェクト！";
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#AED581', '#FF6F00', '#FFF']
+                });
+            } else if (score >= 80) {
+                msg = "おしい！あとすこし！";
+            } else {
+                msg = "あきらめずにがんばろう！";
+            }
+            document.getElementById('result-msg').textContent = msg;
+
+            saveData(score, stars);
+
+            const history = JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]");
+            const listHtml = history.map(h => 
+                `<li><span style="color:#777; font-size:0.8em;">${h.time}</span> <span style="font-weight:bold; float:right;">${h.score}点</span></li>`
+            ).join('');
+            document.getElementById('history-list').innerHTML = listHtml;
+        }
+
+        function initGame() {
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('problems-section').style.display = 'block';
+            document.getElementById('check-btn').textContent = "まるつけ";
+            
+            isRetryMode = false;
+            startTime = Date.now();
+            generateProblems();
+            renderProblems();
+            
+            setTimeout(() => {
+                const first = document.querySelector('.input-field');
+                if(first) first.focus();
+            }, 100);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('sub-title-text').textContent = config.title;
+            document.getElementById('page-circle').textContent = config.page;
+            document.getElementById('instruction-content').innerHTML = config.instructionHtml;
+            
+            loadData();
+
+            document.getElementById('start-btn').addEventListener('click', initGame);
+            document.getElementById('check-btn').addEventListener('click', checkAnswers);
+            document.getElementById('retry-btn').addEventListener('click', initGame);
+            document.getElementById('reset-btn').addEventListener('click', resetData);
+
+            const modal = document.getElementById('info-modal');
+            document.getElementById('bulb-btn').onclick = () => modal.style.display = "block";
+            document.querySelector('.close-modal').onclick = () => modal.style.display = "none";
+            window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; };
+
+            document.body.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const startArea = document.getElementById('start-area');
+                    if (startArea.style.display !== 'none' && document.getElementById('info-modal').style.display === 'none') {
+                        initGame();
+                    }
+                }
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

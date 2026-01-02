@@ -324,7 +324,7 @@
         "apps": [
           {
             "id": "nanji_nanpun_113",
-            "title": "１９　なんじ　なんぷん",
+            "title": "とけいを　よもう",
             "path": "1nen/19_nanji_nanpun/113_nanji_nanpun.html",
             "page": "113"
           }
@@ -339,27 +339,27 @@
         "apps": [
           {
             "id": "120_100made_no_kazu_v3",
-            "title": "２１　100までの かず",
+            "title": "10のたばで　かんがえよう",
             "path": "1nen/21_100made_kazu/120_100made_no_kazu.html",
             "page": "120"
           },
           {
-            "id": "121_kazu_no_kumiawase",
-            "title": "２１　100までの かず",
-            "path": "1nen/21_100made_kazu/121_kazu_no_kumiawase.html",
-            "page": "121"
+            "id": "123_hiku_10made",
+            "title": "１０までを ひく けいさん",
+            "path": "1nen/21_100made_kazu/123_hiku_10made.html",
+            "page": "123"
           },
           {
             "id": "122_tasu_10made",
-            "title": "２１　100までの かず",
+            "title": "10までをたす　たしざん",
             "path": "1nen/21_100made_kazu/122_tasu_10made.html",
             "page": "122"
           },
           {
-            "id": "123_hiku_10made",
-            "title": "２１　100までの かず",
-            "path": "1nen/21_100made_kazu/123_hiku_10made.html",
-            "page": "123"
+            "id": "121_kazu_no_kumiawase",
+            "title": "かずの くみあわせ",
+            "path": "1nen/21_100made_kazu/121_kazu_no_kumiawase.html",
+            "page": "121"
           }
         ]
       },
@@ -1167,9 +1167,21 @@
         "name": "１６　分数",
         "apps": [
           {
+            "id": "bunsu_length_p41",
+            "title": "分数と長さ",
+            "path": "3nen/16_bunsu/41_bunsu_nagasa.html",
+            "page": "41"
+          },
+          {
             "id": "45-3_bunsuno_daisyo",
             "title": "分数の大小",
             "path": "3nen/16_bunsu/45-3_bunsuno_daisyo.html"
+          },
+          {
+            "id": "41_bunsu_no_arawashikata",
+            "title": "分数の表し方",
+            "path": "3nen/16_bunsu/41_bunsu_no_arawashikata.html",
+            "page": "41"
           }
         ]
       },
@@ -1199,15 +1211,20 @@
         "name": "１９　2けたをかけるかけ算の筆算",
         "apps": [
           {
-            "id": "81_all_random",
-            "title": "九九カード",
-            "path": "3nen/19_kakezan_hissan2/34_81_all_random.html",
-            "page": "34"
+            "id": "86_2keta_kakeru_2keta_no_hissan_v2",
+            "title": "２けた×２けた（くりあがりなし）",
+            "path": "3nen/19_kakezan_hissan2/86_2keta_kakeru_2keta_no_hissan.html",
+            "page": "86"
           },
           {
             "id": "math_2digit_times_tens_v3",
             "title": "何十をかける計算",
             "path": "3nen/19_kakezan_hissan2/Untitled-1.html"
+          },
+          {
+            "id": "2keta_kakeru_2keta",
+            "title": "筆算トレーニング",
+            "path": "3nen/19_kakezan_hissan2/87_2keta_kakeru_2keta.html"
           }
         ]
       },
@@ -1224,24 +1241,45 @@
         "name": "１　　一億をこえる数",
         "apps": [
           {
-            "id": "12-2_senokuno_kuraimadeno_yomikata",
-            "title": "千億の位までの読み方",
-            "path": "4nen/1_ichioku_koeru_suu/12-2_senokuno_kuraimadeno_yomikata.html"
+            "id": "hissan_3x3_refined",
+            "title": "20　3けた×3けた",
+            "path": "4nen/1_ichioku_koeru_suu/20_okina_kazu_hissan.html"
           },
           {
-            "id": "14-3_senchomadeno_kakikata",
-            "title": "千兆までのかき方",
-            "path": "4nen/1_ichioku_koeru_suu/14-3_senchomadeno_kakikata.html"
+            "id": "ichioku_step",
+            "title": "一億をこえる数（ランダム）",
+            "path": "4nen/1_ichioku_koeru_suu/15_ichioku_wo_koerusu.html",
+            "page": "15"
           },
           {
-            "id": "14-2_senchomadeno_yomikata",
-            "title": "千兆までの読み方",
-            "path": "4nen/1_ichioku_koeru_suu/14-2_senchomadeno_yomikata.html"
+            "id": "12_3_suujino_kakikata_triangle3",
+            "title": "千億までの 数の かき方",
+            "path": "4nen/1_ichioku_koeru_suu/12_3_suujino_kakikata.html",
+            "page": "12"
           },
           {
-            "id": "12-3_suujino_kakikata_v4",
-            "title": "数字のかき方",
-            "path": "4nen/1_ichioku_koeru_suu/12-3_suujino_kakikata.html"
+            "id": "12_2_senokuno_yomikata_v4",
+            "title": "千億までの 数の 読み方",
+            "path": "4nen/1_ichioku_koeru_suu/12_2_senokuno_yomikata.html",
+            "page": "12"
+          },
+          {
+            "id": "14_3_senchomadeno_kakikata_triangle3_v3",
+            "title": "千兆までの 数の かき方",
+            "path": "4nen/1_ichioku_koeru_suu/14_3_senchomadeno_kakikata.html",
+            "page": "14"
+          },
+          {
+            "id": "14_2_senchomadeno_yomikata_triangle2_v4",
+            "title": "千兆までの 数の 読み方",
+            "path": "4nen/1_ichioku_koeru_suu/14_2_senchomadeno_yomikata.html",
+            "page": "12"
+          },
+          {
+            "id": "okina_kazu_keisan",
+            "title": "大きな数の計算",
+            "path": "4nen/1_ichioku_koeru_suu/19_okina_kazu_keisan.html",
+            "page": "19"
           }
         ]
       },

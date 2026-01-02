@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>(2けた)×(2けた)の筆算 記録機能強化版</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <style>
+    /* ▼▼▼ テーマ：方眼ノート・スクール ▼▼▼ */
+    :root {
+      --c-bg-main: #E0F2F1;
+      --c-card-bg: #ffffff;
+      --c-grid-border: #B0BEC5;
+      --c-line-strong: #455A64;
+      --c-primary: #00897B;
+      --c-primary-light: #B2DFDB;
+      --c-accent: #FF7043;
+      --c-button-bg: #00897B;
+      
+      --c-correct-bg: #E8F5E9;
+      --c-wrong-bg: #FFEBEE;
+      --c-text-correct: #2E7D32;
+      --c-text-wrong: #D32F2F;
+
+      --font-family: "M PLUS Rounded 1c", sans-serif;
+      --cell-size: 58px;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--c-bg-main);
+      color: #37474F;
+      padding: 20px;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      -webkit-tap-highlight-color: transparent;
+      
+      background-image: 
+        linear-gradient(rgba(0,137,123,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,137,123,0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    h1 { font-size: 1.5rem; color: var(--c-primary); margin: 10px 0; text-align: center; background:rgba(255,255,255,0.8); padding:5px 15px; border-radius:10px;}
+    
+    .page-header {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
+      background: #fff; padding: 5px 15px; border-radius: 20px;
+      border: 2px solid var(--c-primary);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    #game-area {
+      display: none; width: 100%; max-width: 600px;
+      flex-direction: column; align-items: center;
+    }
+
+    .problem-card {
+      background: var(--c-card-bg);
+      border-radius: 10px;
+      padding: 40px 30px; 
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column; align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+      border: 2px solid var(--c-primary-light);
+    }
+
+    .problem-number-display {
+      font-weight: bold; font-size: 1.2rem; color: #fff;
+      margin-bottom: 15px;
+      background: var(--c-primary);
+      padding: 5px 20px; border-radius: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* ▼▼▼ 筆算グリッド ▼▼▼ */
+    .hissan-grid {
+      display: grid;
+      grid-template-columns: repeat(5, var(--cell-size));
+      gap: 0;
+      border-top: 1px solid var(--c-grid-border);
+      border-left: 1px solid var(--c-grid-border);
+      font-size: 2.4rem; font-weight: bold; line-height: 1; color: #333;
+      background-color: #fff;
+      position: relative;
+      margin: 10px 0;
+    }
+
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      display: flex; align-items: center; justify-content: center;
+      box-sizing: border-box;
+      border-right: 1px solid var(--c-grid-border);
+      border-bottom: 1px solid var(--c-grid-border);
+      position: relative; 
+    }
+
+    .line-container {
+      grid-column: 1 / -1; height: 0; position: relative; z-index: 5;
+    }
+    .line-bar {
+      position: absolute; top: -2px; left: 0; right: 0; height: 3px; background-color: var(--c-line-strong);
+    }
+
+    .input-cell {
+      width: 100%; height: 100%;
+      font-family: inherit; font-size: inherit; font-weight: inherit;
+      text-align: center;
+      border: none; border-radius: 0;
+      background-color: transparent;
+      color: var(--c-primary); outline: none; padding: 0; margin: 0;
+      -moz-appearance: textfield;
+    }
+    .input-cell:focus {
+      background-color: rgba(255, 235, 59, 0.3);
+      box-shadow: inset 0 0 0 2px var(--c-accent);
+    }
+
+    /* ▼▼▼ くり上がりメモ ▼▼▼ */
+    .carry-input {
+      position: absolute;
+      width: 20px; height: 20px;
+      font-size: 0.9rem;
+      text-align: center;
+      border: 1px dashed #999;
+      border-radius: 4px;
+      background-color: #fff;
+      z-index: 20;
+      padding: 0; margin: 0;
+      line-height: 18px;
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+    .carry-input:focus {
+      border: 2px solid var(--c-accent);
+      background-color: #FFF3E0;
+      transform: scale(1.3);
+      z-index: 30;
+    }
+
+    /* 位置設定 */
+    .carry-pos-tl { top: 2px; left: -12px; }
+    .carry-pos-inner-tl { top: 2px; left: -12px; }
+
+    /* 色分け */
+    .carry-p1 { border-color: #F06292; color: #D81B60; background-color: #FCE4EC; }
+    .carry-p2 { border-color: #64B5F6; color: #1565C0; background-color: #E3F2FD; }
+    .carry-add { border-color: #FFB74D; color: #E65100; background-color: #FFF3E0; }
+
+    .correct-bg { background-color: var(--c-correct-bg) !important; }
+    .wrong-bg { background-color: var(--c-wrong-bg) !important; }
+    
+    .input-cell.correct { color: var(--c-text-correct); }
+    .carry-input.correct { 
+        color: var(--c-text-correct); 
+        border-style: solid; 
+        border-color: var(--c-text-correct);
+        background-color: var(--c-correct-bg) !important; 
+    }
+    
+    .input-cell.wrong { color: var(--c-text-wrong); }
+    .carry-input.wrong { color: var(--c-text-wrong); background-color: #FFCDD2; }
+
+    .symbol { font-family: sans-serif; font-size: 1.8rem; color: #555; }
+
+    /* ▼▼▼ リザルト画面のスタイル強化 ▼▼▼ */
+    #start-area, #result-area {
+      background: #fff; padding: 30px; border-radius: 15px;
+      text-align: center; border: 4px solid var(--c-primary);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      max-width: 550px; width: 90%; margin-top: 20px;
+    }
+
+    .btn-area { margin-top: 20px; display: flex; justify-content: center; }
+    button {
+      font-family: var(--font-family);
+      font-size: 1.3rem; padding: 12px 40px;
+      border: none; border-radius: 50px;
+      background-color: var(--c-button-bg); color: #fff;
+      cursor: pointer; font-weight: bold;
+      box-shadow: 0 5px 0 #004D40;
+      transition: transform 0.1s;
+    }
+    button:active { transform: translateY(4px); box-shadow: none; }
+    button:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; }
+    
+    #check-btn { background-color: var(--c-accent); box-shadow: 0 5px 0 #BF360C; min-width: 200px; }
+    #check-btn:active { transform: translateY(4px); box-shadow: none; }
+
+    .star-rank { font-size: 3.5rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; margin: 10px 0; }
+    
+    /* ステータスバー（リザルト画面用） */
+    .status-container {
+        display: flex; justify-content: space-around; flex-wrap: wrap;
+        background-color: #F1F8E9; border-radius: 10px;
+        padding: 10px; margin: 15px 0;
+        border: 2px solid var(--c-primary-light);
+    }
+    .status-item {
+        margin: 5px 10px; font-size: 0.95rem; color: #37474F;
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .status-label { font-size: 0.8rem; color: #78909C; margin-bottom: 2px; font-weight: bold; }
+    .status-val { font-size: 1.2rem; font-weight: bold; color: var(--c-primary); }
+
+    /* 履歴リスト */
+    .history-container {
+        margin-top: 20px; text-align: left;
+        max-height: 200px; overflow-y: auto;
+    }
+    .history-title { font-size: 1rem; font-weight: bold; color: var(--c-primary); border-bottom: 2px solid var(--c-primary-light); margin-bottom: 5px; }
+    .history-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; }
+    .history-item {
+        display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr; 
+        padding: 8px 5px; border-bottom: 1px solid #eee;
+        align-items: center;
+    }
+    .history-item:nth-child(even) { background-color: #FAFAFA; }
+    .hist-date { color: #555; font-size: 0.8rem; }
+    .hist-rank { color: #FFD700; text-shadow: 1px 1px 0 #FFA000; font-size: 1rem; text-align: center; }
+    .hist-score { font-weight: bold; color: var(--c-primary); text-align: right; }
+    .hist-time { color: #78909C; text-align: right; }
+
+    #feedback-circle {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 260px; height: 260px;
+      border: 12px solid var(--c-accent); border-radius: 50%;
+      opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100;
+    }
+    #feedback-circle.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    @media (max-width: 500px) {
+      :root { --cell-size: 48px; }
+      .problem-card { padding: 20px 10px; }
+      .status-container { flex-direction: column; gap: 5px; }
+      .history-item { grid-template-columns: 1fr 0.5fr 0.5fr 0.5fr; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="main-title"></h1>
+  <div class="page-header">
+    <span style="background:var(--c-primary); color:#fff; width:2em; height:2em; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold;">87</span>
+    <span id="sub-title-text" style="font-weight:bold; color:var(--c-primary); margin-left:10px;"></span>
+  </div>
+
+  <div id="start-area">
+    <h2 style="color:var(--c-primary); border:none; margin:0 0 20px 0;">筆算トレーニング</h2>
+    <p style="font-size:1.1rem; line-height:1.6; margin-bottom:30px;">
+      (2けた)×(2けた)の計算です。<br>
+      入力すると<strong>自動で次に進むよ</strong>。<br>
+      Enterキーで<strong>まるつけ</strong>だ！
+    </p>
+    <button id="start-btn">スタート！ (Enter)</button>
+    <div class="history-container">
+        <div class="history-title">さいきんのきろく</div>
+        <ul id="start-history-list" class="history-list"></ul>
+    </div>
+  </div>
+
+  <div id="game-area">
+    <div class="problem-number-display">
+      もんだい <span id="current-q-num">1</span> / <span id="total-q-num">6</span>
+    </div>
+
+    <div class="problem-card">
+      <div id="hissan-container"></div>
+      <div id="feedback-circle"></div>
+    </div>
+
+    <div class="btn-area">
+      <button id="check-btn">できた！ (Enter)</button>
+    </div>
+  </div>
+
+  <div id="result-area" style="display:none;">
+    <h2 style="color:var(--c-accent); margin:0;">全問クリア！</h2>
+    <div id="result-stars" class="star-rank"></div>
+    <div id="result-msg" style="font-size:1.4rem; font-weight:bold; margin:15px 0; color:#555;"></div>
+    <div id="result-score" style="font-size:1.2rem; margin-bottom:10px;"></div>
+    
+    <div class="status-container">
+        <div class="status-item">
+            <span class="status-label">ハイスコア</span>
+            <span class="status-val" id="high-score-val">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">今日のクリア</span>
+            <span class="status-val" id="daily-clear-val">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">合計クリア</span>
+            <span class="status-val" id="total-clear-val">0</span>
+        </div>
+    </div>
+
+    <button id="retry-btn">もういちど</button>
+    
+    <div class="history-container">
+        <div class="history-title">これまでのきろく</div>
+        <ul id="result-history-list" class="history-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+        const config = {
+            appId: "2keta_kakeru_2keta", // ID短縮
+            mainTitle: "１９　２けたをかけるかけ算の筆算",
+            title: "(2けた)×(2けた)の筆算",
+            questionCount: 6,
+            targetTime: 240, 
+            starThresholds: { star5: 90, star4: 80, star3: 60 }
+        };
+
+        let problems = [];
+        let currentProblemIndex = 0;
+        let startTime = 0;
+        let incorrectCellIds = []; 
+        let currentScore = 100;
+        let navigationOrder = []; 
+        let incorrectInputs = []; 
+
+        // ローカルストレージキー
+        const KEY_HS = `${config.appId}:hs`;
+        const KEY_CLEAR = `${config.appId}:clear`;
+        const KEY_DAILY_PREFIX = `${config.appId}:daily_`;
+        const KEY_HISTORY = `${config.appId}:history_v2`; // データ形式変えたのでv2に
+
+        function loadStats() {
+            const ls = localStorage;
+            const today = new Date().toDateString();
+            
+            return {
+                highScore: parseInt(ls.getItem(KEY_HS) || 0),
+                totalClear: parseInt(ls.getItem(KEY_CLEAR) || 0),
+                dailyClear: parseInt(ls.getItem(KEY_DAILY_PREFIX + today) || 0),
+                history: JSON.parse(ls.getItem(KEY_HISTORY) || "[]")
+            };
+        }
+
+        function saveStats(score, starsStr, timeSec) {
+            const ls = localStorage;
+            const today = new Date().toDateString();
+            const currentStats = loadStats();
+
+            // ハイスコア更新
+            if (score > currentStats.highScore) {
+                ls.setItem(KEY_HS, score);
+            }
+            // クリア回数
+            ls.setItem(KEY_CLEAR, currentStats.totalClear + 1);
+            ls.setItem(KEY_DAILY_PREFIX + today, currentStats.dailyClear + 1);
+
+            // 履歴保存
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; // 月/日 時:分
+            
+            const newEntry = {
+                date: dateStr,
+                score: score,
+                stars: starsStr,
+                time: timeSec
+            };
+            
+            const newHistory = [newEntry, ...currentStats.history].slice(0, 10); // 最新10件
+            ls.setItem(KEY_HISTORY, JSON.stringify(newHistory));
+            
+            return loadStats(); // 更新後のデータを返す
+        }
+
+        function renderHistory(historyData, listId) {
+            const listEl = document.getElementById(listId);
+            listEl.innerHTML = "";
+            historyData.forEach(h => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                // 日時 | ランク | スコア | タイム
+                li.innerHTML = `
+                    <span class="hist-date">${h.date}</span>
+                    <span class="hist-rank">${h.stars}</span>
+                    <span class="hist-score">${h.score}点</span>
+                    <span class="hist-time">${h.time}秒</span>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function updateStatsDisplay() {
+            const stats = loadStats();
+            document.getElementById('high-score-val').textContent = stats.highScore;
+            document.getElementById('daily-clear-val').textContent = stats.dailyClear;
+            document.getElementById('total-clear-val').textContent = stats.totalClear;
+            
+            renderHistory(stats.history, 'start-history-list');
+            renderHistory(stats.history, 'result-history-list');
+        }
+
+        function generateProblems(count) {
+            const arr = [];
+            for(let i=0; i<count; i++) {
+                let a = Math.floor(Math.random() * 80) + 10;
+                let b = Math.floor(Math.random() * 80) + 10;
+                if (Math.random() < 0.6) {
+                     a = Math.floor(Math.random() * 70) + 25;
+                     b = Math.floor(Math.random() * 70) + 25;
+                }
+                
+                const p1 = a * (b % 10);
+                const p2 = a * Math.floor(b / 10);
+                const total = a * b;
+
+                // くり上がり計算
+                const a_tens = Math.floor(a / 10);
+                const a_ones = a % 10;
+                const b_tens = Math.floor(b / 10);
+                const b_ones = b % 10;
+
+                const carry1 = Math.floor((a_ones * b_ones) / 10);
+                const carry2 = Math.floor((a_ones * b_tens) / 10);
+
+                const addCarries = [];
+                let tempP1 = p1;
+                let tempP2 = p2 * 10;
+                let currentCarry = 0;
+                
+                // 1の位 (Col 5)
+                currentCarry = Math.floor(((tempP1 % 10) + (tempP2 % 10)) / 10);
+                
+                // 10の位 (Col 4)
+                tempP1 = Math.floor(tempP1 / 10); tempP2 = Math.floor(tempP2 / 10);
+                let sum = (tempP1 % 10) + (tempP2 % 10) + currentCarry;
+                if (sum >= 10) addCarries.push({ col: 4, val: Math.floor(sum / 10) }); 
+                currentCarry = Math.floor(sum / 10);
+                
+                // 100の位 (Col 3)
+                tempP1 = Math.floor(tempP1 / 10); tempP2 = Math.floor(tempP2 / 10);
+                sum = (tempP1 % 10) + (tempP2 % 10) + currentCarry;
+                if (sum >= 10) addCarries.push({ col: 3, val: Math.floor(sum / 10) });
+
+                arr.push({ 
+                    a, b, p1, p2, total, 
+                    carry1, carry2, addCarries,
+                    inputMap: {} 
+                });
+            }
+            return arr;
+        }
+
+        function renderCurrentProblem() {
+            const container = document.getElementById('hissan-container');
+            container.innerHTML = "";
+            document.getElementById('feedback-circle').className = "";
+            const btn = document.getElementById('check-btn');
+            btn.disabled = false;
+            btn.textContent = "できた！ (Enter)";
+
+            const prob = problems[currentProblemIndex];
+            document.getElementById('current-q-num').textContent = currentProblemIndex + 1;
+
+            const grid = document.createElement('div');
+            grid.className = 'hissan-grid';
+            
+            const cellMap = {};
+
+            const createInput = (correctVal, cellId, type="main") => {
+                const input = document.createElement('input');
+                input.type = "tel";
+                if(type==="carry") input.className = "carry-input";
+                else input.className = "input-cell";
+                
+                input.maxLength = 1;
+                input.id = cellId;
+                input.dataset.correct = correctVal;
+                
+                // --- 入力イベント（自動移動） ---
+                input.addEventListener('input', function() {
+                    if (this.value.length >= 1) {
+                        if (incorrectInputs.length > 0) {
+                            const idx = incorrectInputs.indexOf(this);
+                            if (idx !== -1 && idx < incorrectInputs.length - 1) {
+                                incorrectInputs[idx + 1].focus();
+                            }
+                        } else {
+                            const idx = navigationOrder.indexOf(this);
+                            if (idx !== -1 && idx < navigationOrder.length - 1) {
+                                navigationOrder[idx + 1].focus();
+                            }
+                        }
+                    }
+                });
+
+                // --- Enterキー（まるつけ） ---
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === "Enter") {
+                        checkAnswer();
+                    }
+                });
+                
+                input.addEventListener('focus', function() { this.select(); });
+                
+                prob.inputMap[cellId] = correctVal;
+                cellMap[cellId] = input;
+                return input;
+            };
+
+            const addCell = (content, r, c) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (content instanceof HTMLElement) {
+                    cell.appendChild(content);
+                } else if (content) {
+                    cell.textContent = content;
+                }
+                
+                // くり上がりメモ配置
+                if (r === 3 && c === 5) {
+                    if (prob.carry1 > 0) {
+                        const cm1 = createInput(prob.carry1, `c1_q${currentProblemIndex}`, "carry");
+                        cm1.classList.add('carry-pos-tl', 'carry-p1');
+                        cell.appendChild(cm1);
+                    }
+                }
+                if (r === 4 && c === 4) {
+                    if (prob.carry2 > 0) {
+                        const cm2 = createInput(prob.carry2, `c2_q${currentProblemIndex}`, "carry");
+                        cm2.classList.add('carry-pos-tl', 'carry-p2');
+                        cell.appendChild(cm2);
+                    }
+                }
+                if (r === 5) {
+                    prob.addCarries.forEach(ac => {
+                        if (c === ac.col) {
+                             const cmAdd = createInput(ac.val, `ca_${c}_q${currentProblemIndex}`, "carry");
+                             cmAdd.classList.add('carry-pos-inner-tl', 'carry-add');
+                             cell.appendChild(cmAdd);
+                        }
+                    });
+                }
+                grid.appendChild(cell);
+            };
+
+            const addLine = () => {
+                const lc = document.createElement('div'); lc.className = 'line-container';
+                const bar = document.createElement('div'); bar.className = 'line-bar';
+                lc.appendChild(bar); grid.appendChild(lc);
+            };
+
+            const aStr = String(prob.a);
+            const bStr = String(prob.b);
+            const p1Str = String(prob.p1);
+            const p2Str = String(prob.p2);
+            const totalStr = String(prob.total);
+
+            // Row 1 & 2
+            addCell("", 1, 1); addCell("", 1, 2); addCell("", 1, 3); addCell(aStr[0], 1, 4); addCell(aStr[1], 1, 5);
+            addCell("", 2, 1); addCell("", 2, 2); 
+            const sym = document.createElement('div'); sym.className='symbol'; sym.textContent="×";
+            addCell(sym, 2, 3); addCell(bStr[0], 2, 4); addCell(bStr[1], 2, 5);
+            addLine();
+
+            // Row 3: P1
+            for(let c=1; c<=5; c++) {
+                const len = p1Str.length;
+                if (c > 5 - len) {
+                    const char = p1Str[c - (5 - len + 1)];
+                    addCell(createInput(char, `r3c${c}`), 3, c);
+                } else {
+                    addCell("", 3, c);
+                }
+            }
+            // Row 4: P2
+            for(let c=1; c<=5; c++) {
+                const len = p2Str.length;
+                if (c <= 4 && c > 4 - len) {
+                    const char = p2Str[c - (4 - len + 1)];
+                    addCell(createInput(char, `r4c${c}`), 4, c);
+                } else {
+                    addCell("", 4, c);
+                }
+            }
+            addLine();
+            // Row 5: Total
+            for(let c=1; c<=5; c++) {
+                const len = totalStr.length;
+                if (c > 5 - len) {
+                    const char = totalStr[c - (5 - len + 1)];
+                    addCell(createInput(char, `r5c${c}`), 5, c);
+                } else {
+                    addCell("", 5, c);
+                }
+            }
+            container.appendChild(grid);
+            
+            // --- ナビゲーション順序の構築 (計算順) ---
+            navigationOrder = [];
+            const pushIfExists = (id) => { if (cellMap[id]) navigationOrder.push(cellMap[id]); };
+
+            // 1. P1
+            pushIfExists(`c1_q${currentProblemIndex}`); // Carry
+            pushIfExists(`r3c5`); // Ones
+            pushIfExists(`r3c3`); // Hundreds
+            pushIfExists(`r3c4`); // Tens
+            
+            // 2. P2
+            pushIfExists(`c2_q${currentProblemIndex}`); // Carry
+            pushIfExists(`r4c4`); // Ones
+            pushIfExists(`r4c2`); // Hundreds
+            pushIfExists(`r4c3`); // Tens
+
+            // 3. Total (右から左へ: メモ→答え)
+            // Col 5
+            pushIfExists(`r5c5`);
+            
+            // Col 4 (十の位)
+            // ca_4_q.. は Col 4 で発生した繰り上がりメモ (Col 4 のマスに表示)
+            pushIfExists(`ca_4_q${currentProblemIndex}`); 
+            pushIfExists(`r5c4`);
+
+            // Col 3 (百の位)
+            pushIfExists(`ca_3_q${currentProblemIndex}`);
+            pushIfExists(`r5c3`);
+            
+            // Col 2 (千の位)
+            pushIfExists(`ca_2_q${currentProblemIndex}`);
+            pushIfExists(`r5c2`);
+            
+            // Col 1
+            pushIfExists(`r5c1`);
+
+            if(navigationOrder.length > 0) navigationOrder[0].focus();
+        }
+
+        // Enterキー: まるつけを実行するだけ
+        function handleEnterKey(currentInput) {
+            checkAnswer();
+        }
+
+        function checkAnswer() {
+            let allCorrect = true;
+            incorrectInputs = []; 
+
+            navigationOrder.forEach(input => {
+                const correct = input.dataset.correct;
+                const parentCell = input.closest('.cell');
+                
+                input.classList.remove('correct', 'wrong');
+                if(parentCell && input.classList.contains('input-cell')) {
+                    parentCell.classList.remove('correct-bg', 'wrong-bg');
+                }
+                
+                if (input.value === correct) {
+                    input.classList.add('correct');
+                    if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('correct-bg');
+                    input.disabled = true; 
+                } else {
+                    allCorrect = false;
+                    input.classList.add('wrong');
+                    if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('wrong-bg');
+                    incorrectInputs.push(input);
+                }
+            });
+
+            if (allCorrect) {
+                document.getElementById('feedback-circle').classList.add('show');
+                document.getElementById('check-btn').disabled = true;
+                document.getElementById('check-btn').textContent = "せいかい！";
+                
+                if(window.confetti) confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+
+                setTimeout(() => {
+                    currentProblemIndex++;
+                    if (currentProblemIndex >= config.questionCount) {
+                        showResult();
+                    } else {
+                        renderCurrentProblem();
+                    }
+                }, 1200);
+            } else {
+                currentScore = Math.max(0, currentScore - 5);
+                if (incorrectInputs.length > 0) {
+                    incorrectInputs[0].focus();
+                }
+            }
+        }
+
+        function showResult() {
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+
+            const timeSec = Math.floor((Date.now() - startTime) / 1000);
+            let finalScore = currentScore;
+            
+            // タイムボーナス計算
+            if (timeSec < config.targetTime) {
+                finalScore += Math.floor((config.targetTime - timeSec) * 0.2); 
+            }
+            if (finalScore > 100) finalScore = 100;
+
+            let stars = "★☆☆☆☆";
+            let msg = "もう少し！";
+            if (finalScore >= config.starThresholds.star5) { stars = "★★★★★"; msg = "すばらしい！計算マスター！"; }
+            else if (finalScore >= config.starThresholds.star4) { stars = "★★★★☆"; msg = "よくがんばったね！"; }
+            else if (finalScore >= config.starThresholds.star3) { stars = "★★★☆☆"; msg = "合格！その調子！"; }
+
+            document.getElementById('result-stars').textContent = stars;
+            document.getElementById('result-msg').textContent = msg;
+            document.getElementById('result-score').innerHTML = `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:1rem; color:#888;">タイム: ${timeSec}秒</span>`;
+            
+            // 記録保存と表示更新
+            saveStats(finalScore, stars, timeSec);
+            updateStatsDisplay();
+
+            if (finalScore >= 80 && window.confetti) {
+                confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+            }
+        }
+
+        function initGame() {
+            problems = generateProblems(config.questionCount);
+            currentProblemIndex = 0;
+            currentScore = 100;
+            incorrectInputs = [];
+            startTime = Date.now();
+
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'flex';
+            
+            renderCurrentProblem();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('sub-title-text').textContent = config.title;
+            document.getElementById('total-q-num').textContent = config.questionCount;
+            
+            updateStatsDisplay(); // 初期表示で履歴読み込み
+
+            document.getElementById('start-btn').addEventListener('click', initGame);
+            document.getElementById('retry-btn').addEventListener('click', initGame);
+            document.getElementById('check-btn').addEventListener('click', checkAnswer);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === "Enter") {
+                    if (document.getElementById('start-area').style.display !== 'none') {
+                        initGame();
+                    } else if (document.getElementById('result-area').style.display !== 'none') {
+                        initGame();
+                    }
+                }
+            });
+        });
+
+    })();
+  </script>
+</body>
+</html>

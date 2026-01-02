@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="app-title" content="１０までを ひく けいさん">
+    
     <title>１０までを ひく けいさん</title>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
     <style>
@@ -39,6 +43,7 @@
             font-size: 1.2rem; background: #000; border: 2px solid var(--c-primary);
             padding: 5px 25px; border-radius: 50px; color: var(--c-text-main);
             margin-bottom: 20px; box-shadow: 0 4px 0 rgba(198, 40, 40, 0.4);
+            display: flex; align-items: center; gap: 10px;
         }
 
         .page-circle {
@@ -47,7 +52,6 @@
             background-color: var(--c-primary); color: #fff;
             font-weight: 800; font-size: 1.2rem; line-height: 1; flex-shrink: 0;
             border: 2px solid var(--c-accent);
-            margin-right: 10px;
         }
 
         /* コンテナ */
@@ -185,30 +189,25 @@
 </head>
 <body>
 
-    <h1>２１　100までの かず</h1>
-    <h2 id="subtitle">
-        <span class="page-circle">123</span>
-        １０までを ひく けいさん
+    <h1 id="main-title"></h1>
+    <h2 id="subtitle-container">
+        <span id="page-badge" class="page-circle"></span>
+        <span id="subtitle-text"></span>
     </h2>
 
     <div class="app-container">
         
         <div id="start-screen">
             <div style="font-size:5rem; margin:10px;">🥷</div>
-            <p style="font-size:1.4rem; line-height:1.6; font-weight:bold;">
-                １０までのかずをひく　ひきざん<br>
-                ぜんぶで 10もん！
-            </p>
+            <p id="start-message" style="font-size:1.4rem; line-height:1.6; font-weight:bold;">
+                </p>
             
             <div class="stats-box">
                 ハイスコア: <span id="high-score-display" style="font-size:1.5rem; color:#FFD700;">0</span> 点
             </div>
 
-            <div style="background:#37474F; padding:15px; border-radius:10px; margin:15px 0; font-size:1rem; border:1px dashed #FFD700; color:#E0E0E0;">
-                <b>★ポイント★</b><br>
-                「27 - 3」 は 7から 3を ひく<br>
-                「36 - 10」 は 10のたばを へらす
-            </div>
+            <div id="point-box" style="background:#37474F; padding:15px; border-radius:10px; margin:15px 0; font-size:1rem; border:1px dashed #FFD700; color:#E0E0E0;">
+                </div>
             <button id="start-btn" class="btn-large" onclick="startGame()">スタート (Enter)</button>
             
             <div class="history-container">
@@ -279,14 +278,35 @@
     </div>
 
     <script>
+    // ▼▼▼ 設定エリア ▼▼▼
     const config = {
+        // 基本情報
         appId: "123_hiku_10made",
         page: 123,
-        questionCount: 10,
-        baseScore: 100, 
-        targetTimePerQuestion: 5, 
-        penaltyPerMistake: 5,     
-        starThresholds: { star5: 150, star4: 130, star3: 110, star2: 101 }
+
+        // 画面表示用テキスト
+        display: {
+            mainTitle: "２１　100までの かず",
+            subtitle: "１０までを ひく けいさん",
+            startMessage: "１０までのかずをひく　ひきざん<br>ぜんぶで 10もん！",
+            point: "<b>★ポイント★</b><br>「27 - 3」 は 7から 3を ひく<br>「36 - 10」 は 10のたばを へらす"
+        },
+
+        // ゲーム設定
+        settings: {
+            questionCount: 10,
+            baseScore: 100, 
+            targetTimePerQuestion: 5, 
+            penaltyPerMistake: 5
+        },
+
+        // ランク基準
+        rank: {
+            star5: 150, 
+            star4: 130, 
+            star3: 110, 
+            star2: 101
+        }
     };
 
     let questions = [];
@@ -302,6 +322,14 @@
     const KEY_HISTORY = `${config.appId}:history`;
 
     function init() {
+        // 設定に基づいて画面のテキストを更新
+        document.getElementById('main-title').textContent = config.display.mainTitle;
+        document.getElementById('page-badge').textContent = config.page;
+        document.getElementById('subtitle-text').textContent = config.display.subtitle;
+        document.getElementById('start-message').innerHTML = config.display.startMessage;
+        document.getElementById('point-box').innerHTML = config.display.point;
+        document.getElementById('q-remaining').textContent = config.settings.questionCount;
+
         loadStats();
         updateHistoryDisplay();
         
@@ -340,7 +368,6 @@
             const one1 = Math.floor(Math.random() * 9) + 1; // 1-9
             
             // 引く数(one2)は one1 以下である必要がある (繰り下がりなし)
-            // one1が1なら1しか引けない。one1が9なら1~9引ける。
             const one2 = Math.floor(Math.random() * one1) + 1;
 
             const v1 = tensVal + one1;
@@ -388,9 +415,9 @@
         
         const q = questions[currentQIdx];
         
-        const progressPercent = (currentQIdx / config.questionCount) * 100;
+        const progressPercent = (currentQIdx / config.settings.questionCount) * 100;
         document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-        document.getElementById('q-remaining').textContent = config.questionCount - currentQIdx;
+        document.getElementById('q-remaining').textContent = config.settings.questionCount - currentQIdx;
         
         document.getElementById('question-text').textContent = `${q.v1} - ${q.v2} = `;
     }
@@ -428,14 +455,14 @@
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 }, colors:['#FFD700', '#C62828', '#FFFFFF'] });
             
             isAnswering = false;
-            if(currentQIdx === config.questionCount - 1) {
+            if(currentQIdx === config.settings.questionCount - 1) {
                 document.getElementById('progress-bar').style.width = '100%';
                 document.getElementById('q-remaining').textContent = 0;
             }
 
             setTimeout(() => {
                 currentQIdx++;
-                if(currentQIdx < config.questionCount) {
+                if(currentQIdx < config.settings.questionCount) {
                     showQuestion();
                 } else {
                     finishGame();
@@ -470,16 +497,16 @@
         
         const endTime = Date.now();
         const elapsedSec = Math.floor((endTime - startTime) / 1000);
-        const standardTime = config.targetTimePerQuestion * config.questionCount; 
+        const standardTime = config.settings.targetTimePerQuestion * config.settings.questionCount; 
         
         let timeBonus = 0;
         if (elapsedSec < standardTime) {
             timeBonus = Math.floor((standardTime - elapsedSec) * 2.0); 
         }
         
-        const mistakePenalty = mistakeCount * config.penaltyPerMistake;
+        const mistakePenalty = mistakeCount * config.settings.penaltyPerMistake;
         
-        let finalScore = config.baseScore + timeBonus - mistakePenalty;
+        let finalScore = config.settings.baseScore + timeBonus - mistakePenalty;
         if (finalScore < 0) finalScore = 0;
         
         if (mistakeCount === 0 && finalScore < 100) {
@@ -487,10 +514,10 @@
         }
 
         let stars = "★☆☆☆☆";
-        if (finalScore >= config.starThresholds.star5) stars = "★★★★★";
-        else if (finalScore >= config.starThresholds.star4) stars = "★★★★☆";
-        else if (finalScore >= config.starThresholds.star3) stars = "★★★☆☆";
-        else if (finalScore >= config.starThresholds.star2) stars = "★★☆☆☆";
+        if (finalScore >= config.rank.star5) stars = "★★★★★";
+        else if (finalScore >= config.rank.star4) stars = "★★★★☆";
+        else if (finalScore >= config.rank.star3) stars = "★★★☆☆";
+        else if (finalScore >= config.rank.star2) stars = "★★☆☆☆";
 
         document.getElementById('result-stars').textContent = stars;
         document.getElementById('final-score').textContent = finalScore + "てん";
