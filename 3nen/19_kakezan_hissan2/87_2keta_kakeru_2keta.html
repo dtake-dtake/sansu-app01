@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>(2けた)×(2けた)の筆算 記録機能強化版</title>
+  <title>(2けた)×(2けた)の筆算 完成版</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
   <style>
@@ -331,7 +331,7 @@
         const KEY_HS = `${config.appId}:hs`;
         const KEY_CLEAR = `${config.appId}:clear`;
         const KEY_DAILY_PREFIX = `${config.appId}:daily_`;
-        const KEY_HISTORY = `${config.appId}:history_v2`; // データ形式変えたのでv2に
+        const KEY_HISTORY = `${config.appId}:history_v2`; 
 
         function loadStats() {
             const ls = localStorage;
@@ -360,7 +360,7 @@
 
             // 履歴保存
             const now = new Date();
-            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; // 月/日 時:分
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; 
             
             const newEntry = {
                 date: dateStr,
@@ -369,10 +369,10 @@
                 time: timeSec
             };
             
-            const newHistory = [newEntry, ...currentStats.history].slice(0, 10); // 最新10件
+            const newHistory = [newEntry, ...currentStats.history].slice(0, 10); 
             ls.setItem(KEY_HISTORY, JSON.stringify(newHistory));
             
-            return loadStats(); // 更新後のデータを返す
+            return loadStats(); 
         }
 
         function renderHistory(historyData, listId) {
@@ -381,7 +381,6 @@
             historyData.forEach(h => {
                 const li = document.createElement('li');
                 li.className = 'history-item';
-                // 日時 | ランク | スコア | タイム
                 li.innerHTML = `
                     <span class="hist-date">${h.date}</span>
                     <span class="hist-rank">${h.stars}</span>
@@ -405,11 +404,23 @@
         function generateProblems(count) {
             const arr = [];
             for(let i=0; i<count; i++) {
-                let a = Math.floor(Math.random() * 80) + 10;
-                let b = Math.floor(Math.random() * 80) + 10;
+                let a, b;
+                
+                // b (かける数) の一の位が 0 にならないようにする
+                while(true) {
+                    a = Math.floor(Math.random() * 80) + 10;
+                    b = Math.floor(Math.random() * 80) + 10;
+                    
+                    if (b % 10 !== 0) break; // 0でなければOK
+                }
+
                 if (Math.random() < 0.6) {
+                     // 少し難易度を上げる場合
                      a = Math.floor(Math.random() * 70) + 25;
-                     b = Math.floor(Math.random() * 70) + 25;
+                     while(true) {
+                         b = Math.floor(Math.random() * 70) + 25;
+                         if (b % 10 !== 0) break;
+                     }
                 }
                 
                 const p1 = a * (b % 10);
@@ -619,7 +630,6 @@
             pushIfExists(`r5c5`);
             
             // Col 4 (十の位)
-            // ca_4_q.. は Col 4 で発生した繰り上がりメモ (Col 4 のマスに表示)
             pushIfExists(`ca_4_q${currentProblemIndex}`); 
             pushIfExists(`r5c4`);
 
@@ -697,7 +707,6 @@
             const timeSec = Math.floor((Date.now() - startTime) / 1000);
             let finalScore = currentScore;
             
-            // タイムボーナス計算
             if (timeSec < config.targetTime) {
                 finalScore += Math.floor((config.targetTime - timeSec) * 0.2); 
             }
@@ -713,7 +722,6 @@
             document.getElementById('result-msg').textContent = msg;
             document.getElementById('result-score').innerHTML = `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:1rem; color:#888;">タイム: ${timeSec}秒</span>`;
             
-            // 記録保存と表示更新
             saveStats(finalScore, stars, timeSec);
             updateStatsDisplay();
 
@@ -741,7 +749,7 @@
             document.getElementById('sub-title-text').textContent = config.title;
             document.getElementById('total-q-num').textContent = config.questionCount;
             
-            updateStatsDisplay(); // 初期表示で履歴読み込み
+            updateStatsDisplay(); 
 
             document.getElementById('start-btn').addEventListener('click', initGame);
             document.getElementById('retry-btn').addEventListener('click', initGame);
