@@ -1211,21 +1211,22 @@
         "name": "１９　2けたをかけるかけ算の筆算",
         "apps": [
           {
-            "id": "86_2keta_kakeru_2keta_no_hissan_v2",
-            "title": "２けた×２けた（くりあがりなし）",
+            "id": "2keta_kakeru_2keta",
+            "title": "(2けた)×(2けた)の筆算",
+            "path": "3nen/19_kakezan_hissan2/87_2keta_kakeru_2keta.html",
+            "page": "87"
+          },
+          {
+            "id": "2keta_kakeru_2keta_nocarry",
+            "title": "(2けた)×(2けた)の筆算（くりあがりなし）",
             "path": "3nen/19_kakezan_hissan2/86_2keta_kakeru_2keta_no_hissan.html",
             "page": "86"
           },
           {
-            "id": "math_2digit_times_tens_v3",
-            "title": "何十をかける計算",
-            "path": "3nen/19_kakezan_hissan2/Untitled-1.html"
-          },
-          {
-            "id": "2keta_kakeru_2keta",
-            "title": "筆算トレーニング",
-            "path": "3nen/19_kakezan_hissan2/87_2keta_kakeru_2keta.html",
-            "page": "87"
+            "id": "3keta_kakeru_2keta",
+            "title": "(3けた)×(2けた)の筆算",
+            "path": "3nen/19_kakezan_hissan2/89_3keta_kakeru_2keta.html",
+            "page": "89"
           }
         ]
       },
