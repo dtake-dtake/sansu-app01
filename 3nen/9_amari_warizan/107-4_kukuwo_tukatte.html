@@ -18,10 +18,34 @@
       font-family: 'Helvetica Neue', 'Arial', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
       background-color: var(--c-bg-main); color: var(--c-text-main); margin: 0;
       padding: 15px; line-height: 1.6;
+      /* 全体を中央揃え */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
     h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
     h1 { font-size: 1.8rem; }
-    h2 { font-size: 1.5rem; background: var(--c-primary-light); padding: 5px; border-radius: 8px;}
+    
+    h2 { 
+      font-size: 1.5rem; 
+      background: var(--c-primary-light); 
+      padding: 8px 20px; 
+      border-radius: 25px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 2px solid var(--c-primary);
+      margin: 10px auto;
+    }
+    .page-circle {
+      display: inline-flex; justify-content: center; align-items: center;
+      width: 2.2rem; height: 2.2rem; border-radius: 50%;
+      background-color: #fff; color: var(--c-primary);
+      font-weight: 800; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+    }
+    
     button {
       font-size: 1.2rem; padding: 12px 24px; border: none; border-radius: 8px;
       background-color: var(--c-button-bg); color: var(--c-text-on-button);
@@ -36,7 +60,7 @@
     }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-    #problems-wrapper { max-width: 800px; margin: 20px auto; }
+    #problems-wrapper { max-width: 800px; width: 100%; margin: 20px auto; }
     .problem {
       background: var(--c-problem-row-bg); border-radius: 10px; padding: 15px;
       margin-bottom: 15px; font-size: 2rem; display: flex; align-items: center;
@@ -47,30 +71,38 @@
     .result-icon { font-size: 2.5rem; margin-left: 15px; font-weight: bold; }
     .correct { color: var(--c-feedback-correct); }
     .wrong { color: var(--c-feedback-wrong); }
-    .button-area, #start-area { text-align: center; margin: 40px 0; }
+    .button-area, #start-area { text-align: center; margin: 40px 0; width: 100%; }
     #result-area {
-      max-width: 600px; margin: 20px auto; padding: 15px;
+      max-width: 600px; width: 90%; margin: 20px auto; padding: 15px;
       background: var(--c-result-area-bg); border-radius: 10px; text-align: center;
     }
     #result { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
     .status-stars { font-size: 2.5rem; color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
     #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:10px;}
+    #history-list li { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.3); }
+    #history-list li:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
 
   <h1 id="main-title"></h1>
-  <h2 id="sub-title"></h2>
+  <h2 id="sub-title">
+    <span id="page-circle" class="page-circle"></span>
+    <span id="sub-title-text"></span>
+  </h2>
+  
   <div id="start-area">
     <button id="start-btn">スタート！</button>
   </div>
-  <div id="problems-section" style="display:none;">
+  
+  <div id="problems-section" style="display:none; width: 100%; flex-direction: column; align-items: center;">
     <div id="problems-wrapper"></div>
     <div class="button-area">
       <button id="check-answers">まるつけ</button>
       <button id="retry">もういちど</button>
     </div>
   </div>
+
   <div id="result-area">
     <div id="result"></div>
     <div id="overallStatusArea">ステータス：<span id="overallStars" class="status-stars">―</span></div>
@@ -87,16 +119,15 @@
         appId: "107-4_kukuwo_tukatte",
         mainTitle: "９　あまりのあるわり算",
         title: "九九を使って",
+        page: 107, 
         baseScore: 100,
         targetTimePerQuestion: 20,
-        // ▼▼▼ 星の基準点を追加 ▼▼▼
         starThresholds: {
           star1: 100, star2: 120, star3: 140, star4: 160, star5: 180
         },
         problemGenerator() {
           const part1Probs = new Set();
           const part2Probs = new Set();
-          // 合計5問になるように変更
           while (part1Probs.size < 2) {
             const b = Math.floor(Math.random() * 8) + 2;
             const a = Math.floor(Math.random() * 8) + 2;
@@ -304,12 +335,14 @@
         const startArea = document.querySelector('#start-area');
         const startBtn = document.querySelector('#start-btn');
         document.getElementById('main-title').textContent = config.mainTitle;
-        document.getElementById('sub-title').textContent = config.title;
+        document.getElementById('page-circle').textContent = config.page;
+        document.getElementById('sub-title-text').textContent = config.title;
+        
         loadData();
         updateDisplay();
         startBtn.onclick = () => {
           startArea.style.display = 'none';
-          document.querySelector('#problems-section').style.display = 'block';
+          document.querySelector('#problems-section').style.display = 'flex'; // スタート時にflexにする
           retry();
         };
         document.querySelector('#check-answers').onclick = checkAnswers;

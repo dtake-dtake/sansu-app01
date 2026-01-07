@@ -41,6 +41,7 @@
         h1, h2 { text-align: center; color: var(--c-primary-dark); margin: 10px 0; }
         h1 { font-size: 1.4rem; }
         
+        /* 副題とページ番号のスタイル */
         h2 { 
             font-size: 1.3rem; 
             background: var(--c-primary-light); 
@@ -49,17 +50,19 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 10px; /* ページ番号とタイトルの間隔 */
             border: 2px solid var(--c-primary);
             color: var(--c-primary-dark);
+            box-shadow: 0 4px 0 rgba(104, 159, 56, 0.2);
         }
 
+        /* ページ番号の丸囲みスタイル */
         .page-circle {
             display: inline-flex; justify-content: center; align-items: center;
-            width: 2.0rem; height: 2.0rem; border-radius: 50%;
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
             background-color: #fff; color: var(--c-primary-dark);
             border: 2px solid var(--c-primary-dark);
-            font-weight: bold; font-size: 1.0rem; line-height: 1; flex-shrink: 0;
+            font-weight: 800; font-size: 1.1rem; line-height: 1; flex-shrink: 0;
         }
 
         #problems-container {
@@ -75,6 +78,7 @@
             transition: transform 0.2s;
             flex-wrap: wrap;
             gap: 10px;
+            scroll-margin-block: 150px; /* スクロール時の余白 */
         }
         
         .problem-text {
@@ -114,10 +118,9 @@
             box-shadow: 0 4px 0 var(--c-primary-dark);
         }
         button:active { transform: translateY(4px); box-shadow: none; }
-        button:disabled { background-color: #B0BEC5; box-shadow: none; cursor: not-allowed; transform: none;}
         
         .button-area { text-align: center; margin: 40px 0; }
-        #start-area { text-align: center; margin: 60px 0; }
+        #start-area { text-align: center; margin: 40px 0; width: 100%; max-width: 600px; }
         #start-btn { font-size: 1.5rem; padding: 15px 50px; background-color: var(--c-accent); box-shadow: 0 5px 0 #E65100; }
         
         #result-area {
@@ -143,9 +146,35 @@
         .stat-label { font-size: 0.9rem; color: var(--c-primary-dark); font-weight: bold; }
         .stat-value { font-size: 1.4rem; color: var(--c-accent); font-weight: 800; }
         
-        #history-list { list-style: none; padding: 0; background: var(--c-history-bg); border-radius: 8px; margin-top:15px; text-align: left; padding: 10px;}
-        #history-list li { border-bottom: 1px dashed #AED581; padding: 8px; font-size: 0.95rem; display: flex; justify-content: space-between;}
-        #history-list li:last-child { border-bottom: none; }
+        /* 履歴リストのスタイル */
+        .history-section {
+            margin-top: 20px;
+            background: var(--c-history-bg);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: left;
+        }
+        .history-title {
+            font-weight: bold; font-size: 0.95rem; margin-bottom: 8px; color: var(--c-primary-dark); text-align: center;
+        }
+        .history-list { list-style: none; padding: 0; margin: 0; }
+        .history-list li { 
+            border-bottom: 1px dashed #AED581; 
+            padding: 6px 0; 
+            font-size: 0.9rem; 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            white-space: nowrap;
+            gap: 10px;
+        }
+        .history-list li:last-child { border-bottom: none; }
+        
+        /* 履歴アイテム内の要素配置 */
+        .h-date { color: #555; font-size: 0.85rem; flex-shrink: 0; }
+        .h-info { display: flex; gap: 10px; align-items: center; }
+        .h-stars { color: #FFD700; text-shadow: 1px 1px 0 #FFA000; font-size: 1rem; }
+        .h-score { font-weight: bold; color: var(--c-accent); width: 50px; text-align: right; }
 
         #bulb-btn {
             position: absolute; top: 15px; right: 15px;
@@ -165,6 +194,8 @@
             .problem-text { font-size: 1.4rem; }
             .input-box { width: 50px; height: 45px; font-size: 1.4rem; }
             h1 { font-size: 1.2rem; }
+            .h-stars { font-size: 0.8rem; } 
+            .h-date { font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -185,15 +216,20 @@
     </h2>
     
     <div id="start-area"> 
-        <div style="margin-bottom:20px; font-size:1.1rem;">
-            全<span id="q-count-disp"></span>問・目標タイム <span id="target-time-disp"></span>秒
+        <div style="margin-bottom:20px; font-size:1.1rem; background: #fff; padding: 10px; border-radius: 10px; border: 2px solid var(--c-primary-light);">
+            全<span id="q-count-disp" style="font-weight:bold;"></span>問・目標タイム <span id="target-time-disp" style="font-weight:bold;"></span>秒
         </div>
         <button id="start-btn">スタート！ (Enter)</button> 
         
-        <div style="margin-top:30px; font-size:0.9rem; color:#555;">
+        <div style="margin-top:20px; font-size:0.9rem; color:#555;">
             <div id="start-stats" style="margin-bottom:10px;">
                 今日のクリア：<span class="daily-val" style="font-weight:bold; color:var(--c-accent);">0</span>回 ／ 
                 合計：<span class="total-val" style="font-weight:bold;">0</span>回
+            </div>
+            
+            <div class="history-section">
+                <div class="history-title">これまでのきろく（最新5件）</div>
+                <ul id="start-history-list" class="history-list"></ul>
             </div>
         </div>
     </div>
@@ -235,9 +271,9 @@
             <div id="highScoreArea" style="font-weight:bold; color:var(--c-primary-dark);">ハイスコア：<span id="highScoreValue">0</span> 点</div>
         </div>
 
-        <div id="history-area" style="margin-top:15px; font-size:0.9rem;">
-            <div style="font-weight:bold; margin-bottom:5px;">これまでのきろく（最新5件）</div>
-            <ul id="history-list"></ul>
+        <div class="history-section">
+            <div class="history-title">これまでのきろく（最新5件）</div>
+            <ul id="result-history-list" class="history-list"></ul>
         </div>
         
         <div style="margin-top:20px; text-align:center;">
@@ -315,6 +351,15 @@
           updateStatsDisplay();
       }
       
+      // スコアから星文字列を生成する関数
+      function getStarString(score) {
+          if (score >= config.starThresholds.star5) return "★★★★★";
+          if (score >= config.starThresholds.star4) return "★★★★☆";
+          if (score >= config.starThresholds.star3) return "★★★☆☆";
+          if (score >= config.starThresholds.star2) return "★★☆☆☆";
+          return "★☆☆☆☆";
+      }
+
       function saveData(score) {
           if (score > highScore) {
               highScore = score;
@@ -328,7 +373,9 @@
 
           const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
           const now = new Date();
-          const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+          // 年月日 時刻 のフォーマットを作成 (例: 2024/10/25 14:30)
+          const dateStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+          
           history.unshift({ date: dateStr, score: score });
           if (history.length > 5) history.pop();
           ls.setItem(KEY_HISTORY, JSON.stringify(history));
@@ -342,12 +389,29 @@
           document.querySelectorAll('.daily-val').forEach(el => el.textContent = dailyClearCount);
 
           const history = JSON.parse(ls.getItem(KEY_HISTORY) || '[]');
-          const list = document.getElementById('history-list');
+          
+          // 履歴リストのHTML生成（スタート画面とリザルト画面共通）
+          let listHtml = '';
           if (history.length === 0) {
-              list.innerHTML = '<li>まだ履歴がありません</li>';
+              listHtml = '<li style="justify-content:center;">まだ履歴がありません</li>';
           } else {
-              list.innerHTML = history.map(h => `<li><span>${h.date}</span> <strong>${h.score}点</strong></li>`).join('');
+              listHtml = history.map(h => {
+                  const stars = getStarString(h.score);
+                  return `
+                      <li>
+                          <span class="h-date">${h.date}</span>
+                          <span class="h-info">
+                              <span class="h-stars">${stars}</span>
+                              <span class="h-score">${h.score}点</span>
+                          </span>
+                      </li>
+                  `;
+              }).join('');
           }
+
+          // 両方のリストを更新
+          document.getElementById('start-history-list').innerHTML = listHtml;
+          document.getElementById('result-history-list').innerHTML = listHtml;
       }
 
       function displayProblems() {
@@ -376,7 +440,7 @@
           const allInputs = Array.from(document.querySelectorAll('.input-box'));
           
           allInputs.forEach((input, i) => {
-              // 1. フォーカス時の自動スクロール
+              // 1. フォーカス時の自動スクロール（遅延実行でスムーズに）
               input.addEventListener('focus', (e) => {
                   e.target.select();
                   setTimeout(() => {
@@ -390,7 +454,6 @@
                   if (input.classList.contains('q-box')) {
                       // 1文字以上入力されたら移動（商は1桁確定のため）
                       if (input.value.length >= 1) {
-                          // 同じインデックスのr-boxを探す
                           const idx = input.dataset.index;
                           const rBox = document.getElementById(`ans-r-${idx}`);
                           if (rBox) rBox.focus();
@@ -404,19 +467,23 @@
                   if (e.key === 'Enter') {
                       e.preventDefault();
                       
-                      // 間違い訂正モードの場合
+                      // ★間違い訂正モードの制御★
                       if (incorrectInputIds.length > 0) {
+                          // 現在のIDが間違いリストにあるか探す
                           const currentIdIndex = incorrectInputIds.indexOf(input.id);
+                          
+                          // リスト内の次の間違いへジャンプ
                           if (currentIdIndex !== -1 && currentIdIndex < incorrectInputIds.length - 1) {
                               const nextInput = document.getElementById(incorrectInputIds[currentIdIndex + 1]);
                               if(nextInput) nextInput.focus();
                           } else {
+                              // 最後の間違いだった場合は「まるつけ」ボタンへ
                               document.getElementById('check-answers').focus();
                           }
                           return;
                       }
 
-                      // 通常モードの場合
+                      // 通常モード（次の入力欄へ）
                       const currentIndex = allInputs.indexOf(input);
                       if (currentIndex < allInputs.length - 1) {
                           allInputs[currentIndex + 1].focus();
@@ -429,12 +496,11 @@
                   if (e.key === 'Backspace') {
                       // 入力欄が空の状態でBackspaceが押されたら戻る
                       if (input.value === '') {
-                          e.preventDefault(); // デフォルトの挙動（ブラウザバックなど）防止
+                          e.preventDefault(); 
                           const currentIndex = allInputs.indexOf(input);
                           if (currentIndex > 0) {
                               const prevInput = allInputs[currentIndex - 1];
                               prevInput.focus();
-                              // フォーカス後に全選択（focusイベントでもselectしているが、念のため遅延実行）
                               setTimeout(() => prevInput.select(), 10);
                           }
                       }
@@ -476,10 +542,12 @@
               finishGame();
           } else {
               btn.textContent = "なおして もういちど";
+              // 間違えた箇所のうち、一番若い番号へフォーカス
               if (incorrectInputIds.length > 0) {
                   const firstWrong = document.getElementById(incorrectInputIds[0]);
                   if (firstWrong) {
                       firstWrong.focus();
+                      // フォーカス後に全選択（select）
                       setTimeout(() => firstWrong.select(), 50);
                   }
               }
@@ -500,11 +568,7 @@
           document.getElementById('problems-section').style.display = 'none';
           document.getElementById('result-area').style.display = 'block';
 
-          let stars = "★☆☆☆☆";
-          if (score >= config.starThresholds.star5) stars = "★★★★★";
-          else if (score >= config.starThresholds.star4) stars = "★★★★☆";
-          else if (score >= config.starThresholds.star3) stars = "★★★☆☆";
-          else if (score >= config.starThresholds.star2) stars = "★★☆☆☆";
+          let stars = getStarString(score);
 
           document.getElementById('result').innerHTML = `全問せいかい！<br><span style="color:#33691E;">おめでとう！</span>`;
           document.getElementById('result-stars').textContent = stars;
