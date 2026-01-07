@@ -4,25 +4,25 @@
   <meta charset="UTF-8">
   <meta name="app-title" content="(2けた)×(2けた)の筆算">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>(2けた)×(2けた)の筆算 スマート入力版</title>
+  <title>(2けた)×(2けた)の筆算</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
   <style>
-    /* ▼▼▼ テーマ：方眼ノート・スクール ▼▼▼ */
+/* ▼▼▼ テーマ：オレンジ・サンセット ▼▼▼ */
     :root {
-      --c-bg-main: #E0F2F1;
+      --c-bg-main: #FFF3E0;       /* 背景：やさしいクリームオレンジ */
       --c-card-bg: #ffffff;
-      --c-grid-border: #B0BEC5;
-      --c-line-strong: #455A64;
-      --c-primary: #00897B;
-      --c-primary-light: #B2DFDB;
-      --c-accent: #FF7043;
-      --c-button-bg: #00897B;
+      --c-grid-border: #FFCC80;   /* グリッド線：薄いオレンジ */
+      --c-line-strong: #E65100;   /* 太線：濃いオレンジ */
+      --c-primary: #FB8C00;       /* メインカラー：鮮やかなオレンジ */
+      --c-primary-light: #FFE0B2; /* サブカラー：薄いオレンジ */
+      --c-accent: #43A047;        /* アクセント：緑（オレンジと相性が良い） */
+      --c-button-bg: #FB8C00;     /* ボタン背景 */
       
-      --c-correct-bg: #E8F5E9;
-      --c-wrong-bg: #FFEBEE;
-      --c-text-correct: #2E7D32;
-      --c-text-wrong: #D32F2F;
+      --c-correct-bg: #E8F5E9;    /* 正解時の背景（薄い緑） */
+      --c-wrong-bg: #FFEBEE;      /* 不正解時の背景（薄い赤） */
+      --c-text-correct: #2E7D32;  /* 正解の文字色 */
+      --c-text-wrong: #D32F2F;    /* 不正解の文字色 */
 
       --font-family: "M PLUS Rounded 1c", sans-serif;
       --cell-size: 58px;
@@ -168,6 +168,25 @@
 
     .symbol { font-family: sans-serif; font-size: 1.8rem; color: #555; }
 
+    /* モード選択 */
+    .mode-select-container {
+        margin-bottom: 20px;
+        background: #fff; padding: 15px; border-radius: 15px;
+        border: 2px solid var(--c-primary-light);
+        text-align: left;
+    }
+    .mode-option {
+        display: flex; align-items: center; gap: 10px; margin: 10px 0; cursor: pointer;
+        padding: 8px; border-radius: 8px; transition: background 0.2s;
+    }
+    .mode-option:hover { background-color: #F1F8E9; }
+    .mode-option:has(input:checked) {
+        background-color: #C8E6C9; 
+        box-shadow: 0 0 0 2px var(--c-primary);
+    }
+    .mode-option input { transform: scale(1.5); accent-color: var(--c-primary); }
+    .mode-label { font-weight: bold; font-size: 1.1rem; color: #37474F; }
+
     #start-area, #result-area {
       background: #fff; padding: 30px; border-radius: 15px;
       text-align: center; border: 4px solid var(--c-primary);
@@ -193,7 +212,6 @@
 
     .star-rank { font-size: 3.5rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; margin: 10px 0; }
     
-    /* ステータスバー（リザルト画面用） */
     .status-container {
         display: flex; justify-content: space-around; flex-wrap: wrap;
         background-color: #F1F8E9; border-radius: 10px;
@@ -207,7 +225,6 @@
     .status-label { font-size: 0.8rem; color: #78909C; margin-bottom: 2px; font-weight: bold; }
     .status-val { font-size: 1.2rem; font-weight: bold; color: var(--c-primary); }
 
-    /* 履歴リスト */
     .history-container {
         margin-top: 20px; text-align: left;
         max-height: 200px; overflow-y: auto;
@@ -253,7 +270,24 @@
 
   <div id="start-area">
     <h2 style="color:var(--c-primary); border:none; margin:0 0 20px 0;" id="start-title"></h2>
-    <div style="font-size:1.1rem; line-height:1.6; margin-bottom:30px; text-align:left; background:#F9FBE7; padding:15px; border-radius:10px; border:2px solid var(--c-primary-light);" id="start-desc">
+    
+    <div class="mode-select-container">
+        <div style="font-weight:bold; color:var(--c-primary); margin-bottom:10px;">コースをえらんでね</div>
+        <label class="mode-option">
+            <input type="radio" name="game-mode" value="standard" checked>
+            <span class="mode-label">くり上がりメモが先</span>
+        </label>
+        <label class="mode-option">
+            <input type="radio" name="game-mode" value="reverse">
+            <span class="mode-label">くり上がりメモがあと</span>
+        </label>
+        <label class="mode-option">
+            <input type="radio" name="game-mode" value="mental">
+            <span class="mode-label">くり上がりメモなし</span>
+        </label>
+    </div>
+
+    <div style="font-size:1.1rem; line-height:1.6; margin-bottom:30px; text-align:left; background:#E0F2F1; padding:15px; border-radius:10px; border:2px solid var(--c-primary-light);" id="start-desc">
     </div>
     <button id="start-btn">スタート！ (Enter)</button>
     <div class="history-container">
@@ -313,33 +347,27 @@
             mainTitle: "１９　２けたをかけるかけ算の筆算",
             title: "(2けた)×(2けた)の筆算",
             page: 87,
-            questionCount: 6,
+            questionCount: 5,
             targetTime: 240, 
             starThresholds: { star5: 150, star4: 120, star3: 100 },
-            startTitle: "計算のポイント",
-            startDescription: `
-                ① 位(くらい)を たてに そろえて 書く<br>
-                ② 一の位から じゅんに 計算する<br>
-                ③ 十の位の 計算は、答えを 左に1つ ずらす<br>
-                ④ 最後に たし算を する<br>
-                <br>
-                <span style="color:#E65100; font-weight:bold;">★くり上がりメモを 活用しよう！</span>
-            `
+            startTitle: "学習のポイント",
+            startDescription: "" 
         };
 
         let problems = [];
         let currentProblemIndex = 0;
         let startTime = 0;
-        let incorrectCellIds = []; 
         let currentScore = 100;
         let navigationOrder = []; 
         let incorrectInputs = []; 
+        let currentMode = 'standard'; 
 
         const KEY_HS = `${config.appId}:hs`;
         const KEY_CLEAR = `${config.appId}:clear`;
         const KEY_DAILY_PREFIX = `${config.appId}:daily_`;
         const KEY_HISTORY = `${config.appId}:history_v2`; 
         const KEY_RANK = `${config.appId}:rank`; 
+        const KEY_MODE = `${config.appId}:mode`; 
 
         function loadStats() {
             const ls = localStorage;
@@ -372,7 +400,8 @@
                 date: dateStr,
                 score: score,
                 stars: starsStr,
-                time: timeSec
+                time: timeSec,
+                mode: currentMode
             };
             
             const newHistory = [newEntry, ...currentStats.history].slice(0, 10); 
@@ -387,10 +416,14 @@
             historyData.forEach(h => {
                 const li = document.createElement('li');
                 li.className = 'history-item';
+                let modeLabel = "";
+                if(h.mode === "reverse") modeLabel = "(逆)";
+                if(h.mode === "mental") modeLabel = "(暗)";
+
                 li.innerHTML = `
                     <span class="hist-date">${h.date}</span>
                     <span class="hist-rank">${h.stars}</span>
-                    <span class="hist-score">${h.score}点</span>
+                    <span class="hist-score">${h.score}点${modeLabel}</span>
                     <span class="hist-time">${h.time}秒</span>
                 `;
                 listEl.appendChild(li);
@@ -424,7 +457,7 @@
                      }
                 }
                 
-                // 0終わりの問題を作る確率を上げる (テスト用)
+                // 0終わりの問題を作る確率を上げる
                 if (Math.random() < 0.2) {
                     b = (Math.floor(Math.random() * 8) + 2) * 10;
                 }
@@ -446,24 +479,25 @@
                 let tempP2 = p2 * 10;
                 let currentCarry = 0;
                 
-                // 1の位
+                // 1の位 (total)
                 currentCarry = Math.floor(((tempP1 % 10) + (tempP2 % 10)) / 10);
                 
-                // 10の位
+                // 10の位 (total)
                 tempP1 = Math.floor(tempP1 / 10); tempP2 = Math.floor(tempP2 / 10);
                 let sum = (tempP1 % 10) + (tempP2 % 10) + currentCarry;
-                // ★修正点：答えが3桁の場合、ここでの繰り上がりは最上位（百の位）になるためメモ不要
+                
                 if (total >= 1000) {
                     if (sum >= 10) addCarries.push({ col: 4, val: Math.floor(sum / 10) }); 
                 }
                 currentCarry = Math.floor(sum / 10);
                 
-                // 100の位
+                // 100の位 (total)
                 tempP1 = Math.floor(tempP1 / 10); tempP2 = Math.floor(tempP2 / 10);
                 sum = (tempP1 % 10) + (tempP2 % 10) + currentCarry;
-                // ★修正点：答えが4桁の場合、ここでの繰り上がりは最上位（千の位）になるためメモ不要
-                // if (sum >= 10) addCarries.push({ col: 3, val: Math.floor(sum / 10) }); // 削除
-
+                
+                // ★修正：Col3(百の位)での繰り上がりも記録する
+                if (sum >= 10) addCarries.push({ col: 3, val: Math.floor(sum / 10) });
+                
                 arr.push({ 
                     a, b, p1, p2, total, 
                     carry1, carry2, addCarries,
@@ -502,34 +536,42 @@
                 
                 input.addEventListener('input', function() {
                     if (this.value.length >= 1) {
-                        moveFocus(this, 1);
+                        moveFocusLogical(this, 1);
                     }
                 });
 
                 input.addEventListener('keydown', (e) => {
                     if (e.key === "Enter") {
                         checkAnswer();
-                    } else if (e.key === "Backspace" && input.value === "") {
+                    } else if (e.key === "Backspace") {
+                        // ★全選択時または空の時は「前へ戻る」
+                        const allSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+                        if (input.value === "" || allSelected) {
+                            e.preventDefault();
+                            input.value = ""; // 全選択ならクリア
+                            moveFocusLogical(input, -1);
+                        }
+                        // 文字がある場合はデフォルト動作（1文字消す）
+                    } else if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
                         e.preventDefault();
-                        moveFocus(this, -1);
-                    } else if (e.key === "ArrowRight") {
-                        e.preventDefault();
-                        moveFocus(this, 1);
-                    } else if (e.key === "ArrowLeft") {
-                        e.preventDefault();
-                        moveFocus(this, -1);
+                        moveFocusSpatial(input, e.key);
                     }
                 });
                 
                 input.addEventListener('focus', function() { this.select(); });
                 
                 prob.inputMap[cellId] = correctVal;
-                cellMap[cellId] = input;
                 return input;
             };
 
-            function moveFocus(currentInput, direction) {
-                const list = incorrectInputs.length > 0 ? incorrectInputs : navigationOrder;
+            // ★論理順序での移動（自動遷移・Backspace用）
+            function moveFocusLogical(currentInput, direction) {
+                // 現在の入力がincorrectInputsにある場合はそちらを優先、なければ通常ルート
+                let list = navigationOrder;
+                if (incorrectInputs.includes(currentInput)) {
+                    list = incorrectInputs;
+                }
+                
                 const idx = list.indexOf(currentInput);
                 if (idx === -1) return;
 
@@ -543,6 +585,53 @@
                 }
             }
 
+            // ★空間配置での移動（矢印キー用）
+            function moveFocusSpatial(currentInput, key) {
+                const container = document.getElementById('hissan-container');
+                if(!container) return;
+                
+                const candidates = Array.from(container.querySelectorAll('input:not([disabled])'))
+                                        .filter(el => el !== currentInput);
+                
+                if(candidates.length === 0) return;
+
+                const rect = currentInput.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                
+                let bestCandidate = null;
+                let minDist = Infinity;
+
+                candidates.forEach(cand => {
+                    const cRect = cand.getBoundingClientRect();
+                    const ccx = cRect.left + cRect.width / 2;
+                    const ccy = cRect.top + cRect.height / 2;
+                    
+                    let isValid = false;
+                    if (key === "ArrowUp") isValid = (ccy < cy - 10);
+                    else if (key === "ArrowDown") isValid = (ccy > cy + 10);
+                    else if (key === "ArrowLeft") isValid = (ccx < cx - 10);
+                    else if (key === "ArrowRight") isValid = (ccx > cx + 10);
+                    
+                    if (isValid) {
+                        const dx = Math.abs(ccx - cx);
+                        const dy = Math.abs(ccy - cy);
+                        let dist = 0;
+                        if (key === "ArrowUp" || key === "ArrowDown") dist = dy + dx * 2;
+                        else dist = dx + dy * 2;
+
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestCandidate = cand;
+                        }
+                    }
+                });
+
+                if (bestCandidate) {
+                    bestCandidate.focus();
+                }
+            }
+
             const addCell = (content, r, c) => {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
@@ -552,26 +641,26 @@
                     cell.textContent = content;
                 }
                 
+                const shouldCreateCarry = (currentMode !== 'mental');
+
                 if (isZeroEnding) {
-                    // 0省略モード
                     if (r === 3 && c === 4) {
-                        if (prob.carry2 > 0) {
+                        if (shouldCreateCarry && prob.carry2 > 0) {
                             const cm = createInput(prob.carry2, `c_zero_${currentProblemIndex}`, "carry");
                             cm.classList.add('carry-pos-tl', 'carry-p2'); 
                             cell.appendChild(cm);
                         }
                     }
                 } else {
-                    // 通常モード
                     if (r === 3 && c === 5) {
-                        if (prob.carry1 > 0) {
+                        if (shouldCreateCarry && prob.carry1 > 0) {
                             const cm1 = createInput(prob.carry1, `c1_q${currentProblemIndex}`, "carry");
                             cm1.classList.add('carry-pos-tl', 'carry-p1');
                             cell.appendChild(cm1);
                         }
                     }
                     if (r === 4 && c === 4) {
-                        if (prob.carry2 > 0) {
+                        if (shouldCreateCarry && prob.carry2 > 0) {
                             const cm2 = createInput(prob.carry2, `c2_q${currentProblemIndex}`, "carry");
                             cm2.classList.add('carry-pos-tl', 'carry-p2');
                             cell.appendChild(cm2);
@@ -580,9 +669,32 @@
                     if (r === 5) {
                         prob.addCarries.forEach(ac => {
                             if (c === ac.col) {
-                                const cmAdd = createInput(ac.val, `ca_${c}_q${currentProblemIndex}`, "carry");
-                                cmAdd.classList.add('carry-pos-inner-tl', 'carry-add');
-                                cell.appendChild(cmAdd);
+                                if (shouldCreateCarry) {
+                                    // ★判定: この列に「もともと数字がある」ならメモを作る。空なら作らない。
+                                    const p2StrLen = String(prob.p2).length;
+                                    // P2は10倍シフト。P2の一の位はCol 4。P2の百の位はCol 2。
+                                    // グリッド列c(繰り上がり先)にP2の数字があるか
+                                    // c=2(千)なら、P2が3桁(>=100)あれば存在する
+                                    // c=3(百)なら、P2が2桁(>=10)あれば存在する
+                                    // 式: c <= 4 && c > 4 - p2StrLen
+                                    
+                                    // ※ cは「繰り上がり先」の列。
+                                    // generateProblemsで、Col 3で発生した繰り上がりは {col:3, val:1} と記録される。
+                                    // 表示位置は Col 3 のセル内（次の桁 Col 2 へのメモとして左上に表示）
+                                    // つまり、ターゲット列は「ac.col - 1」
+                                    
+                                    const targetCol = c - 1;
+                                    const hasDigitP2 = (targetCol <= 4 && targetCol > 4 - p2StrLen);
+                                    
+                                    const p1StrLen = String(prob.p1).length;
+                                    const hasDigitP1 = (targetCol <= 5 && targetCol > 5 - p1StrLen);
+                                    
+                                    if (hasDigitP2 || hasDigitP1) {
+                                        const cmAdd = createInput(ac.val, `ca_${c}_q${currentProblemIndex}`, "carry");
+                                        cmAdd.classList.add('carry-pos-inner-tl', 'carry-add');
+                                        cell.appendChild(cmAdd);
+                                    }
+                                }
                             }
                         });
                     }
@@ -609,6 +721,7 @@
             addCell(sym, 2, 3); addCell(bStr[0], 2, 4); addCell(bStr[1], 2, 5);
             addLine();
 
+            // Row 3, 4, 5
             if (isZeroEnding) {
                 // Row 3: Total (0 mode)
                 for(let c=1; c<=5; c++) {
@@ -661,51 +774,107 @@
             
             // --- ナビゲーション順序 ---
             navigationOrder = [];
-            const pushIfExists = (id) => { if (cellMap[id]) navigationOrder.push(cellMap[id]); };
+            
+            // DOMから要素を取得するヘルパー
+            const getEl = (id) => document.getElementById(id);
+
+            const pushIfExists = (id) => { const el = getEl(id); if (el) navigationOrder.push(el); };
+
+            // Helper: Pair registration (Memo & Answer)
+            const registerPair = (memoId, answerId) => {
+                const mEl = getEl(memoId);
+                const aEl = getEl(answerId);
+                
+                if (currentMode === 'reverse') {
+                    if (aEl) navigationOrder.push(aEl);
+                    if (mEl) navigationOrder.push(mEl);
+                } else {
+                    if (mEl) navigationOrder.push(mEl);
+                    if (aEl) navigationOrder.push(aEl);
+                }
+            };
 
             if (isZeroEnding) {
-                // 0省略モード (一の位 -> メモ -> 計算)
-                pushIfExists(`r3c5_zero`); // 0
-                pushIfExists(`c_zero_${currentProblemIndex}`); // メモ
+                // 0省略モード
+                pushIfExists(`r3c5_zero`); 
+                registerPair(`c_zero_${currentProblemIndex}`, `r3c4_zero`);
                 
-                // 計算結果（最上位は左から右へ）
                 if (prob.total >= 1000) {
-                    pushIfExists(`r3c4_zero`);
-                    pushIfExists(`r3c3_zero`);
-                    pushIfExists(`r3c2_zero`); // 千
-                    pushIfExists(`r3c1_zero`); // 万（あれば）
+                     registerPair(`r3c2_zero`, `r3c3_zero`);
                 } else {
-                    pushIfExists(`r3c4_zero`);
-                    pushIfExists(`r3c3_zero`); 
-                    pushIfExists(`r3c2_zero`);
+                     pushIfExists(`r3c3_zero`);
                 }
+                
+                pushIfExists(`r3c1_zero`); 
             } else {
                 // 通常モード
-                pushIfExists(`c1_q${currentProblemIndex}`); 
-                pushIfExists(`r3c5`); 
+                // 1. P1
+                registerPair(`c1_q${currentProblemIndex}`, `r3c5`);
                 pushIfExists(`r3c3`); 
                 pushIfExists(`r3c4`); 
-                
-                pushIfExists(`c2_q${currentProblemIndex}`); 
-                pushIfExists(`r4c4`); 
-                pushIfExists(`r4c2`); 
-                pushIfExists(`r4c3`); 
-                
-                // 3. Total (改良版：最上位のみ左→右)
-                pushIfExists(`r5c5`);
-                
-                if (prob.total >= 1000) {
-                    // 答えが4桁：一 -> [メモ->十] -> [千->百]
-                    pushIfExists(`ca_4_q${currentProblemIndex}`); 
-                    pushIfExists(`r5c4`); 
+
+                // 2. P2
+                registerPair(`c2_q${currentProblemIndex}`, `r4c4`);
+                pushIfExists(`r4c2`);
+                pushIfExists(`r4c3`);
+
+                // 3. Total (ループで一般化)
+                const handledColumns = new Set();
+
+                for (let c = 5; c >= 1; c--) {
+                    if (handledColumns.has(c)) continue;
+
+                    const ansId = `r5c${c}`;
                     
-                    pushIfExists(`r5c2`); // 千
-                    pushIfExists(`r5c3`); // 百
-                } else {
-                    // 答えが3桁：一 -> [百->十]
-                    // (メモは生成されない)
-                    pushIfExists(`r5c3`); // 百
-                    pushIfExists(`r5c4`); // 十
+                    // 「この桁(c)の計算」で発生した繰り上がり(addCarries[col:c])があるか
+                    // ※繰り上がり先は c-1
+                    const carryInfo = prob.addCarries.find(ac => ac.col === c);
+                    const hasCarryOut = (carryInfo && carryInfo.val > 0);
+                    
+                    if (hasCarryOut) {
+                        // 繰り上がり先(c-1)に、もともと数字があるか確認
+                        const p2StrLen = String(prob.p2).length;
+                        const hasDigitP2 = ((c-1) <= 4 && (c-1) > 4 - p2StrLen);
+                        
+                        const p1StrLen = String(prob.p1).length;
+                        const hasDigitP1 = ((c-1) <= 5 && (c-1) > 5 - p1StrLen);
+                        
+                        const destinationHasValue = hasDigitP2 || hasDigitP1;
+
+                        if (destinationHasValue) {
+                            // もともと数字がある -> 計算が必要 -> メモあり
+                            const carryToNextId = `ca_${c}_q${currentProblemIndex}`;
+                            // ★修正：モードに従って登録する（registerPairを使用）
+                            registerPair(carryToNextId, ansId); 
+                        } else {
+                            // 数字がない -> ただの桁あふれ(1) -> メモなし
+                            // 順序: あふれた答え(c-1) -> 今の答え(c)  ※左から右へ (1 -> 8)
+                            const nextAnsId = `r5c${c-1}`;
+                            pushIfExists(nextAnsId);
+                            pushIfExists(ansId); 
+                            
+                            handledColumns.add(c-1);
+                        }
+                    } else {
+                        // 繰り上がりなし
+                        
+                        // ★1881のようなケースで、c=3(百)のとき、c=2(千)が空あふれの場合
+                        if (c === 3 && prob.total >= 1000) {
+                             const p2StrLen = String(prob.p2).length; 
+                             const p2HasDigitAtCol2 = (p2StrLen >= 3);
+                             
+                             if (!p2HasDigitAtCol2) {
+                                 const nextAnsId = `r5c2`;
+                                 // 左(1) -> 右(8)
+                                 pushIfExists(nextAnsId);
+                                 pushIfExists(ansId);
+                                 handledColumns.add(2);
+                                 continue;
+                             }
+                        }
+                        
+                        pushIfExists(ansId);
+                    }
                 }
             }
 
@@ -790,7 +959,31 @@
             }
         }
 
+        function updateDescription(mode) {
+            let desc = "";
+            if (mode === 'standard') {
+                desc = `① 計算したら、まずは<span style='color:#E65100; font-weight:bold;'>『くり上がりメモ』</span>を入力！<br>
+                        ② そのあとに『答え』を書こう。<br>
+                        ③ 最後のたし算も忘れずに！`;
+            } else if (mode === 'reverse') {
+                desc = `① 計算したら、先に<span style='color:#E65100; font-weight:bold;'>『答え』</span>を書こう！<br>
+                        ② そのあとに『くり上がりメモ』を入力してね。<br>
+                        ③ 最後のたし算も忘れずに！`;
+            } else if (mode === 'mental') {
+                desc = `① くり上がりは頭の中で！<br>
+                        ② <span style='color:#E65100; font-weight:bold;'>『答え』だけ</span>をどんどん入力していこう。<br>
+                        ③ 最後のたし算も忘れずに！`;
+            }
+            document.getElementById('start-desc').innerHTML = desc;
+        }
+
         function initGame() {
+            const radios = document.getElementsByName('game-mode');
+            for(const r of radios) {
+                if(r.checked) currentMode = r.value;
+            }
+            localStorage.setItem(KEY_MODE, currentMode);
+
             problems = generateProblems(config.questionCount);
             currentProblemIndex = 0;
             currentScore = 100;
@@ -808,9 +1001,27 @@
             document.getElementById('main-title').textContent = config.mainTitle;
             document.getElementById('page-num').textContent = config.page;
             document.getElementById('sub-title-text').textContent = config.title;
-            document.getElementById('start-title').textContent = config.startTitle;
-            document.getElementById('start-desc').innerHTML = config.startDescription;
+            // document.getElementById('start-title').textContent = config.startTitle; 
             document.getElementById('total-q-num').textContent = config.questionCount;
+            
+            const savedMode = localStorage.getItem(KEY_MODE);
+            if (savedMode) {
+                currentMode = savedMode;
+                const radios = document.getElementsByName('game-mode');
+                for(const r of radios) {
+                    if(r.value === currentMode) r.checked = true;
+                }
+            }
+            updateDescription(currentMode || 'standard');
+
+            const radios = document.getElementsByName('game-mode');
+            for(const r of radios) {
+                r.addEventListener('change', (e) => {
+                    currentMode = e.target.value;
+                    updateDescription(currentMode);
+                    localStorage.setItem(KEY_MODE, currentMode);
+                });
+            }
             
             updateStatsDisplay(); 
 
@@ -819,10 +1030,30 @@
             document.getElementById('check-btn').addEventListener('click', checkAnswer);
 
             document.addEventListener('keydown', (e) => {
-                if (e.key === "Enter") {
-                    if (document.getElementById('start-area').style.display !== 'none') {
+                if (document.getElementById('start-area').style.display !== 'none') {
+                    if (e.key === "Enter") {
                         initGame();
-                    } else if (document.getElementById('result-area').style.display !== 'none') {
+                    } else if (["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(e.key)) {
+                        e.preventDefault(); 
+                        const radios = Array.from(document.getElementsByName('game-mode'));
+                        const currentIndex = radios.findIndex(r => r.checked);
+                        let nextIndex = -1;
+
+                        if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+                            nextIndex = (currentIndex + 1) % radios.length;
+                        } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                            nextIndex = (currentIndex - 1 + radios.length) % radios.length;
+                        }
+
+                        if (nextIndex !== -1) {
+                            radios[nextIndex].checked = true;
+                            currentMode = radios[nextIndex].value;
+                            updateDescription(currentMode);
+                            localStorage.setItem(KEY_MODE, currentMode);
+                        }
+                    }
+                } else if (document.getElementById('result-area').style.display !== 'none') {
+                    if (e.key === "Enter") {
                         initGame();
                     }
                 }
