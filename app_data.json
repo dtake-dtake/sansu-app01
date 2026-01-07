@@ -1072,12 +1072,14 @@
           {
             "id": "107-4_kukuwo_tukatte",
             "title": "九九を使って",
-            "path": "3nen/9_amari_warizan/107-4_kukuwo_tukatte.html"
+            "path": "3nen/9_amari_warizan/107-4_kukuwo_tukatte.html",
+            "page": "107"
           },
           {
             "id": "108-2_kotaeno_tashikame",
             "title": "答えのたしかめ",
-            "path": "3nen/9_amari_warizan/108_kotae_no_tashikame.html.html"
+            "path": "3nen/9_amari_warizan/108_kotae_no_tashikame.html.html",
+            "page": "107"
           }
         ]
       },
@@ -1087,13 +1089,14 @@
           {
             "id": "126-1_tanino_henkan",
             "title": "単位のへんかん",
-            "path": "3nen/10_omosa/126-1_tanino_henkan.html"
+            "path": "3nen/10_omosa/126-1_tanino_henkan.html",
+            "page": "126"
           },
           {
             "id": "108_kotae_no_tashikame",
             "title": "答えのたしかめ",
             "path": "3nen/10_omosa/117_omosa_no_hakari.html",
-            "page": "108"
+            "page": "117"
           },
           {
             "id": "126-3_omosano_taniwo_kakou",
@@ -1103,7 +1106,8 @@
           {
             "id": "122-2_omosano_keisan",
             "title": "重さの計算",
-            "path": "3nen/10_omosa/122-2_omosano_keisan.html"
+            "path": "3nen/10_omosa/122-2_omosano_keisan.html",
+            "page": "122"
           }
         ]
       },
