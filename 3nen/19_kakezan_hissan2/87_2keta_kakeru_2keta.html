@@ -287,7 +287,18 @@
         </label>
     </div>
 
-    <div style="font-size:1.1rem; line-height:1.6; margin-bottom:30px; text-align:left; background:#E0F2F1; padding:15px; border-radius:10px; border:2px solid var(--c-primary-light);" id="start-desc">
+    <div style="font-size:1.1rem; line-height:1.6; margin-bottom:20px; text-align:left; background:#E0F2F1; padding:15px; border-radius:10px; border:2px solid var(--c-primary-light);" id="start-desc">
+    </div>
+
+    <div class="status-container" style="margin-bottom: 20px;">
+        <div class="status-item">
+            <span class="status-label">今日のクリア</span>
+            <span class="status-val" id="start-daily-clear-val">0</span>回
+        </div>
+        <div class="status-item">
+            <span class="status-label">合計クリア</span>
+            <span class="status-val" id="start-total-clear-val">0</span>回
+        </div>
     </div>
     <button id="start-btn">スタート！ (Enter)</button>
     <div class="history-container">
@@ -432,9 +443,19 @@
 
         function updateStatsDisplay() {
             const stats = loadStats();
-            document.getElementById('high-score-val').textContent = stats.highScore;
-            document.getElementById('daily-clear-val').textContent = stats.dailyClear;
-            document.getElementById('total-clear-val').textContent = stats.totalClear;
+            
+            // Result Screen
+            if(document.getElementById('high-score-val')){
+                document.getElementById('high-score-val').textContent = stats.highScore;
+                document.getElementById('daily-clear-val').textContent = stats.dailyClear;
+                document.getElementById('total-clear-val').textContent = stats.totalClear;
+            }
+
+            // ★Start Screen (追加)
+            if(document.getElementById('start-daily-clear-val')){
+                document.getElementById('start-daily-clear-val').textContent = stats.dailyClear;
+                document.getElementById('start-total-clear-val').textContent = stats.totalClear;
+            }
             
             renderHistory(stats.history, 'start-history-list');
             renderHistory(stats.history, 'result-history-list');
