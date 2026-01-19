@@ -1131,6 +1131,18 @@
             "title": "(2けた)×(1けた)の筆算",
             "path": "3nen/14_kakezan_hissan1/25_2keta_kakeru_1keta_kuriagarinasi.html",
             "page": "25"
+          },
+          {
+            "id": "2keta_kakeru_1keta_page26",
+            "title": "(2けた)×(1けた)の筆算（くり上がりあり）",
+            "path": "3nen/14_kakezan_hissan1/26_2keta_kakeru_1keta_red.html",
+            "page": "26"
+          },
+          {
+            "id": "23_nanju_nanbyakuno_kakezan",
+            "title": "何十・何百のかけ算",
+            "path": "3nen/14_kakezan_hissan1/23-3_4_nanju_nanbyakuno_kakezan.html",
+            "page": "23"
           }
         ]
       },

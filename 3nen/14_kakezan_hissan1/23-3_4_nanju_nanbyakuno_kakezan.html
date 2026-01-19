@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>何十・何百のかけ算</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg-main: #F1F8E9;
+      --c-card-bg: #ffffff;
+      --c-primary: #689F38;
+      --c-primary-light: #C5E1A5;
+      --c-accent: #FF6F00;
+      --c-button-bg: #7CB342;
+      --c-text-main: #33691E;
+      --c-correct: #2E7D32;
+      --c-wrong: #D32F2F;
+      --font-family: "M PLUS Rounded 1c", sans-serif;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--c-bg-main);
+      color: var(--c-text-main);
+      padding: 20px;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh; margin: 0;
+      background-image: radial-gradient(var(--c-primary-light) 2px, transparent 2px);
+      background-size: 30px 30px;
+    }
+
+    h1 {
+      font-size: 1.1rem; color: var(--c-primary); margin: 0 0 15px 0;
+      background: rgba(255,255,255,0.9); padding: 5px 20px;
+      border-radius: 20px; border: 2px solid var(--c-primary-light);
+    }
+
+    /* ▼▼▼ ヘッダーレイアウト ▼▼▼ */
+    .page-header {
+      position: relative;
+      display: flex; justify-content: center; align-items: center;
+      width: 100%; max-width: 500px;
+      margin-bottom: 20px;
+      min-height: 60px;
+    }
+
+    .page-circle {
+      position: absolute; left: 0;
+      display: flex; justify-content: center; align-items: center;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background-color: var(--c-primary);
+      color: #ffffff;
+      font-weight: 800; font-size: 1.6rem;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+      border: 3px solid #fff;
+      z-index: 2;
+    }
+
+    h2 {
+      margin: 0; font-size: 1.6rem; color: var(--c-text-main);
+      text-shadow: 1px 1px 0 #fff;
+      text-align: center; width: 100%;
+      z-index: 1;
+    }
+
+    @media (max-width: 450px) {
+      .page-header { justify-content: center; gap: 10px; }
+      .page-circle { position: static; width: 40px; height: 40px; font-size: 1.2rem; }
+      h2 { width: auto; text-align: left; font-size: 1.4rem; }
+    }
+
+    /* 共通コンテナ */
+    #start-area, #result-area, #game-area {
+      background: var(--c-card-bg);
+      padding: 30px; border-radius: 15px;
+      text-align: center;
+      border: 3px solid var(--c-primary);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      max-width: 500px; width: 90%;
+    }
+
+    #game-area { display: none; }
+    
+    .problem-header {
+      display: flex; justify-content: center; align-items: center;
+      margin-bottom: 20px; font-weight: bold; color: var(--c-primary);
+      font-size: 1.2rem; border-bottom: 2px dashed #eee; padding-bottom: 10px;
+    }
+    
+    .problem-card {
+      background: #FAFAFA; border-radius: 15px;
+      padding: 30px 10px; margin-bottom: 20px;
+      border: 2px dashed var(--c-primary-light);
+      position: relative;
+    }
+
+    .equation-box {
+      font-size: 2.8rem; font-weight: 800;
+      display: flex; justify-content: center; align-items: center; gap: 10px;
+      flex-wrap: wrap; line-height: 1.2;
+    }
+
+    input[type="tel"] {
+      font-family: inherit; font-size: 2.8rem; font-weight: 800;
+      width: 3.5em; text-align: center;
+      border: none; border-bottom: 4px solid var(--c-primary);
+      background: #F1F8E9; border-radius: 5px; color: var(--c-accent);
+      outline: none; transition: background 0.2s; padding: 0 5px;
+    }
+    input[type="tel"]:focus { background: #FFF3E0; border-bottom-color: var(--c-accent); }
+    input[type="tel"].error { color: var(--c-wrong); background: #FFEBEE; }
+
+    button {
+      font-family: var(--font-family); font-size: 1.3rem; padding: 12px 40px;
+      border: none; border-radius: 50px;
+      background-color: var(--c-button-bg); color: #fff;
+      cursor: pointer; font-weight: bold;
+      box-shadow: 0 5px 0 #558B2F; transition: transform 0.1s;
+      margin: 10px;
+    }
+    button:active { transform: translateY(4px); box-shadow: none; }
+    
+    #feedback-circle {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 200px; height: 200px;
+      border: 12px solid var(--c-accent); border-radius: 50%;
+      opacity: 0; pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #feedback-circle.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    #feedback-circle.correct { border-color: var(--c-correct); }
+
+    .status-container {
+      display: flex; justify-content: space-around;
+      background-color: #F1F8E9; border-radius: 10px;
+      padding: 10px; margin: 15px 0;
+    }
+    .status-item { display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; }
+    .status-val { font-size: 1.2rem; font-weight: bold; color: var(--c-primary); }
+
+    .history-container { margin-top: 20px; text-align: left; max-height: 150px; overflow-y: auto; }
+    /* 4カラム構成に変更: 日付 / 星 / スコア / タイム */
+    .history-item {
+      display: grid; grid-template-columns: 1.4fr 0.5fr 0.8fr 0.8fr;
+      padding: 8px 5px; border-bottom: 1px solid #ddd; font-size: 0.85rem; align-items: center;
+    }
+    
+    .star-rank { font-size: 3rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+  <h1>１４　１けたをかけるかけ算の筆算</h1>
+  
+  <div class="page-header">
+    <div class="page-circle">23</div>
+    <h2>何十・何百のかけ算</h2>
+  </div>
+
+  <div id="start-area">
+    <div class="status-container">
+      <div class="status-item"><span class="status-label">今日のクリア</span><span class="status-val" id="start-daily">0</span></div>
+      <div class="status-item"><span class="status-label">合計クリア</span><span class="status-val" id="start-total">0</span></div>
+      <div class="status-item"><span class="status-label">ハイスコア</span><span class="status-val" id="start-hs">0</span></div>
+    </div>
+    
+    <div style="margin: 20px 0; background:#FFFDE7; padding:15px; border-radius:8px; font-size:1rem; text-align:left; border:2px solid #FFF59D;">
+      <span style="font-weight:bold; color:var(--c-accent); font-size:1.1rem;">★ スコアのルール</span><br>
+      ① クリアで必ず <strong style="color:var(--c-primary);">100点</strong> もらえるよ！<br>
+      ② まちがえないと <strong style="color:var(--c-primary);">+50点</strong>！<br>
+      ③ はやくクリアすると <strong>時間ボーナス</strong>！<br>
+      <div style="text-align:center; margin-top:10px; font-size:0.9rem; color:#555; border-top:1px dashed #ccc; padding-top:5px;">
+        全5問 (もくひょう: 50秒)
+      </div>
+    </div>
+    
+    <button id="start-btn">スタート！</button>
+    
+    <div class="history-container">
+       <div style="font-weight:bold; color:var(--c-primary); border-bottom:2px solid #ddd; padding-bottom:5px;">さいきんのきろく</div>
+       <div id="start-history-list"></div>
+    </div>
+  </div>
+
+  <div id="game-area">
+    <div class="problem-header">
+      <span>もんだい <span id="current-q">1</span> / <span id="total-q">5</span></span>
+    </div>
+
+    <div class="problem-card">
+      <div class="equation-box" id="equation-display"></div>
+      <div id="feedback-circle"></div>
+    </div>
+
+    <button id="check-btn">できた！</button>
+  </div>
+
+  <div id="result-area" style="display:none;">
+    <h2 style="color:var(--c-accent); margin:0; font-size:2rem; text-align:center; width:100%;">クリア！</h2>
+    <div id="result-stars" class="star-rank">★★★☆☆</div>
+    
+    <div style="background:#F1F8E9; padding:15px; border-radius:10px; margin:15px 0; border:2px solid var(--c-primary-light);">
+      <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+        <span>ベーススコア:</span> <strong>100点</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:5px; color:var(--c-correct);">
+        <span>正確さボーナス:</span> <strong id="score-accuracy">+0</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px; color:#E65100;">
+        <span>スピードボーナス:</span> <strong id="score-time">+0</strong>
+      </div>
+      <div style="border-top:2px dashed #999; padding-top:10px; font-size:1.5rem; color:var(--c-primary);">
+        ごうけい: <strong id="result-score-val">0</strong> 点
+      </div>
+    </div>
+
+    <div style="font-size:0.9rem; color:#777; margin-bottom:15px;">
+      (タイム: <span id="result-time-val"></span>秒 / まちがい: <span id="result-miss-val"></span>回)
+    </div>
+    
+    <button id="retry-btn">もういちど</button>
+    
+    <div class="history-container">
+        <div style="font-weight:bold; color:var(--c-primary); border-bottom:2px solid #ddd; padding-bottom:5px;">これまでのきろく</div>
+        <div id="result-history-list"></div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const config = {
+        appId: "23_nanju_nanbyakuno_kakezan",
+        page: 23,
+        questionCount: 5,
+        targetTime: 50, 
+        starThresholds: { star5: 200, star4: 170, star3: 130, star2: 100 }
+      };
+
+      const KEY_HS = `${config.appId}:hs`;
+      const KEY_CLEAR = `${config.appId}:clearCount`;
+      const KEY_DAILY_PREFIX = `${config.appId}:daily_`;
+      const KEY_HISTORY = `${config.appId}:history_v2`;
+
+      let problems = [];
+      let currentProblemIndex = 0;
+      let startTime = 0;
+      let mistakeCount = 0;
+      let isAnswering = false;
+
+      function loadStats() {
+        const ls = localStorage;
+        const today = new Date().toDateString();
+        return {
+          highScore: parseInt(ls.getItem(KEY_HS) || 0),
+          totalClear: parseInt(ls.getItem(KEY_CLEAR) || 0),
+          dailyClear: parseInt(ls.getItem(KEY_DAILY_PREFIX + today) || 0),
+          history: JSON.parse(ls.getItem(KEY_HISTORY) || "[]")
+        };
+      }
+
+      function saveStats(score, starsStr, timeSec) {
+        const ls = localStorage;
+        const today = new Date().toDateString();
+        const stats = loadStats();
+
+        if (score > stats.highScore) ls.setItem(KEY_HS, score);
+        ls.setItem(KEY_CLEAR, stats.totalClear + 1);
+        ls.setItem(KEY_DAILY_PREFIX + today, stats.dailyClear + 1);
+
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const H = String(now.getHours()).padStart(2, '0');
+        const M = String(now.getMinutes()).padStart(2, '0');
+        const dateStr = `${y}/${m}/${d} ${H}:${M}`; 
+        
+        const newEntry = { date: dateStr, score: score, stars: starsStr, time: timeSec };
+        const newHistory = [newEntry, ...stats.history].slice(0, 10);
+        ls.setItem(KEY_HISTORY, JSON.stringify(newHistory));
+      }
+
+      function updateStatsDisplay() {
+        const stats = loadStats();
+        document.getElementById('start-daily').textContent = stats.dailyClear;
+        document.getElementById('start-total').textContent = stats.totalClear;
+        document.getElementById('start-hs').textContent = stats.highScore;
+
+        const renderList = (listId) => {
+          const listEl = document.getElementById(listId);
+          listEl.innerHTML = "";
+          stats.history.forEach(h => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            // 履歴にタイム表示を追加
+            div.innerHTML = `
+              <span style="font-size:0.8rem; color:#555;">${h.date}</span>
+              <span style="text-align:center; color:#FFB300;">${h.stars}</span>
+              <span style="text-align:right; font-weight:bold;">${h.score}点</span>
+              <span style="text-align:right; font-size:0.8rem; color:#777;">${h.time}秒</span>
+            `;
+            listEl.appendChild(div);
+          });
+        };
+        renderList('start-history-list');
+        renderList('result-history-list');
+      }
+
+      function generateProblems(count) {
+        const probs = [];
+        for (let i = 0; i < count; i++) {
+          let a, b;
+          const isSimple = (i < 2);
+          if (isSimple) {
+            const simplePairs = [[2,2],[2,3],[2,4],[3,2],[3,3],[4,2]];
+            const pair = simplePairs[Math.floor(Math.random() * simplePairs.length)];
+            const scale = Math.random() < 0.5 ? 10 : 100;
+            a = pair[0] * scale;
+            b = pair[1];
+          } else {
+            const base = Math.floor(Math.random() * 8) + 2; 
+            const scale = Math.random() < 0.5 ? 10 : 100;
+            a = base * scale;
+            b = Math.floor(Math.random() * 8) + 2; 
+          }
+          probs.push({ text: `${a} × ${b}`, answer: a * b });
+        }
+        return probs;
+      }
+
+      function renderProblem() {
+        const p = problems[currentProblemIndex];
+        const display = document.getElementById('equation-display');
+        display.innerHTML = `${p.text} = <input type="tel" id="ans-input" pattern="[0-9]*" autocomplete="off">`;
+        
+        document.getElementById('current-q').textContent = currentProblemIndex + 1;
+        document.getElementById('total-q').textContent = config.questionCount;
+        
+        const input = document.getElementById('ans-input');
+        input.focus();
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+        isAnswering = false;
+        document.getElementById('feedback-circle').className = ''; 
+      }
+
+      function checkAnswer() {
+        if (isAnswering) return;
+        const input = document.getElementById('ans-input');
+        if (!input.value) return;
+
+        isAnswering = true;
+        const val = parseInt(input.value.replace(/[^\d]/g, ''), 10);
+        const correctVal = problems[currentProblemIndex].answer;
+        const feedback = document.getElementById('feedback-circle');
+
+        if (val === correctVal) {
+            feedback.classList.add('show', 'correct');
+            input.style.color = 'var(--c-correct)';
+            if (window.confetti) confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+            
+            setTimeout(() => {
+                currentProblemIndex++;
+                if (currentProblemIndex >= config.questionCount) {
+                    showResult();
+                } else {
+                    renderProblem();
+                }
+            }, 1000);
+        } else {
+            input.classList.add('error');
+            setTimeout(() => input.classList.remove('error'), 400);
+            input.value = '';
+            mistakeCount++;
+            isAnswering = false;
+            input.focus();
+        }
+      }
+
+      function showResult() {
+        document.getElementById('game-area').style.display = 'none';
+        document.getElementById('result-area').style.display = 'block';
+
+        const elapsed = (Date.now() - startTime) / 1000;
+        const baseScore = 100;
+        const accuracyBonus = Math.max(0, 50 - (mistakeCount * 10));
+        let timeBonus = 0;
+        if (elapsed < config.targetTime) {
+            timeBonus = Math.floor((config.targetTime - elapsed) * 2);
+        }
+        const totalScore = baseScore + accuracyBonus + timeBonus;
+
+        let stars = "★☆☆☆☆";
+        const s = config.starThresholds;
+        if (totalScore >= s.star5) stars = "★★★★★";
+        else if (totalScore >= s.star4) stars = "★★★★☆";
+        else if (totalScore >= s.star3) stars = "★★★☆☆";
+        else if (totalScore >= s.star2) stars = "★★☆☆☆";
+
+        document.getElementById('result-stars').textContent = stars;
+        document.getElementById('score-accuracy').textContent = `+${accuracyBonus}`;
+        document.getElementById('score-time').textContent = `+${timeBonus}`;
+        document.getElementById('result-score-val').textContent = totalScore;
+        document.getElementById('result-time-val').textContent = elapsed.toFixed(1);
+        document.getElementById('result-miss-val').textContent = mistakeCount;
+
+        if (totalScore >= s.star5 && window.confetti) {
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+        }
+
+        saveStats(totalScore, stars, elapsed.toFixed(1));
+        updateStatsDisplay();
+      }
+
+      function initGame() {
+        problems = generateProblems(config.questionCount);
+        currentProblemIndex = 0;
+        mistakeCount = 0;
+        startTime = Date.now();
+        
+        document.getElementById('start-area').style.display = 'none';
+        document.getElementById('result-area').style.display = 'none';
+        document.getElementById('game-area').style.display = 'block';
+        
+        renderProblem();
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        updateStatsDisplay();
+        document.getElementById('start-btn').onclick = initGame;
+        document.getElementById('retry-btn').onclick = initGame;
+        document.getElementById('check-btn').onclick = checkAnswer;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.getElementById('start-area').style.display !== 'none') {
+                initGame();
+            }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
