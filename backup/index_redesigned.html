@@ -453,20 +453,6 @@ function sanitizeAppData(data) {
   return cleanData;
 }
 
-// 単元名から番号を抽出（例: "1 九九の表" → "1", "○ 見方・考え方" → "○"）
-function extractUnitNumber(unitName) {
-  if (!unitName) return '―';
-  
-  // 先頭の数字または○を抽出
-  const match = unitName.match(/^([0-9０-９]+|○|〇)/);
-  if (match) {
-    // 全角数字を半角に変換
-    return match[1].replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-  }
-  
-  return '―';
-}
-
 // ステータス更新
 function updateAppStatus(appId) {
   const starsEl = document.getElementById(`stars-${appId}`);
@@ -586,9 +572,6 @@ async function displayUnits(grade, units) {
     });
     const progressPercent = appCount > 0 ? (clearedCount / appCount) * 100 : 0;
 
-    // 単元名から番号を抽出（例: "1 九九の表" → "1", "○ 見方・考え方" → "○"）
-    const unitNumber = extractUnitNumber(unit.name);
-
     const header = document.createElement('div');
     header.className = 'unit-header';
     header.onclick = (e) => {
@@ -597,7 +580,7 @@ async function displayUnits(grade, units) {
     
     header.innerHTML = `
       <div class="unit-info">
-        <div class="unit-number">${unitNumber}</div>
+        <div class="unit-number">${index + 1}</div>
         <div>
           <span class="unit-title-text">${unit.name}</span>
         </div>
