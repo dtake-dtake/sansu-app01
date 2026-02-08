@@ -453,18 +453,26 @@ function sanitizeAppData(data) {
   return cleanData;
 }
 
-// 単元名から番号を抽出（例: "1 九九の表" → "1", "○ 見方・考え方" → "○"）
+// 単元名から番号を抽出（例: "1　　九九の表" → "1", "○　　見方・考え方" → "○"）
 function extractUnitNumber(unitName) {
   if (!unitName) return '―';
   
-  // 先頭の数字または○を抽出
-  const match = unitName.match(/^([0-9０-９]+|○|〇)/);
+  // 先頭の数字または○を抽出（全角スペースや複数のスペースに対応）
+  const match = unitName.match(/^([0-9０-９]+|○|〇)\s*/);
   if (match) {
     // 全角数字を半角に変換
     return match[1].replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
   }
   
   return '―';
+}
+
+// 単元名から番号部分を除去（例: "1　　九九の表" → "九九の表"）
+function removeUnitNumber(unitName) {
+  if (!unitName) return unitName;
+  
+  // 先頭の数字または○とそれに続くスペースを削除
+  return unitName.replace(/^([0-9０-９]+|○|〇)\s+/, '');
 }
 
 // ステータス更新
@@ -588,6 +596,7 @@ async function displayUnits(grade, units) {
 
     // 単元名から番号を抽出（例: "1 九九の表" → "1", "○ 見方・考え方" → "○"）
     const unitNumber = extractUnitNumber(unit.name);
+    const unitTitle = removeUnitNumber(unit.name);
 
     const header = document.createElement('div');
     header.className = 'unit-header';
@@ -599,7 +608,7 @@ async function displayUnits(grade, units) {
       <div class="unit-info">
         <div class="unit-number">${unitNumber}</div>
         <div>
-          <span class="unit-title-text">${unit.name}</span>
+          <span class="unit-title-text">${unitTitle}</span>
         </div>
         <span class="app-count-badge">${appCount}つ</span>
       </div>
