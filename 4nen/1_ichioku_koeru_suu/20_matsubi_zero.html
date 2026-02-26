@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="app-title" content="末尾の0の筆算">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>末尾の0の筆算</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg-main: #E0F2F1;
+      --c-card-bg: #ffffff;
+      --c-grid-border: #B0BEC5;    
+      --c-line-strong: #455A64;    
+      --c-primary: #00897B;
+      --c-primary-light: #B2DFDB;
+      --c-accent: #FF7043;
+      --c-button-bg: #00897B;
+      
+      --c-correct-bg: #E8F5E9;
+      --c-wrong-bg: #FFEBEE;
+      --c-text-correct: #2E7D32;
+      --c-text-wrong: #D32F2F;
+
+      --font-family: "M PLUS Rounded 1c", sans-serif;
+      --cell-size: 46px; 
+    }
+
+    body { font-family: var(--font-family); background-color: var(--c-bg-main); color: #4E342E; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; -webkit-tap-highlight-color: transparent; background-image: radial-gradient(var(--c-primary-light) 2px, transparent 2px); background-size: 30px 30px; }
+    h1 { font-size: 1.5rem; color: var(--c-primary); margin: 10px 0; text-align: center; background:rgba(255,255,255,0.9); padding:5px 15px; border-radius:10px; border-bottom: 3px solid var(--c-primary-light); }
+    .page-header { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; background: #fff; padding: 5px 15px; border-radius: 20px; border: 2px solid var(--c-primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    #game-area { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
+    .problem-card { background: var(--c-card-bg); border-radius: 10px; padding: 30px 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; position: relative; border: 3px solid var(--c-primary-light); }
+    .problem-number-display { font-weight: bold; font-size: 1.2rem; color: #fff; margin-bottom: 15px; background: var(--c-accent); padding: 5px 20px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+    .hissan-grid {
+      display: grid;
+      grid-template-columns: repeat(7, var(--cell-size)); 
+      grid-template-rows: repeat(5, var(--cell-size));    
+      gap: 0; border-top: 1px solid var(--c-grid-border); border-left: 1px solid var(--c-grid-border);
+      font-size: 2.2rem; font-weight: bold; line-height: 1; color: #333;
+      background-color: #fff; position: relative; margin: 15px 0 10px 0; 
+    }
+
+    .cell { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; position: relative; border-right: 1px solid var(--c-grid-border); border-bottom: 1px solid var(--c-grid-border); z-index: 1; }
+    .hissan-line { position: absolute; left: 0; width: 100%; height: 3px; background-color: var(--c-line-strong); pointer-events: none; z-index: 5; }
+    
+    .zero-divider {
+      position: absolute; top: 0; left: calc(var(--cell-size) * 4); width: 0; height: 100%;
+      border-right: 3px dashed var(--c-accent); z-index: 6; pointer-events: none;
+    }
+
+    .zero-area-bg {
+      position: absolute; top: 0; left: calc(var(--cell-size) * 4); width: calc(var(--cell-size) * 3); height: 100%;
+      background-color: rgba(255, 112, 67, 0.05); z-index: 0; pointer-events: none;
+    }
+
+    .input-cell { width: 100%; height: 100%; font-family: inherit; font-size: inherit; font-weight: inherit; text-align: center; border: none; border-radius: 0; background-color: transparent; color: var(--c-accent); outline: none; padding: 0; margin: 0; -moz-appearance: textfield; transition: background-color 0.2s; z-index: 10; }
+    .input-cell:focus { background-color: rgba(255, 243, 224, 0.5); box-shadow: inset 0 0 0 3px var(--c-primary); }
+    .zero-input { color: #1565C0; background-color: #E3F2FD; }
+
+    .carry-input { position: absolute; width: 20px; height: 20px; font-size: 0.9rem; text-align: center; border: 1px dashed #999; border-radius: 4px; background-color: #fff; z-index: 20; padding: 0; margin: 0; line-height: 18px; box-shadow: 1px 1px 2px rgba(0,0,0,0.2); color: #777; }
+    .carry-input:focus { border: 2px solid var(--c-primary); background-color: #FFF3E0; transform: scale(1.3); z-index: 30; color: var(--c-primary); }
+    
+    .carry-pos-tl { top: 2px; left: 2px; } 
+
+    .carry-p1 { border-color: #F06292; color: #D81B60; background-color: #FCE4EC; }
+    .carry-p2 { border-color: #64B5F6; color: #1565C0; background-color: #E3F2FD; }
+    .carry-add { border-color: #FFB74D; color: #E65100; background-color: #FFF3E0; }
+
+    .correct-bg { background-color: var(--c-correct-bg) !important; }
+    .wrong-bg { background-color: var(--c-wrong-bg) !important; }
+    .input-cell.correct { color: var(--c-text-correct); font-weight: bold; }
+    .carry-input.correct { color: var(--c-text-correct); border-style: solid; border-color: var(--c-text-correct); background-color: var(--c-correct-bg) !important; }
+    .input-cell.wrong { color: var(--c-text-wrong); font-weight: 800; }
+    .carry-input.wrong { color: var(--c-text-wrong); background-color: #FFCDD2; }
+    .symbol { font-family: sans-serif; font-size: 1.8rem; color: #555; }
+
+    .mode-select-container { margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 15px; border: 2px solid var(--c-primary-light); text-align: left; }
+    .mode-option { display: flex; align-items: center; gap: 10px; margin: 10px 0; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
+    .mode-option:hover { background-color: #FFF3E0; }
+    .mode-option:has(input:checked) { background-color: #FFE0B2; box-shadow: 0 0 0 2px var(--c-primary); }
+    .mode-option input { transform: scale(1.5); accent-color: var(--c-primary); }
+    .mode-label { font-weight: bold; font-size: 1.1rem; color: #37474F; }
+
+    .setting-title { font-weight:bold; color:var(--c-primary); margin: 15px 0 5px 0; border-bottom: 1px solid var(--c-primary-light); padding-bottom: 3px; }
+
+    #start-area, #result-area { background: #fff; padding: 30px; border-radius: 15px; text-align: center; border: 4px solid var(--c-primary); box-shadow: 0 10px 25px rgba(0,0,0,0.15); max-width: 550px; width: 90%; margin-top: 20px; }
+    .btn-area { margin-top: 20px; display: flex; justify-content: center; }
+    button { font-family: var(--font-family); font-size: 1.3rem; padding: 12px 40px; border: none; border-radius: 50px; background-color: var(--c-button-bg); color: #fff; cursor: pointer; font-weight: bold; box-shadow: 0 5px 0 #E65100; transition: transform 0.1s; }
+    button:active { transform: translateY(4px); box-shadow: none; }
+    button:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; }
+    #check-btn { background-color: var(--c-accent); box-shadow: 0 5px 0 #1A237E; min-width: 220px; }
+    #check-btn:active { transform: translateY(4px); box-shadow: none; }
+    .star-rank { font-size: 3.5rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; margin: 10px 0; }
+    
+    .status-container { display: flex; justify-content: space-around; flex-wrap: wrap; background-color: #FFF3E0; border-radius: 10px; padding: 10px; margin: 15px 0; border: 2px solid var(--c-primary-light); }
+    .status-item { margin: 5px 10px; font-size: 0.95rem; color: #37474F; display: flex; flex-direction: column; align-items: center; }
+    .status-label { font-size: 0.8rem; color: #78909C; margin-bottom: 2px; font-weight: bold; }
+    .status-val { font-size: 1.2rem; font-weight: bold; color: var(--c-primary); }
+
+    .history-container { margin-top: 20px; text-align: left; max-height: 200px; overflow-y: auto; }
+    .history-title { font-size: 1rem; font-weight: bold; color: var(--c-primary); border-bottom: 2px solid var(--c-primary-light); margin-bottom: 5px; }
+    .history-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; }
+    .history-item { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr; padding: 8px 5px; border-bottom: 1px solid #eee; align-items: center; }
+    .history-item:nth-child(even) { background-color: #FAFAFA; }
+    .hist-date { color: #555; font-size: 0.8rem; }
+    .hist-rank { color: #FFD700; text-shadow: 1px 1px 0 #FFA000; font-size: 1rem; text-align: center; }
+    .hist-score { font-weight: bold; color: var(--c-primary); text-align: right; }
+    .hist-time { color: #78909C; text-align: right; }
+
+    #feedback-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 260px; height: 260px; border: 12px solid var(--c-accent); border-radius: 50%; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100; }
+    #feedback-circle.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    @media (max-width: 500px) {
+      :root { --cell-size: 38px; }
+      .problem-card { padding: 20px 5px; }
+      h1 { font-size: 1.2rem; }
+      .mode-label { font-size: 1rem; }
+      .hissan-grid { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="main-title"></h1>
+  <div class="page-header">
+    <span style="background:var(--c-primary); color:#fff; width:2em; height:2em; border-radius:50%; display:flex; justify-content:center; align-items:center; font-weight:bold;" id="page-num"></span>
+    <span id="sub-title-text" style="font-weight:bold; color:var(--c-primary); margin-left:10px;"></span>
+  </div>
+
+  <div id="start-area">
+    <h2 style="color:var(--c-primary); border:none; margin:0 0 20px 0;" id="start-title"></h2>
+    
+    <div class="mode-select-container">
+        <div class="setting-title">書き方</div>
+        <label class="mode-option"><input type="radio" name="layout-mode" value="kufu" checked><span class="mode-label">工夫して書く（点線あり）</span></label>
+        <label class="mode-option"><input type="radio" name="layout-mode" value="normal"><span class="mode-label">ふつうの筆算（右そろえ）</span></label>
+        
+        <div class="setting-title" style="margin-top:20px;">メモの書き方</div>
+        <label class="mode-option"><input type="radio" name="game-mode" value="standard" checked><span class="mode-label">くり上がりメモが先</span></label>
+        <label class="mode-option"><input type="radio" name="game-mode" value="reverse"><span class="mode-label">くり上がりメモがあと</span></label>
+        <label class="mode-option"><input type="radio" name="game-mode" value="mental"><span class="mode-label">くり上がりメモなし</span></label>
+    </div>
+
+    <div style="font-size:1.1rem; line-height:1.6; margin-bottom:20px; text-align:left; background:#FFF3E0; padding:15px; border-radius:10px; border:2px solid var(--c-primary-light);" id="start-desc"></div>
+
+    <div class="status-container" style="margin-bottom: 20px;">
+        <div class="status-item"><span class="status-label">今日のクリア</span><span class="status-val" id="start-daily-clear-val">0</span>回</div>
+        <div class="status-item"><span class="status-label">合計クリア</span><span class="status-val" id="start-total-clear-val">0</span>回</div>
+    </div>
+    
+    <button id="start-btn">スタート！ (Enter)</button>
+    <div class="history-container"><div class="history-title">さいきんのきろく</div><ul id="start-history-list" class="history-list"></ul></div>
+  </div>
+
+  <div id="game-area">
+    <div class="problem-number-display">もんだい <span id="current-q-num">1</span> / <span id="total-q-num">5</span></div>
+    <div class="problem-card"><div id="hissan-container"></div><div id="feedback-circle"></div></div>
+    <div class="btn-area"><button id="check-btn">できた！ (Enter)</button></div>
+  </div>
+
+  <div id="result-area" style="display:none;">
+    <h2 style="color:var(--c-accent); margin:0;">全問クリア！</h2>
+    <div id="result-stars" class="star-rank"></div>
+    <div id="result-msg" style="font-size:1.4rem; font-weight:bold; margin:15px 0; color:#555;"></div>
+    <div id="result-score" style="font-size:1.2rem; margin-bottom:10px;"></div>
+    
+    <div class="status-container">
+        <div class="status-item"><span class="status-label">ハイスコア</span><span class="status-val" id="high-score-val">0</span></div>
+        <div class="status-item"><span class="status-label">今日のクリア</span><span class="status-val" id="daily-clear-val">0</span></div>
+        <div class="status-item"><span class="status-label">合計クリア</span><span class="status-val" id="total-clear-val">0</span></div>
+    </div>
+    <button id="retry-btn">もういちど</button>
+    <div class="history-container"><div class="history-title">これまでのきろく</div><ul id="result-history-list" class="history-list"></ul></div>
+  </div>
+
+  <script>
+    (function(){
+        const config = {
+            appId: "20_matsubi_zero", 
+            mainTitle: "大きな数の筆算の工夫",
+            title: "末尾の0の筆算",
+            page: 20,
+            questionCount: 5,
+            targetTime: 300,
+            starThresholds: { star5: 160, star4: 130, star3: 100 },
+            startTitle: "学習のポイント",
+            startDescription: ""
+        };
+
+        let problems = [];
+        let currentProblemIndex = 0;
+        let startTime = 0;
+        let currentScore = 100;
+        let navigationOrder = []; 
+        let incorrectInputs = []; 
+        let currentMode = 'standard'; 
+        let currentLayout = 'kufu'; 
+
+        const APP_ID = config.appId;
+        const KEY_HS = `${APP_ID}:highScore`;
+        const KEY_STATUS = `${APP_ID}:status`; 
+        const KEY_CLEAR = `${APP_ID}:clearCount`;
+        const KEY_DAILY_CLEAR = `${APP_ID}:dailyClear`;
+        const KEY_LAST_DATE = `${APP_ID}:lastDate`;
+        const KEY_HISTORY = `${APP_ID}:history`; 
+        const KEY_MODE = `${APP_ID}:mode`;
+        const KEY_LAYOUT = `${APP_ID}:layout`;
+
+        function loadStats() {
+            const ls = localStorage;
+            const today = new Date().toDateString();
+            let lastDate = ls.getItem(KEY_LAST_DATE);
+            let dailyClear = parseInt(ls.getItem(KEY_DAILY_CLEAR) || 0);
+            if (lastDate !== today) { dailyClear = 0; }
+            return {
+                highScore: parseInt(ls.getItem(KEY_HS) || 0),
+                status: ls.getItem(KEY_STATUS) || "★☆☆☆☆",
+                totalClear: parseInt(ls.getItem(KEY_CLEAR) || 0),
+                dailyClear: dailyClear,
+                lastDate: lastDate || today,
+                history: JSON.parse(ls.getItem(KEY_HISTORY) || "[]")
+            };
+        }
+
+        function saveStats(score, starsStr, timeSec) {
+            const ls = localStorage;
+            const today = new Date().toDateString();
+            const currentStats = loadStats(); 
+            if (score > currentStats.highScore) {
+                ls.setItem(KEY_HS, score);
+                ls.setItem(KEY_STATUS, starsStr);
+            }
+            ls.setItem(KEY_CLEAR, currentStats.totalClear + 1);
+            ls.setItem(KEY_DAILY_CLEAR, currentStats.dailyClear + 1);
+            ls.setItem(KEY_LAST_DATE, today);
+
+            const now = new Date();
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; 
+            
+            let modeLabel = currentMode === 'standard' ? '通常' : (currentMode === 'reverse' ? '逆順' : '暗算');
+            let layoutLabel = currentLayout === 'kufu' ? '工夫' : 'ふつう';
+            
+            const newEntry = { date: dateStr, score: score, stars: starsStr, time: timeSec, mode: `${modeLabel}/${layoutLabel}` };
+            const newHistory = [newEntry, ...currentStats.history].slice(0, 10); 
+            ls.setItem(KEY_HISTORY, JSON.stringify(newHistory));
+            return loadStats(); 
+        }
+
+        function renderHistory(historyData, listId) {
+            const listEl = document.getElementById(listId);
+            listEl.innerHTML = "";
+            historyData.forEach(h => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `<span class="hist-date">${h.date}</span><span class="hist-rank">${h.stars}</span><span class="hist-score">${h.score}点<span style="font-size:0.75rem;color:#999;">(${h.mode})</span></span><span class="hist-time">${h.time}秒</span>`;
+                listEl.appendChild(li);
+            });
+        }
+
+        function updateStatsDisplay() {
+            const stats = loadStats();
+            if(document.getElementById('high-score-val')){
+                document.getElementById('high-score-val').textContent = stats.highScore;
+                document.getElementById('daily-clear-val').textContent = stats.dailyClear;
+                document.getElementById('total-clear-val').textContent = stats.totalClear;
+            }
+            if(document.getElementById('start-daily-clear-val')){
+                document.getElementById('start-daily-clear-val').textContent = stats.dailyClear;
+                document.getElementById('start-total-clear-val').textContent = stats.totalClear;
+            }
+            renderHistory(stats.history, 'start-history-list');
+            renderHistory(stats.history, 'result-history-list');
+        }
+
+        function generateProblems(count) {
+            const arr = [];
+            for(let i=0; i<count; i++) {
+                let a_core, b_core;
+                do { a_core = Math.floor(Math.random() * 89) + 11; } while (a_core % 10 === 0);
+                do { b_core = Math.floor(Math.random() * 89) + 11; } while (b_core % 10 === 0);
+
+                let za = Math.random() < 0.5 ? 1 : 2;
+                let zb = Math.random() < 0.5 ? 1 : 2;
+                if (za + zb > 3) zb = 1; 
+                
+                let temp_a_full = a_core * Math.pow(10, za);
+                let temp_b_full = b_core * Math.pow(10, zb);
+
+                // 桁数が多い方を必ず「かけられる数（上）」にする
+                if (String(temp_b_full).length > String(temp_a_full).length) {
+                    let t_core = a_core; a_core = b_core; b_core = t_core;
+                    let t_z = za; za = zb; zb = t_z;
+                }
+                
+                let a_full = a_core * Math.pow(10, za);
+                let b_full = b_core * Math.pow(10, zb);
+                let zTotal = za + zb;
+
+                const a_digits = String(a_core).split('').map(Number);
+                const b_digits = String(b_core).split('').map(Number);
+
+                // ▼工夫モード(kufu) 用のデータ
+                const getStepsKufu = (b_digit, startCol) => {
+                    const steps = [];
+                    let carry = 0;
+                    let val = a_digits[1] * b_digit;
+                    steps.push({ digit: val % 10, carry: Math.floor(val / 10), targetCol: startCol, carryTo: startCol - 1 });
+                    carry = Math.floor(val / 10);
+                    val = a_digits[0] * b_digit + carry;
+                    if (val >= 10) {
+                         steps.push({ digit: val % 10, highDigit: Math.floor(val / 10), targetCol: startCol - 1, highCol: startCol - 2 });
+                    } else {
+                         steps.push({ digit: val, targetCol: startCol - 1 });
+                    }
+                    return steps;
+                };
+
+                const p1_steps_kufu = getStepsKufu(b_digits[1], 4);
+                const p2_steps_kufu = getStepsKufu(b_digits[0], 3);
+                const p1_kufu = a_core * b_digits[1];
+                const p2_kufu = a_core * b_digits[0]; 
+                const coreTotal = a_core * b_core;
+                
+                const addCarriesKufu = [];
+                let temp1 = p1_kufu;
+                let temp2 = p2_kufu * 10;
+                let c = 0;
+                for(let col = 4; col >= 1; col--) {
+                    let d1 = temp1 % 10;
+                    let d2 = temp2 % 10;
+                    let s = d1 + d2 + c;
+                    let nextCarry = Math.floor(s / 10);
+                    if (nextCarry > 0 && col > 1) addCarriesKufu.push({ col: col - 1, val: nextCarry });
+                    c = nextCarry;
+                    temp1 = Math.floor(temp1 / 10);
+                    temp2 = Math.floor(temp2 / 10);
+                }
+
+                // ▼ふつうモード(normal) 用のデータ
+                let b_full_str = String(b_full);
+                let a_full_str = String(a_full);
+                let b_full_digits_rev = b_full_str.split('').reverse().map(Number);
+                let a_full_digits_rev = a_full_str.split('').reverse().map(Number);
+                
+                let normal_steps = [];
+                let normal_partial_totals = [];
+                
+                for(let j = 0; j < b_full_digits_rev.length; j++) {
+                    let bd = b_full_digits_rev[j];
+                    if (bd === 0) continue; 
+
+                    let steps = [];
+                    let carry = 0;
+                    for(let k = 0; k < a_full_digits_rev.length; k++) {
+                        let ad = a_full_digits_rev[k];
+                        let val = ad * bd + carry;
+                        let targetCol = 7 - (j + k); 
+                        steps.push({ digit: val % 10, carry: carry, targetCol: targetCol });
+                        carry = Math.floor(val / 10);
+                    }
+                    if (carry > 0) {
+                        steps.push({ digit: carry, carry: 0, targetCol: 7 - (j + a_full_digits_rev.length) });
+                    }
+                    normal_steps.push(steps); 
+                    normal_partial_totals.push(a_full * bd * Math.pow(10, j));
+                }
+
+                const addCarriesNormal = [];
+                let temps = normal_partial_totals.map(v => v);
+                let carry_n = 0;
+                for(let col = 7; col >= 1; col--) {
+                    let sum = carry_n;
+                    for(let t=0; t<temps.length; t++) {
+                        sum += temps[t] % 10;
+                        temps[t] = Math.floor(temps[t] / 10);
+                    }
+                    carry_n = Math.floor(sum / 10);
+                    if (carry_n > 0 && col > 1) {
+                        let existing = addCarriesNormal.find(x => x.col === col - 1);
+                        if(existing) existing.val = carry_n;
+                        else addCarriesNormal.push({ col: col - 1, val: carry_n });
+                    }
+                }
+
+                arr.push({ 
+                    a_core, b_core, za, zb, zTotal, 
+                    a_full, b_full, total: a_full * b_full,
+                    kufu: {
+                        p1_steps: p1_steps_kufu, p2_steps: p2_steps_kufu,
+                        coreTotal: coreTotal, addCarries: addCarriesKufu
+                    },
+                    normal: {
+                        steps: normal_steps, addCarries: addCarriesNormal
+                    },
+                    inputMap: {} 
+                });
+            }
+            return arr;
+        }
+
+        function renderCurrentProblem() {
+            const container = document.getElementById('hissan-container');
+            container.innerHTML = "";
+            document.getElementById('feedback-circle').className = "";
+            const btn = document.getElementById('check-btn');
+            btn.disabled = false;
+            btn.textContent = "できた！ (Enter)";
+
+            const prob = problems[currentProblemIndex];
+            document.getElementById('current-q-num').textContent = currentProblemIndex + 1;
+
+            const grid = document.createElement('div');
+            grid.className = 'hissan-grid'; 
+            
+            if (currentLayout === 'kufu') {
+                const zeroBg = document.createElement('div');
+                zeroBg.className = 'zero-area-bg';
+                grid.appendChild(zeroBg);
+                const divider = document.createElement('div');
+                divider.className = 'zero-divider';
+                grid.appendChild(divider);
+            }
+
+            const createInput = (correctVal, cellId, type="main") => {
+                const input = document.createElement('input');
+                input.type = "tel";
+                input.className = (type==="carry") ? "carry-input" : "input-cell";
+                if(type === "zero") input.classList.add("zero-input"); 
+                input.maxLength = 1;
+                input.id = cellId;
+                input.dataset.correct = correctVal;
+                
+                input.addEventListener('input', function() { if (this.value.length >= 1) moveFocus(this, 1); });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === "Enter") { e.preventDefault(); checkAnswer(); }
+                    else if (e.key === "Backspace") {
+                        const allSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+                        if (input.value === "" || allSelected) { e.preventDefault(); input.value = ""; moveFocus(input, -1); }
+                    } else if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+                        e.preventDefault(); moveFocusSpatial(input, e.key);
+                    }
+                });
+                input.addEventListener('focus', function() { this.select(); });
+                prob.inputMap[cellId] = correctVal;
+                return input;
+            };
+
+            function moveFocus(currentInput, direction) {
+                const list = incorrectInputs.length > 0 ? incorrectInputs : navigationOrder;
+                let idx = list.indexOf(currentInput);
+                if (idx === -1) return;
+                let nextIdx = idx + direction;
+                while (nextIdx >= 0 && nextIdx < list.length) {
+                    if (!list[nextIdx].disabled) { list[nextIdx].focus(); return; }
+                    nextIdx += direction;
+                }
+            }
+
+            function moveFocusSpatial(currentInput, key) {
+                const container = document.getElementById('hissan-container');
+                if(!container) return;
+                const candidates = Array.from(container.querySelectorAll('input:not([disabled])')).filter(el => el !== currentInput);
+                if(candidates.length === 0) return;
+                const rect = currentInput.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                let bestCandidate = null; let minDist = Infinity;
+
+                candidates.forEach(cand => {
+                    const cRect = cand.getBoundingClientRect();
+                    const ccx = cRect.left + cRect.width / 2;
+                    const ccy = cRect.top + cRect.height / 2;
+                    let isValid = false;
+                    if (key === "ArrowUp") isValid = (ccy < cy - 10);
+                    else if (key === "ArrowDown") isValid = (ccy > cy + 10);
+                    else if (key === "ArrowLeft") isValid = (ccx < cx - 10);
+                    else if (key === "ArrowRight") isValid = (ccx > cx + 10);
+                    
+                    if (isValid) {
+                        const dx = Math.abs(ccx - cx); const dy = Math.abs(ccy - cy);
+                        let dist = (key === "ArrowUp" || key === "ArrowDown") ? dy + dx * 2 : dx + dy * 2;
+                        if (dist < minDist) { minDist = dist; bestCandidate = cand; }
+                    }
+                });
+                if (bestCandidate) bestCandidate.focus();
+            }
+            
+            for(let r=1; r<=5; r++){
+                for(let c=1; c<=7; c++){
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-r${r}-c${c}`;
+                    grid.appendChild(cell);
+                }
+            }
+            container.appendChild(grid);
+
+            const lc1 = document.createElement('div'); 
+            lc1.className = 'hissan-line';
+            lc1.style.top = "calc(var(--cell-size) * 2 - 2px)"; 
+            
+            const lc2 = document.createElement('div'); 
+            lc2.className = 'hissan-line';
+            lc2.style.top = "calc(var(--cell-size) * 4 - 2px)";
+            lc2.style.left = "0"; 
+            lc2.style.width = "100%"; 
+
+            if (currentLayout === 'kufu') {
+                lc1.style.left = "var(--cell-size)"; 
+                lc1.style.width = "calc(100% - var(--cell-size))"; 
+            } else {
+                lc1.style.left = "var(--cell-size)"; 
+                lc1.style.width = "calc(100% - var(--cell-size))"; 
+            }
+            grid.appendChild(lc1);
+            grid.appendChild(lc2);
+
+            navigationOrder = [];
+
+            const registerStep = (carryVal, carryClass, carryCellId, answerVal, answerCellId) => {
+                let cm = null;
+                if (carryVal > 0 && currentMode !== 'mental') {
+                    cm = createInput(carryVal, `c_${Math.random()}`, "carry"); 
+                    cm.classList.add('carry-pos-tl', carryClass);
+                    document.getElementById(carryCellId).appendChild(cm);
+                }
+                const res = createInput(answerVal, `a_${Math.random()}`); 
+                document.getElementById(answerCellId).appendChild(res);
+
+                if (currentMode === 'reverse') {
+                    navigationOrder.push(res);
+                    if (cm) navigationOrder.push(cm);
+                } else {
+                    if (cm) navigationOrder.push(cm);
+                    navigationOrder.push(res);
+                }
+            };
+
+            // ==========================================
+            // ▼ レイアウト：工夫して書く（点線あり） ▼
+            // ==========================================
+            if (currentLayout === 'kufu') {
+                const aCoreStr = String(prob.a_core);
+                document.getElementById(`cell-r1-c3`).textContent = aCoreStr[0];
+                document.getElementById(`cell-r1-c4`).textContent = aCoreStr[1];
+                for(let i=0; i<prob.za; i++) document.getElementById(`cell-r1-c${5+i}`).textContent = "0";
+
+                const bCoreStr = String(prob.b_core);
+                const sym = document.createElement('div'); sym.className='symbol'; sym.textContent="×";
+                document.getElementById(`cell-r2-c2`).appendChild(sym); 
+                document.getElementById(`cell-r2-c3`).textContent = bCoreStr[0];
+                document.getElementById(`cell-r2-c4`).textContent = bCoreStr[1];
+                for(let i=0; i<prob.zb; i++) document.getElementById(`cell-r2-c${5+i}`).textContent = "0";
+
+                const renderPartialKufu = (steps, rowIdx, prefix, carryClass) => {
+                    registerStep(steps[0].carry, carryClass, `cell-r${rowIdx}-c${steps[0].targetCol}`, steps[0].digit, `cell-r${rowIdx}-c${steps[0].targetCol}`);
+                    if (steps[1].highDigit !== undefined) {
+                        if (currentMode === 'reverse') {
+                            const res2 = createInput(steps[1].digit, `${prefix}_c${steps[1].targetCol}`);
+                            document.getElementById(`cell-r${rowIdx}-c${steps[1].targetCol}`).appendChild(res2);
+                            navigationOrder.push(res2);
+                            const resHigh = createInput(steps[1].highDigit, `${prefix}_c${steps[1].highCol}`);
+                            document.getElementById(`cell-r${rowIdx}-c${steps[1].highCol}`).appendChild(resHigh);
+                            navigationOrder.push(resHigh);
+                        } else {
+                            const resHigh = createInput(steps[1].highDigit, `${prefix}_c${steps[1].highCol}`);
+                            document.getElementById(`cell-r${rowIdx}-c${steps[1].highCol}`).appendChild(resHigh);
+                            navigationOrder.push(resHigh);
+                            const res2 = createInput(steps[1].digit, `${prefix}_c${steps[1].targetCol}`);
+                            document.getElementById(`cell-r${rowIdx}-c${steps[1].targetCol}`).appendChild(res2);
+                            navigationOrder.push(res2);
+                        }
+                    } else {
+                        registerStep(0, '', '', steps[1].digit, `cell-r${rowIdx}-c${steps[1].targetCol}`);
+                    }
+                };
+
+                renderPartialKufu(prob.kufu.p1_steps, 3, 'p1', 'carry-p1');
+                renderPartialKufu(prob.kufu.p2_steps, 4, 'p2', 'carry-p2');
+
+                const totalStr = String(prob.kufu.coreTotal);
+                const len = totalStr.length;
+                const startCol = 4 - len + 1;
+                
+                for(let c=4; c>=1; c--) {
+                    if (c >= startCol) {
+                        let carryVal = 0;
+                        const carryInfo = prob.kufu.addCarries.find(ac => ac.col === c - 1); 
+                        let showMemo = false;
+                        if (carryInfo) {
+                            carryVal = carryInfo.val;
+                            const p2StartCol = 3 - String(prob.p2_core).length + 1; 
+                            showMemo = true;
+                            if ((c-1) === 1 && (c-1) < p2StartCol) { showMemo = false; }
+                        }
+                        if (currentMode === 'mental') showMemo = false;
+
+                        if (showMemo && carryVal > 0) {
+                            registerStep(carryVal, 'carry-add', `cell-r5-c${c}`, totalStr[c - startCol], `cell-r5-c${c}`);
+                        } else {
+                            const res = createInput(totalStr[c - startCol], `total_c${c}`);
+                            document.getElementById(`cell-r5-c${c}`).appendChild(res);
+                            navigationOrder.push(res);
+                        }
+                    }
+                }
+
+                for(let i=0; i<prob.zTotal; i++) {
+                    const zCol = 5 + i;
+                    const resZero = createInput("0", `zero_drop_c${zCol}`, "zero");
+                    document.getElementById(`cell-r5-c${zCol}`).appendChild(resZero);
+                    navigationOrder.push(resZero);
+                }
+            } 
+            // ==========================================
+            // ▼ レイアウト：ふつうの筆算（右揃え） ▼
+            // ==========================================
+            else if (currentLayout === 'normal') {
+                const aStr = String(prob.a_full);
+                const bStr = String(prob.b_full);
+                
+                for(let i=0; i<aStr.length; i++) {
+                    document.getElementById(`cell-r1-c${7 - aStr.length + 1 + i}`).textContent = aStr[i];
+                }
+                
+                const sym = document.createElement('div'); sym.className='symbol'; sym.textContent="×";
+                document.getElementById(`cell-r2-c2`).appendChild(sym); 
+                for(let i=0; i<bStr.length; i++) {
+                    document.getElementById(`cell-r2-c${7 - bStr.length + 1 + i}`).textContent = bStr[i];
+                }
+
+                prob.normal.steps.forEach((stepArr, idx) => {
+                    const rowIdx = 3 + idx; 
+                    let carryClass = idx === 0 ? 'carry-p1' : 'carry-p2';
+                    
+                    const sortedSteps = [...stepArr].sort((a,b) => b.targetCol - a.targetCol);
+                    
+                    sortedSteps.forEach(s => {
+                        // ★修正：データ生成時に格納した「右から来たくり上がり」をそのまま使う
+                        let carryVal = s.carry;
+                        
+                        // 純粋な繰り上がりだけが入る一番左のマスには、メモを表示しない
+                        let isOverflowDigit = (sortedSteps.indexOf(s) === sortedSteps.length - 1 && s.carry === 0);
+                        if (isOverflowDigit) {
+                            carryVal = 0;
+                        }
+
+                        if (currentMode === 'reverse') {
+                            const res = createInput(s.digit, `n_${rowIdx}_c${s.targetCol}`);
+                            document.getElementById(`cell-r${rowIdx}-c${s.targetCol}`).appendChild(res);
+                            navigationOrder.push(res);
+                            
+                            if (carryVal > 0 && currentMode !== 'mental') {
+                                let cm = createInput(carryVal, `c_${Math.random()}`, "carry"); 
+                                cm.classList.add('carry-pos-tl', carryClass);
+                                document.getElementById(`cell-r${rowIdx}-c${s.targetCol}`).appendChild(cm);
+                                navigationOrder.push(cm);
+                            }
+                        } else {
+                            if (carryVal > 0 && currentMode !== 'mental') {
+                                let cm = createInput(carryVal, `c_${Math.random()}`, "carry"); 
+                                cm.classList.add('carry-pos-tl', carryClass);
+                                document.getElementById(`cell-r${rowIdx}-c${s.targetCol}`).appendChild(cm);
+                                navigationOrder.push(cm);
+                            }
+                            const res = createInput(s.digit, `n_${rowIdx}_c${s.targetCol}`);
+                            document.getElementById(`cell-r${rowIdx}-c${s.targetCol}`).appendChild(res);
+                            navigationOrder.push(res);
+                        }
+                    });
+                });
+
+                const totalStr = String(prob.total);
+                for(let c=7; c>=1; c--) {
+                    if (c >= 7 - totalStr.length + 1) {
+                        let carryVal = 0;
+                        const carryInfo = prob.normal.addCarries.find(ac => ac.col === c - 1); 
+                        let showMemo = false;
+
+                        if (carryInfo) {
+                            carryVal = carryInfo.val;
+                            // 最後のたし算の最上位への繰り上がりは表示しない
+                            if (c === 7 - totalStr.length + 1) showMemo = false;
+                            else showMemo = true;
+                        }
+                        if (currentMode === 'mental') showMemo = false;
+
+                        if (showMemo && carryVal > 0) {
+                            registerStep(carryVal, 'carry-add', `cell-r5-c${c}`, totalStr[c - (7 - totalStr.length + 1)], `cell-r5-c${c}`);
+                        } else {
+                            const res = createInput(totalStr[c - (7 - totalStr.length + 1)], `total_c${c}`);
+                            document.getElementById(`cell-r5-c${c}`).appendChild(res);
+                            navigationOrder.push(res);
+                        }
+                    }
+                }
+            }
+
+            if(navigationOrder.length > 0) navigationOrder[0].focus();
+        }
+
+        function checkAnswer() {
+            let allCorrect = true;
+            incorrectInputs = []; 
+
+            navigationOrder.forEach(input => {
+                const correct = String(input.dataset.correct);
+                const parentCell = input.closest('.cell');
+                
+                input.classList.remove('correct', 'wrong');
+                if(parentCell && input.classList.contains('input-cell')) parentCell.classList.remove('correct-bg', 'wrong-bg');
+                
+                if (input.value === correct) {
+                    input.classList.add('correct');
+                    if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('correct-bg');
+                    input.disabled = true; 
+                } else {
+                    allCorrect = false;
+                    input.classList.add('wrong');
+                    if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('wrong-bg');
+                    incorrectInputs.push(input);
+                }
+            });
+
+            if (allCorrect) {
+                document.getElementById('feedback-circle').classList.add('show');
+                document.getElementById('check-btn').disabled = true;
+                document.getElementById('check-btn').textContent = "せいかい！";
+                if(window.confetti) confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+                setTimeout(() => {
+                    currentProblemIndex++;
+                    if (currentProblemIndex >= config.questionCount) showResult();
+                    else renderCurrentProblem();
+                }, 1200);
+            } else {
+                currentScore = Math.max(0, currentScore - 5);
+                if (incorrectInputs.length > 0) { incorrectInputs[0].focus(); incorrectInputs[0].select(); }
+            }
+        }
+
+        function showResult() {
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'block';
+
+            const timeSec = Math.floor((Date.now() - startTime) / 1000);
+            let finalScore = currentScore;
+            if (timeSec < config.targetTime) finalScore += Math.floor((config.targetTime - timeSec) * 0.3); 
+
+            let stars = "★☆☆☆☆"; let msg = "ファイト！";
+            if (finalScore >= config.starThresholds.star5) { stars = "★★★★★"; msg = "すばらしい！計算マスター！"; }
+            else if (finalScore >= config.starThresholds.star4) { stars = "★★★★☆"; msg = "よくがんばったね！"; }
+            else if (finalScore >= config.starThresholds.star3) { stars = "★★★☆☆"; msg = "合格！その調子！"; }
+            else if (finalScore >= 80) { stars = "★★☆☆☆"; msg = "あとすこし！"; }
+
+            document.getElementById('result-stars').textContent = stars;
+            document.getElementById('result-msg').textContent = msg;
+            document.getElementById('result-score').innerHTML = `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:1rem; color:#888;">タイム: ${timeSec}秒</span>`;
+            
+            saveStats(finalScore, stars, timeSec);
+            updateStatsDisplay();
+
+            if (finalScore >= 100 && window.confetti) confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+        }
+
+        function updateDescription() {
+            let desc = "";
+            if (currentLayout === 'kufu') {
+                desc += `<strong>【工夫モード】</strong><br>0をよけて左で計算し、最後に右の「0」をそのまま下におろそう！<br>`;
+            } else {
+                desc += `<strong>【ふつうの筆算モード】</strong><br>数字はすべて右そろえ。<br>途中の0の段（0000）は書かずに、行を上に詰めて計算しよう！<br>`;
+            }
+            
+            if (currentMode === 'standard') desc += `メモは先に書いてね。`;
+            if (currentMode === 'reverse') desc += `答えを先に書いて、メモをあとに入力しよう。`;
+            if (currentMode === 'mental') desc += `メモなしで頭の中で計算しよう！`;
+            
+            document.getElementById('start-desc').innerHTML = desc;
+        }
+
+        function initGame() {
+            const radiosMode = document.getElementsByName('game-mode');
+            for(const r of radiosMode) if(r.checked) currentMode = r.value;
+            localStorage.setItem(KEY_MODE, currentMode);
+            
+            const radiosLayout = document.getElementsByName('layout-mode');
+            for(const r of radiosLayout) if(r.checked) currentLayout = r.value;
+            localStorage.setItem(KEY_LAYOUT, currentLayout);
+
+            problems = generateProblems(config.questionCount);
+            currentProblemIndex = 0; currentScore = 100; incorrectInputs = []; startTime = Date.now();
+
+            document.getElementById('start-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'flex';
+            renderCurrentProblem();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('main-title').textContent = config.mainTitle;
+            document.getElementById('page-num').textContent = config.page;
+            document.getElementById('sub-title-text').textContent = config.title;
+            document.getElementById('start-title').textContent = config.startTitle;
+            document.getElementById('total-q-num').textContent = config.questionCount;
+            
+            const savedMode = localStorage.getItem(KEY_MODE);
+            if (savedMode) {
+                currentMode = savedMode;
+                const radios = document.getElementsByName('game-mode');
+                for(const r of radios) if(r.value === currentMode) r.checked = true;
+            }
+            const savedLayout = localStorage.getItem(KEY_LAYOUT);
+            if (savedLayout) {
+                currentLayout = savedLayout;
+                const radios = document.getElementsByName('layout-mode');
+                for(const r of radios) if(r.value === currentLayout) r.checked = true;
+            }
+            
+            updateDescription();
+
+            document.getElementsByName('game-mode').forEach(r => {
+                r.addEventListener('change', (e) => { currentMode = e.target.value; updateDescription(); localStorage.setItem(KEY_MODE, currentMode); });
+            });
+            document.getElementsByName('layout-mode').forEach(r => {
+                r.addEventListener('change', (e) => { currentLayout = e.target.value; updateDescription(); localStorage.setItem(KEY_LAYOUT, currentLayout); });
+            });
+            
+            updateStatsDisplay(); 
+            document.getElementById('start-btn').addEventListener('click', initGame);
+            document.getElementById('retry-btn').addEventListener('click', initGame);
+            document.getElementById('check-btn').addEventListener('click', checkAnswer);
+
+            document.addEventListener('keydown', (e) => {
+                if (document.getElementById('start-area').style.display !== 'none') {
+                    if (e.key === "Enter") initGame();
+                } else if (document.getElementById('result-area').style.display !== 'none') {
+                    if (e.key === "Enter") initGame();
+                }
+            });
+        });
+    })();
+  </script>
+</body>
+</html>

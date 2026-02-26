@@ -10,16 +10,16 @@
   <style>
     /* ▼▼▼ テーマ：サニー・オレンジ（元気な太陽） ▼▼▼ */
     :root {
-      --c-bg-main: #FFF3E0;         /* 薄いオレンジ */
+      --c-bg-main: #FFF3E0;
       --c-card-bg: #ffffff;
       --c-grid-border: #B0BEC5;
-      --c-line-strong: #5D4037;     /* こげ茶色 */
-      
-      --c-primary: #EF6C00;         /* 濃いオレンジ */
-      --c-primary-light: #FFE0B2;   /* 明るいオレンジ */
-      --c-accent: #009688;          /* ティール（青緑）- アクセント */
+      --c-line-strong: #5D4037;
+
+      --c-primary: #EF6C00;
+      --c-primary-light: #FFE0B2;
+      --c-accent: #009688;
       --c-button-bg: #F57C00;
-      
+
       --c-correct-bg: #E8F5E9;
       --c-wrong-bg: #FFEBEE;
       --c-text-correct: #2E7D32;
@@ -38,14 +38,12 @@
       min-height: 100vh;
       margin: 0;
       -webkit-tap-highlight-color: transparent;
-      
-      /* 背景パターン：ドット */
       background-image: radial-gradient(var(--c-primary-light) 20%, transparent 20%);
       background-size: 20px 20px;
     }
 
     h1 { font-size: 1.5rem; color: var(--c-primary); margin: 10px 0; text-align: center; background:rgba(255,255,255,0.9); padding:5px 15px; border-radius:10px; border: 2px solid var(--c-primary-light);}
-    
+
     .page-header {
       display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
       background: #fff; padding: 5px 15px; border-radius: 20px;
@@ -61,7 +59,7 @@
     .problem-card {
       background: var(--c-card-bg);
       border-radius: 10px;
-      padding: 40px 30px; 
+      padding: 40px 30px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.15);
       display: flex; flex-direction: column; align-items: center;
       margin-bottom: 20px;
@@ -75,6 +73,26 @@
       background: var(--c-primary);
       padding: 5px 20px; border-radius: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* ▼▼▼ タイマー表示 ▼▼▼ */
+    #timer-display {
+      font-size: 1rem; font-weight: bold;
+      color: var(--c-accent);
+      background: #fff;
+      border: 2px solid var(--c-accent);
+      border-radius: 20px;
+      padding: 4px 16px;
+      margin-bottom: 10px;
+    }
+    #timer-display.warning {
+      color: #D32F2F;
+      border-color: #D32F2F;
+      animation: pulse 0.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
 
     /* ▼▼▼ 筆算グリッド ▼▼▼ */
@@ -97,7 +115,7 @@
       box-sizing: border-box;
       border-right: 1px solid var(--c-grid-border);
       border-bottom: 1px solid var(--c-grid-border);
-      position: relative; 
+      position: relative;
     }
 
     .line-container {
@@ -124,7 +142,7 @@
 
     .correct-bg { background-color: var(--c-correct-bg) !important; }
     .wrong-bg { background-color: var(--c-wrong-bg) !important; }
-    
+
     .input-cell.correct { color: var(--c-text-correct); }
     .input-cell.wrong { color: var(--c-text-wrong); }
 
@@ -148,12 +166,12 @@
       transition: transform 0.1s;
     }
     button:active { transform: translateY(4px); box-shadow: none; }
-    
+
     #check-btn { background-color: var(--c-accent); box-shadow: 0 5px 0 #00695C; min-width: 200px; }
     #check-btn:active { transform: translateY(4px); box-shadow: none; }
 
     .star-rank { font-size: 3.5rem; color: #FFD700; text-shadow: 2px 2px 0 #FFA000; margin: 10px 0; }
-    
+
     .status-container {
         display: flex; justify-content: space-around; flex-wrap: wrap;
         background-color: #FFF3E0; border-radius: 10px;
@@ -174,7 +192,7 @@
     .history-title { font-size: 1rem; font-weight: bold; color: var(--c-primary); border-bottom: 2px solid var(--c-primary-light); margin-bottom: 5px; }
     .history-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; }
     .history-item {
-        display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr; 
+        display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr;
         padding: 8px 5px; border-bottom: 1px solid #eee;
         align-items: center;
     }
@@ -212,7 +230,7 @@
 
   <div id="start-area">
     <h2 style="color:var(--c-primary); border:none; margin:0 0 20px 0;" id="start-title"></h2>
-    
+
     <div style="font-size:1.1rem; line-height:1.6; margin-bottom:20px; text-align:left; background:#FFF3E0; padding:15px; border-radius:10px; border:2px solid var(--c-primary-light);" id="start-desc">
     </div>
 
@@ -238,6 +256,9 @@
       もんだい <span id="current-q-num">1</span> / <span id="total-q-num">6</span>
     </div>
 
+    <!-- ▼ タイマー表示（修正5：ゲーム中に経過時間を表示） -->
+    <div id="timer-display">⏱ 0秒</div>
+
     <div class="problem-card">
       <div id="hissan-container"></div>
       <div id="feedback-circle"></div>
@@ -253,7 +274,7 @@
     <div id="result-stars" class="star-rank"></div>
     <div id="result-msg" style="font-size:1.4rem; font-weight:bold; margin:15px 0; color:#555;"></div>
     <div id="result-score" style="font-size:1.2rem; margin-bottom:10px;"></div>
-    
+
     <div class="status-container">
         <div class="status-item">
             <span class="status-label">ハイスコア</span>
@@ -270,7 +291,7 @@
     </div>
 
     <button id="retry-btn">もういちど</button>
-    
+
     <div class="history-container">
         <div class="history-title">これまでのきろく</div>
         <ul id="result-history-list" class="history-list"></ul>
@@ -281,14 +302,13 @@
     (function(){
         // ▼▼▼ 設定（Config） ▼▼▼
         const config = {
-            appId: "2keta_kakeru_2keta_nocarry", 
+            appId: "2keta_kakeru_2keta_nocarry",
             mainTitle: "１９　２けたをかけるかけ算の筆算",
             title: "(2けた)×(2けた)の筆算（くりあがりなし）",
-            page: 86, // ページ番号
-            questionCount: 6,
-            targetTime: 180, // 少し短めに設定
+            page: 86,
+            questionCount: 5,
+            targetTime: 180,
             starThresholds: { star5: 150, star4: 120, star3: 100 },
-            // スタート画面の設定
             startTitle: "計算のポイント",
             startDescription: `
                 ① 位(くらい)を たてに そろえて 書く<br>
@@ -303,29 +323,30 @@
         let problems = [];
         let currentProblemIndex = 0;
         let startTime = 0;
-        let incorrectCellIds = []; 
         let currentScore = 100;
-        let navigationOrder = []; 
-        let incorrectInputs = []; 
+        let navigationOrder = [];
+        let incorrectInputs = [];
+        // 修正5：タイマー用インターバルID
+        let timerInterval = null;
 
-        const KEY_HS = `${config.appId}:hs`;
-        const KEY_CLEAR = `${config.appId}:clear`;
+        const KEY_HS      = `${config.appId}:hs`;
+        const KEY_CLEAR   = `${config.appId}:clear`;
         const KEY_DAILY_PREFIX = `${config.appId}:daily_`;
-        const KEY_HISTORY = `${config.appId}:history_v2`; 
-        const KEY_RANK = `${config.appId}:rank`; 
+        const KEY_HISTORY = `${config.appId}:history_v2`;
+        const KEY_RANK    = `${config.appId}:rank`;
 
         function loadStats() {
             const ls = localStorage;
             const today = new Date().toDateString();
-            
             return {
-                highScore: parseInt(ls.getItem(KEY_HS) || 0),
+                highScore:  parseInt(ls.getItem(KEY_HS)    || 0),
                 totalClear: parseInt(ls.getItem(KEY_CLEAR) || 0),
                 dailyClear: parseInt(ls.getItem(KEY_DAILY_PREFIX + today) || 0),
-                history: JSON.parse(ls.getItem(KEY_HISTORY) || "[]")
+                history:    JSON.parse(ls.getItem(KEY_HISTORY) || "[]")
             };
         }
 
+        // 修正4：戻り値を削除（呼び出し側で使っていないため）
         function saveStats(score, starsStr, timeSec) {
             const ls = localStorage;
             const today = new Date().toDateString();
@@ -339,19 +360,11 @@
             ls.setItem(KEY_DAILY_PREFIX + today, currentStats.dailyClear + 1);
 
             const now = new Date();
-            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; 
-            
-            const newEntry = {
-                date: dateStr,
-                score: score,
-                stars: starsStr,
-                time: timeSec
-            };
-            
-            const newHistory = [newEntry, ...currentStats.history].slice(0, 10); 
+            const dateStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            const newEntry = { date: dateStr, score, stars: starsStr, time: timeSec };
+            const newHistory = [newEntry, ...currentStats.history].slice(0, 10);
             ls.setItem(KEY_HISTORY, JSON.stringify(newHistory));
-            
-            return loadStats(); 
         }
 
         function renderHistory(historyData, listId) {
@@ -372,20 +385,15 @@
 
         function updateStatsDisplay() {
             const stats = loadStats();
-            
-            // リザルト画面の表示更新
-            if(document.getElementById('high-score-val')){
+            if (document.getElementById('high-score-val')) {
                 document.getElementById('high-score-val').textContent = stats.highScore;
                 document.getElementById('daily-clear-val').textContent = stats.dailyClear;
                 document.getElementById('total-clear-val').textContent = stats.totalClear;
             }
-
-            // ★追加機能: スタート画面の表示更新
-            if(document.getElementById('start-daily-clear-val')){
+            if (document.getElementById('start-daily-clear-val')) {
                 document.getElementById('start-daily-clear-val').textContent = stats.dailyClear;
                 document.getElementById('start-total-clear-val').textContent = stats.totalClear;
             }
-            
             renderHistory(stats.history, 'start-history-list');
             renderHistory(stats.history, 'result-history-list');
         }
@@ -393,16 +401,12 @@
         // ▼▼▼ 問題生成ロジック（くり上がりなし） ▼▼▼
         function generateProblems(count) {
             const arr = [];
-            for(let i=0; i<count; i++) {
+            for (let i = 0; i < count; i++) {
                 let a, b;
-                
-                // くり上がりが発生しない数字のペアを探す
-                while(true) {
-                    a = Math.floor(Math.random() * 89) + 10; // 10-99
+                while (true) {
+                    a = Math.floor(Math.random() * 89) + 10;
                     b = Math.floor(Math.random() * 89) + 10;
-                    
-                    // 条件チェック
-                    // 1. かける数(b)の一の位は0ではない (基本練習のため)
+
                     if (b % 10 === 0) continue;
 
                     const a1 = Math.floor(a / 10);
@@ -410,46 +414,26 @@
                     const b1 = Math.floor(b / 10);
                     const b0 = b % 10;
 
-                    // 2. 部分積の計算で繰り上がりがないこと
-                    // 1段目 (a * b0)
-                    if (a0 * b0 >= 10) continue; // 一の位
-                    if (a1 * b0 >= 10) continue; // 十の位
+                    if (a0 * b0 >= 10) continue;
+                    if (a1 * b0 >= 10) continue;
+                    if (a0 * b1 >= 10) continue;
+                    if (a1 * b1 >= 10) continue;
 
-                    // 2段目 (a * b1)
-                    if (a0 * b1 >= 10) continue; 
-                    if (a1 * b1 >= 10) continue; 
-
-                    // 3. 最後のたし算で繰り上がりがないこと
-                    // p1 = a * b0 (2桁以内確定)
-                    // p2 = a * b1 (2桁以内確定)
                     const p1 = a * b0;
                     const p2 = a * b1;
-                    
-                    // 足し算のチェック
-                    // p1の一の位はそのまま降りる
-                    // p1の十の位 + p2の一の位 < 10
                     const p1_tens = Math.floor(p1 / 10);
                     const p2_ones = p2 % 10;
                     if (p1_tens + p2_ones >= 10) continue;
 
-                    // p2の十の位はそのまま降りる (繰り上がりはないので影響なし)
-
-                    // 全条件クリア
                     break;
                 }
-                
-                const p1 = a * (b % 10);
-                const p2 = a * Math.floor(b / 10);
+
+                const p1    = a * (b % 10);
+                const p2    = a * Math.floor(b / 10);
                 const total = a * b;
 
-                // くり上がりは発生しないので carry変数は全て0
-                const addCarries = []; // 空配列
-
-                arr.push({ 
-                    a, b, p1, p2, total, 
-                    carry1: 0, carry2: 0, addCarries: [],
-                    inputMap: {} 
-                });
+                // 修正3：不要な carry1/carry2/addCarries プロパティを削除
+                arr.push({ a, b, p1, p2, total, inputMap: {} });
             }
             return arr;
         }
@@ -467,41 +451,46 @@
 
             const grid = document.createElement('div');
             grid.className = 'hissan-grid';
-            
+
             const cellMap = {};
 
-            const createInput = (correctVal, cellId, type="main") => {
+            const createInput = (correctVal, cellId, rowLabel, colLabel) => {
                 const input = document.createElement('input');
                 input.type = "tel";
-                input.className = "input-cell"; // くり上がりメモはないので常に通常セル
-                
+                input.className = "input-cell";
                 input.maxLength = 1;
                 input.id = cellId;
                 input.dataset.correct = correctVal;
-                
+
+                // 修正7：aria-label でスクリーンリーダー対応
+                input.setAttribute('aria-label', `${rowLabel} ${colLabel}の入力欄`);
+
                 input.addEventListener('input', function() {
                     if (this.value.length >= 1) {
                         moveFocus(this, 1);
                     }
                 });
 
+                // 修正1：アロー関数内の this → input に修正
+                //         Backspace / ArrowLeft / ArrowRight が正しく動作するようになる
+                // 修正6：ArrowUp / ArrowDown キーも対応
                 input.addEventListener('keydown', (e) => {
                     if (e.key === "Enter") {
                         checkAnswer();
                     } else if (e.key === "Backspace" && input.value === "") {
                         e.preventDefault();
-                        moveFocus(this, -1);
-                    } else if (e.key === "ArrowRight") {
+                        moveFocus(input, -1);
+                    } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
                         e.preventDefault();
-                        moveFocus(this, 1);
-                    } else if (e.key === "ArrowLeft") {
+                        moveFocus(input, 1);
+                    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
                         e.preventDefault();
-                        moveFocus(this, -1);
+                        moveFocus(input, -1);
                     }
                 });
-                
+
                 input.addEventListener('focus', function() { this.select(); });
-                
+
                 prob.inputMap[cellId] = correctVal;
                 cellMap[cellId] = input;
                 return input;
@@ -511,7 +500,6 @@
                 const list = incorrectInputs.length > 0 ? incorrectInputs : navigationOrder;
                 const idx = list.indexOf(currentInput);
                 if (idx === -1) return;
-
                 let nextIdx = idx + direction;
                 while (nextIdx >= 0 && nextIdx < list.length) {
                     if (!list[nextIdx].disabled) {
@@ -530,7 +518,6 @@
                 } else if (content) {
                     cell.textContent = content;
                 }
-                // くり上がりなし版なので、メモ配置ロジックは削除
                 grid.appendChild(cell);
             };
 
@@ -540,97 +527,104 @@
                 lc.appendChild(bar); grid.appendChild(lc);
             };
 
-            const aStr = String(prob.a);
-            const bStr = String(prob.b);
-            const p1Str = String(prob.p1);
-            const p2Str = String(prob.p2);
+            const aStr     = String(prob.a);
+            const bStr     = String(prob.b);
+            const p1Str    = String(prob.p1);
+            const p2Str    = String(prob.p2);
             const totalStr = String(prob.total);
 
             // Row 1 & 2
             addCell("", 1, 1); addCell("", 1, 2); addCell("", 1, 3); addCell(aStr[0], 1, 4); addCell(aStr[1], 1, 5);
-            addCell("", 2, 1); addCell("", 2, 2); 
-            const sym = document.createElement('div'); sym.className='symbol'; sym.textContent="×";
+            addCell("", 2, 1); addCell("", 2, 2);
+            const sym = document.createElement('div'); sym.className = 'symbol'; sym.textContent = "×";
             addCell(sym, 2, 3); addCell(bStr[0], 2, 4); addCell(bStr[1], 2, 5);
             addLine();
 
             // Row 3: P1
-            for(let c=1; c<=5; c++) {
+            for (let c = 1; c <= 5; c++) {
                 const len = p1Str.length;
                 if (c > 5 - len) {
                     const char = p1Str[c - (5 - len + 1)];
-                    addCell(createInput(char, `r3c${c}`), 3, c);
+                    addCell(createInput(char, `r3c${c}`, "1段目", `${c}列`), 3, c);
                 } else {
                     addCell("", 3, c);
                 }
             }
             // Row 4: P2
-            for(let c=1; c<=5; c++) {
+            for (let c = 1; c <= 5; c++) {
                 const len = p2Str.length;
                 if (c <= 4 && c > 4 - len) {
                     const char = p2Str[c - (4 - len + 1)];
-                    addCell(createInput(char, `r4c${c}`), 4, c);
+                    addCell(createInput(char, `r4c${c}`, "2段目", `${c}列`), 4, c);
                 } else {
                     addCell("", 4, c);
                 }
             }
             addLine();
             // Row 5: Total
-            for(let c=1; c<=5; c++) {
+            for (let c = 1; c <= 5; c++) {
                 const len = totalStr.length;
                 if (c > 5 - len) {
                     const char = totalStr[c - (5 - len + 1)];
-                    addCell(createInput(char, `r5c${c}`), 5, c);
+                    addCell(createInput(char, `r5c${c}`, "答え", `${c}列`), 5, c);
                 } else {
                     addCell("", 5, c);
                 }
             }
             container.appendChild(grid);
-            
+
             // --- ナビゲーション順序 ---
             navigationOrder = [];
             const pushIfExists = (id) => { if (cellMap[id]) navigationOrder.push(cellMap[id]); };
 
-            // 1. P1 (メモなし)
-            pushIfExists(`r3c5`); // Ones
-            pushIfExists(`r3c4`); // Tens
-            pushIfExists(`r3c3`); // Hundreds (ある場合)
-            
-            // 2. P2 (メモなし)
-            pushIfExists(`r4c4`); // Ones (Shifted)
-            pushIfExists(`r4c3`); // Tens
-            pushIfExists(`r4c2`); // Hundreds (ある場合)
+            // 1. P1（右から左）
+            pushIfExists(`r3c5`);
+            pushIfExists(`r3c4`);
+            pushIfExists(`r3c3`);
 
-            // 3. Total (右から左)
+            // 2. P2（右から左）
+            pushIfExists(`r4c4`);
+            pushIfExists(`r4c3`);
+            pushIfExists(`r4c2`);
+
+            // 3. Total（右から左）
             pushIfExists(`r5c5`);
             pushIfExists(`r5c4`);
             pushIfExists(`r5c3`);
             pushIfExists(`r5c2`);
             pushIfExists(`r5c1`);
 
-            if(navigationOrder.length > 0) navigationOrder[0].focus();
+            if (navigationOrder.length > 0) navigationOrder[0].focus();
+        }
+
+        // 全角数字を半角に変換する
+        function toHalfWidth(str) {
+            return str.replace(/[０-９]/g, s =>
+                String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+            );
         }
 
         function checkAnswer() {
             let allCorrect = true;
-            incorrectInputs = []; 
+            incorrectInputs = [];
 
             navigationOrder.forEach(input => {
                 const correct = input.dataset.correct;
                 const parentCell = input.closest('.cell');
-                
+
                 input.classList.remove('correct', 'wrong');
-                if(parentCell && input.classList.contains('input-cell')) {
+                if (parentCell && input.classList.contains('input-cell')) {
                     parentCell.classList.remove('correct-bg', 'wrong-bg');
                 }
-                
-                if (input.value === correct) {
+
+                if (toHalfWidth(input.value) === correct) {
                     input.classList.add('correct');
-                    if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('correct-bg');
-                    input.disabled = true; 
+                    if (parentCell && input.classList.contains('input-cell')) parentCell.classList.add('correct-bg');
+                    input.disabled = true;
                 } else {
                     allCorrect = false;
                     input.classList.add('wrong');
-                    if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('wrong-bg');
+                    if (parentCell && input.classList.contains('input-cell')) parentCell.classList.add('wrong-bg');
                     incorrectInputs.push(input);
                 }
             });
@@ -639,8 +633,8 @@
                 document.getElementById('feedback-circle').classList.add('show');
                 document.getElementById('check-btn').disabled = true;
                 document.getElementById('check-btn').textContent = "せいかい！";
-                
-                if(window.confetti) confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+
+                if (window.confetti) confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
 
                 setTimeout(() => {
                     currentProblemIndex++;
@@ -659,32 +653,55 @@
         }
 
         function showResult() {
+            // タイマー停止
+            stopTimer();
+
             document.getElementById('game-area').style.display = 'none';
             document.getElementById('result-area').style.display = 'block';
 
             const timeSec = Math.floor((Date.now() - startTime) / 1000);
             let finalScore = currentScore;
-            
+
             if (timeSec < config.targetTime) {
-                finalScore += Math.floor((config.targetTime - timeSec) * 0.5); 
+                finalScore += Math.floor((config.targetTime - timeSec) * 0.5);
             }
 
             let stars = "★☆☆☆☆";
             let msg = "もう少し！";
-            if (finalScore >= config.starThresholds.star5) { stars = "★★★★★"; msg = "すばらしい！計算マスター！"; }
+            if      (finalScore >= config.starThresholds.star5) { stars = "★★★★★"; msg = "すばらしい！計算マスター！"; }
             else if (finalScore >= config.starThresholds.star4) { stars = "★★★★☆"; msg = "よくがんばったね！"; }
             else if (finalScore >= config.starThresholds.star3) { stars = "★★★☆☆"; msg = "合格！その調子！"; }
-            else if (finalScore >= 80) { stars = "★★☆☆☆"; msg = "あとすこし！"; }
+            else if (finalScore >= 80)                          { stars = "★★☆☆☆"; msg = "あとすこし！"; }
 
             document.getElementById('result-stars').textContent = stars;
             document.getElementById('result-msg').textContent = msg;
-            document.getElementById('result-score').innerHTML = `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:1rem; color:#888;">タイム: ${timeSec}秒</span>`;
-            
+            document.getElementById('result-score').innerHTML =
+                `スコア: <strong>${finalScore}</strong> 点<br><span style="font-size:1rem; color:#888;">タイム: ${timeSec}秒</span>`;
+
             saveStats(finalScore, stars, timeSec);
             updateStatsDisplay();
 
             if (finalScore >= 100 && window.confetti) {
                 confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+            }
+        }
+
+        // ▼ 修正5：タイマー管理関数
+        function startTimer() {
+            const timerEl = document.getElementById('timer-display');
+            stopTimer(); // 二重起動防止
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                timerEl.textContent = `⏱ ${elapsed}秒`;
+                // targetTime を超えたら警告スタイル
+                timerEl.classList.toggle('warning', elapsed >= config.targetTime);
+            }, 500);
+        }
+
+        function stopTimer() {
+            if (timerInterval !== null) {
+                clearInterval(timerInterval);
+                timerInterval = null;
             }
         }
 
@@ -695,23 +712,26 @@
             incorrectInputs = [];
             startTime = Date.now();
 
+            document.getElementById('timer-display').textContent = '⏱ 0秒';
+            document.getElementById('timer-display').classList.remove('warning');
+
             document.getElementById('start-area').style.display = 'none';
             document.getElementById('result-area').style.display = 'none';
             document.getElementById('game-area').style.display = 'flex';
-            
+
+            startTimer(); // タイマー開始
             renderCurrentProblem();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Config内容を反映
             document.getElementById('main-title').textContent = config.mainTitle;
             document.getElementById('page-num').textContent = config.page;
             document.getElementById('sub-title-text').textContent = config.title;
             document.getElementById('start-title').textContent = config.startTitle;
             document.getElementById('start-desc').innerHTML = config.startDescription;
             document.getElementById('total-q-num').textContent = config.questionCount;
-            
-            updateStatsDisplay(); 
+
+            updateStatsDisplay();
 
             document.getElementById('start-btn').addEventListener('click', initGame);
             document.getElementById('retry-btn').addEventListener('click', initGame);

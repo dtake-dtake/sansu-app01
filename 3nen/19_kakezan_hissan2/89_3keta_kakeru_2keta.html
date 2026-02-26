@@ -28,8 +28,6 @@
       --cell-size: 58px;
     }
 
-
-
     body {
       font-family: var(--font-family);
       background-color: var(--c-bg-main);
@@ -366,7 +364,7 @@
   <script>
     (function(){
         const config = {
-            appId: "3keta_kakeru_2keta", 
+            appId: "89_3keta_kakeru_2keta", // ★ ルール②：ファイル名と同期
             mainTitle: "１９　２けたをかけるかけ算の筆算",
             title: "(3けた)×(2けた)の筆算",
             page: 89,
@@ -374,7 +372,7 @@
             targetTime: 300, 
             starThresholds: { star5: 160, star4: 130, star3: 100 },
             startTitle: "学習のポイント",
-            startDescription: "" // 初期値（動的に設定）
+            startDescription: ""
         };
 
         let problems = [];
@@ -383,22 +381,36 @@
         let currentScore = 100;
         let navigationOrder = []; 
         let incorrectInputs = []; 
-        let currentMode = 'standard'; // standard, reverse, mental
+        let currentMode = 'standard'; 
 
-        const KEY_HS = `${config.appId}:hs`;
-        const KEY_CLEAR = `${config.appId}:clearCount`;
-        const KEY_DAILY_PREFIX = `${config.appId}:daily_`;
-        const KEY_HISTORY = `${config.appId}:history_v2`; 
-        const KEY_RANK = `${config.appId}:rank`; 
-        const KEY_MODE = `${config.appId}:mode`; // モード保存用キー
+        // ★ ルール③：localStorageのキー命名規則
+        const APP_ID = config.appId;
+        const KEY_HS = `${APP_ID}:highScore`;
+        const KEY_STATUS = `${APP_ID}:status`; 
+        const KEY_CLEAR = `${APP_ID}:clearCount`;
+        const KEY_DAILY_CLEAR = `${APP_ID}:dailyClear`;
+        const KEY_LAST_DATE = `${APP_ID}:lastDate`;
+        const KEY_HISTORY = `${APP_ID}:history`; 
+        const KEY_MODE = `${APP_ID}:mode`;
 
         function loadStats() {
             const ls = localStorage;
             const today = new Date().toDateString();
+            
+            // ★ 日付が変わっていれば、今日のクリア回数を0にリセット
+            let lastDate = ls.getItem(KEY_LAST_DATE);
+            let dailyClear = parseInt(ls.getItem(KEY_DAILY_CLEAR) || 0);
+
+            if (lastDate !== today) {
+                dailyClear = 0;
+            }
+
             return {
                 highScore: parseInt(ls.getItem(KEY_HS) || 0),
+                status: ls.getItem(KEY_STATUS) || "★☆☆☆☆",
                 totalClear: parseInt(ls.getItem(KEY_CLEAR) || 0),
-                dailyClear: parseInt(ls.getItem(KEY_DAILY_PREFIX + today) || 0),
+                dailyClear: dailyClear,
+                lastDate: lastDate || today,
                 history: JSON.parse(ls.getItem(KEY_HISTORY) || "[]")
             };
         }
@@ -406,17 +418,20 @@
         function saveStats(score, starsStr, timeSec) {
             const ls = localStorage;
             const today = new Date().toDateString();
-            const currentStats = loadStats();
+            const currentStats = loadStats(); // loadStats内で日替わりリセットは処理済み
 
+            // ハイスコア更新
             if (score > currentStats.highScore) {
                 ls.setItem(KEY_HS, score);
-                ls.setItem(KEY_RANK, starsStr);
+                ls.setItem(KEY_STATUS, starsStr);
             }
             
-            // ★追加機能: クリア回数のカウントアップ
+            // クリア回数のカウントアップと、最終プレイ日の記録
             ls.setItem(KEY_CLEAR, currentStats.totalClear + 1);
-            ls.setItem(KEY_DAILY_PREFIX + today, currentStats.dailyClear + 1);
+            ls.setItem(KEY_DAILY_CLEAR, currentStats.dailyClear + 1);
+            ls.setItem(KEY_LAST_DATE, today);
 
+            // 履歴の記録
             const now = new Date();
             const dateStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; 
             
@@ -450,14 +465,12 @@
         function updateStatsDisplay() {
             const stats = loadStats();
             
-            // リザルト画面の表示更新
             if(document.getElementById('high-score-val')){
                 document.getElementById('high-score-val').textContent = stats.highScore;
                 document.getElementById('daily-clear-val').textContent = stats.dailyClear;
                 document.getElementById('total-clear-val').textContent = stats.totalClear;
             }
 
-            // ★追加機能: スタート画面の表示更新
             if(document.getElementById('start-daily-clear-val')){
                 document.getElementById('start-daily-clear-val').textContent = stats.dailyClear;
                 document.getElementById('start-total-clear-val').textContent = stats.totalClear;
@@ -706,19 +719,15 @@
             // --- helper to push in correct order ---
             const registerStep = (carryVal, carryClass, carryCellId, answerVal, answerCellId) => {
                 let cm = null;
-                // メモを作るかどうか
                 if (carryVal > 0 && currentMode !== 'mental') {
-                    // Carry Input作成
                     cm = createInput(carryVal, `c_${Math.random()}`, "carry"); 
                     cm.classList.add('carry-pos-tl', carryClass);
                     document.getElementById(carryCellId).appendChild(cm);
                 }
                 
-                // Answer Input作成
                 const res = createInput(answerVal, `a_${Math.random()}`); 
                 document.getElementById(answerCellId).appendChild(res);
 
-                // ナビゲーション順序登録
                 if (currentMode === 'reverse') {
                     navigationOrder.push(res);
                     if (cm) navigationOrder.push(cm);
@@ -737,9 +746,6 @@
 
             const s3 = prob.p1_steps[2];
             if (s3.highDigit !== undefined) {
-                // 3桁目(digit)と4桁目(highDigit)を入力する
-                // 標準/暗算モードなら、桁あふれの「1」→「3」の順（左から右）
-                // 逆順モードなら、通常通り「3」→「1」
                 if (currentMode === 'reverse') {
                     const res3 = createInput(s3.digit, `p1_c3`);
                     document.getElementById(`cell-r3-c3`).appendChild(res3);
@@ -749,7 +755,6 @@
                     document.getElementById(`cell-r3-c2`).appendChild(resHigh);
                     navigationOrder.push(resHigh);
                 } else {
-                    // Standard / Mental: Left -> Right for final overflow (e.g. 1 then 3)
                     const resHigh = createInput(s3.highDigit, `p1_c2`);
                     document.getElementById(`cell-r3-c2`).appendChild(resHigh);
                     navigationOrder.push(resHigh);
@@ -797,14 +802,11 @@
                 const len = totalStr.length;
                 const startCol = 5 - len + 1;
                 
-                // ★例外処理：5桁の答えで、かつ「4桁目(Col2)」を処理する時に、
-                // 最上位(Col1)が単なる繰り上がり(P2なし)なら、[左->右]の順で入力させる
                 if (c === 2 && startCol === 1) {
                     const p2StartCol = 4 - String(prob.p2).length + 1;
                     const isOverflowOnly = (1 < p2StartCol); 
                     
                     if (isOverflowOnly) {
-                        // 左(Col1) -> 右(Col2) の順で生成
                         const val1 = totalStr[0];
                         const res1 = createInput(val1, `total_c1`);
                         document.getElementById(`cell-r5-c1`).appendChild(res1);
@@ -821,7 +823,6 @@
                 }
 
                 if (c >= startCol) {
-                    // 通常処理
                     let carryVal = 0;
                     const carryInfo = prob.addCarries.find(ac => ac.col === c - 1); 
                     let showMemo = false;
@@ -831,7 +832,6 @@
                         const p2StartCol = 4 - String(prob.p2).length + 1;
                         showMemo = true;
                         
-                        // 足す相手がいない最上位桁への繰り上がりはメモ不要
                         if ((c-1) === 1 && (c-1) < p2StartCol) {
                              showMemo = false;
                         }
@@ -851,7 +851,12 @@
 
             if(navigationOrder.length > 0) navigationOrder[0].focus();
         }
-
+// 全角数字を半角に変換する
+        function toHalfWidth(str) {
+            return str.replace(/[０-９]/g, s =>
+                String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+            );
+        }
         function checkAnswer() {
             let allCorrect = true;
             incorrectInputs = []; 
@@ -865,7 +870,7 @@
                     parentCell.classList.remove('correct-bg', 'wrong-bg');
                 }
                 
-                if (input.value === correct) {
+                if (toHalfWidth(input.value) === correct) {
                     input.classList.add('correct');
                     if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('correct-bg');
                     input.disabled = true; 
@@ -1004,10 +1009,8 @@
             document.getElementById('retry-btn').addEventListener('click', initGame);
             document.getElementById('check-btn').addEventListener('click', checkAnswer);
 
-            // ★改良：スタート画面でのキーボード操作
             document.addEventListener('keydown', (e) => {
                 if (document.getElementById('start-area').style.display !== 'none') {
-                    // Start画面
                     if (e.key === "Enter") {
                         initGame();
                     } else if (["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(e.key)) {
@@ -1030,7 +1033,6 @@
                         }
                     }
                 } else if (document.getElementById('result-area').style.display !== 'none') {
-                    // リザルト画面
                     if (e.key === "Enter") {
                         initGame();
                     }

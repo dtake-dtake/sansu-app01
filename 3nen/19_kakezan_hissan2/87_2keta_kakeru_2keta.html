@@ -902,6 +902,13 @@
             if(navigationOrder.length > 0) navigationOrder[0].focus();
         }
 
+        // 全角数字を半角に変換する
+        function toHalfWidth(str) {
+            return str.replace(/[０-９]/g, s =>
+                String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+            );
+        }
+
         function checkAnswer() {
             let allCorrect = true;
             incorrectInputs = []; 
@@ -915,7 +922,7 @@
                     parentCell.classList.remove('correct-bg', 'wrong-bg');
                 }
                 
-                if (input.value === correct) {
+                if (toHalfWidth(input.value) === correct) {
                     input.classList.add('correct');
                     if(parentCell && input.classList.contains('input-cell')) parentCell.classList.add('correct-bg');
                     input.disabled = true; 
