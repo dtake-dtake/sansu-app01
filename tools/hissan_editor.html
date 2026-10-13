@@ -1725,20 +1725,29 @@
                     badge.style.display = state.showBadges ? 'flex' : 'none';
 
                     if (key.includes('ansnote')) {
-                        // たし算：答えマスの境界線上メモ（右境界上、答えバッジの真上）
-                        badge.style.top = '-20px';
-                        badge.style.right = '-7px';
+                        // たし算：答えマスの境界線上メモ（メモ枠と被らないよう、メモ枠の真上に配置）
+                        badge.style.top = '-34px';
+                        badge.style.right = '-9px';
                         badge.style.bottom = 'auto';
                         badge.style.left = 'auto';
                         badge.style.background = '#DC2626'; // 赤色バッジ（メモ手順）
                         badge.title = `手順${orderIdx + 1}: くり上がりメモ`;
-                    } else if (key.includes('note') || key.includes('bubble')) {
-                        badge.style.top = '-20px';
-                        badge.style.left = '-12px';
+                    } else if (key.startsWith('note-r1-c')) {
+                        // ひき算：引かれる数の左肩メモ（メモ枠と被らないよう、メモ枠の真上に配置）
+                        badge.style.top = '-34px';
+                        badge.style.left = '-9px';
                         badge.style.bottom = 'auto';
                         badge.style.right = 'auto';
                         badge.style.background = '#DC2626'; // 赤色バッジ（メモ手順）
-                        badge.title = `手順${orderIdx + 1}: くり上がり・繰り下がりメモ`;
+                        badge.title = `手順${orderIdx + 1}: 繰り下がりメモ`;
+                    } else if (key.startsWith('topnote')) {
+                        // 最上段スタイル：セルの左肩
+                        badge.style.top = '-8px';
+                        badge.style.left = '-8px';
+                        badge.style.bottom = 'auto';
+                        badge.style.right = 'auto';
+                        badge.style.background = '#DC2626'; // 赤色バッジ（メモ手順）
+                        badge.title = `手順${orderIdx + 1}: くり上がりメモ`;
                     } else {
                         badge.style.bottom = '-7px';
                         badge.style.right = '-7px';
