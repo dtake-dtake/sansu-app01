@@ -1445,23 +1445,26 @@
             } else {
                 // ★ 次の位（標準・教科書仕様）の場合の入力順
                 if (pattern === 'ans_rtl_memo_before') {
-                    // ② 【下の位から・繰り上がりメモを先に入力】（慎重派・位ごとの繰り上がりメモ先）
-                    // 修正点：計算は一番下の位（Col 0）から開始。
-                    // Col 0は入ってくるメモがないため答え（ans-c0）から開始。
-                    // Col 1以降は、前の桁から繰り上がってきたメモ（ansnote-c1）を先に書き、その後当位の答え（ans-c1）を書く。
+                    // ② 【下の位から・繰り上がりメモを先に入力】（各桁で発生した繰り上がりメモを先に書き、その後に答えを書く）
                     gm.colResults.forEach(cr => {
                         const cIdx = cr.colIdxFromRight;
-                        const inNoteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
-                        if (showMemo && cr.carryIn > 0 && answers[inNoteKey] !== undefined) {
-                            inputOrder.push(inNoteKey);
+                        const nextCol = cIdx + 1;
+                        const isNextHighest = (nextCol === gm.maxLen);
+                        const outNoteKey = isTopRowMemo ? `topnote-c${nextCol}` : `ansnote-c${nextCol}`;
+
+                        // ① 発生した繰り上がりメモを先に入力
+                        if (showMemo && cr.carryOut > 0) {
+                            if (!isNextHighest || writeHighestMemo) {
+                                inputOrder.push(outNoteKey);
+                            }
                         }
+
+                        // ② 当位の答えを入力
                         inputOrder.push(`ans-c${cIdx}`);
                     });
+
+                    // 最上位の答え
                     if (gm.hasHighestOverflow) {
-                        if (writeHighestMemo) {
-                            const topHighestKey = isTopRowMemo ? `topnote-c${gm.maxLen}` : `ansnote-c${gm.maxLen}`;
-                            inputOrder.push(topHighestKey);
-                        }
                         inputOrder.push(`ans-c${gm.maxLen}`);
                     }
                 } else {
@@ -1472,10 +1475,10 @@
                         const isNextHighest = (nextCol === gm.maxLen);
                         const outNoteKey = isTopRowMemo ? `topnote-c${nextCol}` : `ansnote-c${nextCol}`;
 
-                        // ① 当位の答え
+                        // ① 当位の答えを入力
                         inputOrder.push(`ans-c${cIdx}`);
 
-                        // ② 次の位への繰り上がりメモ
+                        // ② 発生した繰り上がりメモを後に入力
                         if (showMemo && cr.carryOut > 0) {
                             if (!isNextHighest || writeHighestMemo) {
                                 inputOrder.push(outNoteKey);
