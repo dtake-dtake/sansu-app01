@@ -466,11 +466,11 @@
             font-weight: bold;
         }
 
-        /* くり上がりメモ：答えマス左上（小3〜4） */
+        /* くり上がりメモ：答えマスの境界線上（ノート仕様・小3〜4） */
         .input-cell.carry-note {
             position: absolute;
-            top: 2.5px;
-            left: 2.5px;
+            top: -10px;
+            left: -10px;
             width: 20px;
             height: 20px;
             font-size: 0.85rem;
@@ -482,7 +482,7 @@
             text-align: center;
             line-height: 18px;
             outline: none;
-            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
             transition: all 0.15s ease;
             padding: 0;
             margin: 0;
@@ -1712,8 +1712,8 @@
                     badge.style.display = state.showBadges ? 'flex' : 'none';
 
                     if (key.includes('note') || key.includes('bubble')) {
-                        badge.style.top = '-7px';
-                        badge.style.left = '-7px';
+                        badge.style.top = '-20px';
+                        badge.style.left = '-12px';
                         badge.style.bottom = 'auto';
                         badge.style.right = 'auto';
                         badge.style.background = '#DC2626'; // 赤色バッジ（メモ手順）
