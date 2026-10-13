@@ -466,7 +466,7 @@
             font-weight: bold;
         }
 
-        /* くり上がりメモ：答えマスの境界線上（ノート仕様・小3〜4） */
+        /* くり上がり・繰り下がりメモ基本スタイル */
         .input-cell.carry-note {
             position: absolute;
             top: -10px;
@@ -489,6 +489,15 @@
             z-index: 20;
         }
 
+        /* たし算答えマスの境界線上メモ（ノート仕様・小3〜4）
+           ★各桁への繰り上がりは前桁との境界線（マスの右境界）上に配置され、
+             答え入力マス（右下バッジ）の真上に整列する！ */
+        .cell.has-carry .input-cell.carry-note,
+        .input-cell.add-carry-note {
+            left: auto;
+            right: -10px;
+        }
+
         .input-cell.carry-note:focus {
             border: 2px solid #D32F2F;
             background-color: #FFEBEE;
@@ -498,8 +507,9 @@
         }
 
         .cell.has-carry .input-ans {
-            padding-top: 10px;
-            padding-left: 10px;
+            padding-top: 8px;
+            padding-left: 0;
+            padding-right: 0;
             font-size: 1.95rem;
         }
 
@@ -1684,7 +1694,7 @@
                 gridHtml += `
                 <div class="cell no-border-bottom ${isLastCol ? 'no-border-right' : ''} ${hasCarryNote ? 'has-carry' : ''}">
                     ${hasCarryNote ? `
-                        <input type="tel" inputmode="numeric" class="input-cell carry-note" id="${noteKey}" data-key="${noteKey}" maxlength="1">
+                        <input type="tel" inputmode="numeric" class="input-cell carry-note add-carry-note" id="${noteKey}" data-key="${noteKey}" maxlength="1">
                     ` : ''}
                     ${needAnsInput ? `
                         <input type="tel" inputmode="numeric" class="input-ans auto-ans" id="${ansKey}" data-key="${ansKey}" maxlength="1">
@@ -1701,7 +1711,7 @@
             attachStepOrderBadges();
         }
 
-        // --- 手順番号バッジの設置（メモは赤・左上、答えは青・右下） ---
+        // --- 手順番号バッジの設置（メモは赤、答えは青） ---
         function attachStepOrderBadges() {
             state.inputOrder.forEach((key, orderIdx) => {
                 const el = document.getElementById(key);
@@ -1711,7 +1721,15 @@
                     badge.textContent = orderIdx + 1;
                     badge.style.display = state.showBadges ? 'flex' : 'none';
 
-                    if (key.includes('note') || key.includes('bubble')) {
+                    if (key.includes('ansnote')) {
+                        // たし算：答えマスの境界線上メモ（右境界上、答えバッジの真上）
+                        badge.style.top = '-20px';
+                        badge.style.right = '-7px';
+                        badge.style.bottom = 'auto';
+                        badge.style.left = 'auto';
+                        badge.style.background = '#DC2626'; // 赤色バッジ（メモ手順）
+                        badge.title = `手順${orderIdx + 1}: くり上がりメモ`;
+                    } else if (key.includes('note') || key.includes('bubble')) {
                         badge.style.top = '-20px';
                         badge.style.left = '-12px';
                         badge.style.bottom = 'auto';
