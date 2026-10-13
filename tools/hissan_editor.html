@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ひっ算方式＆解き方スタイル設計エディタ (Hissan Style Lab)</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --c-primary: #2E7D32;
+            --c-primary-light: #E8F5E9;
+            --c-primary-dark: #1B5E20;
+            --c-accent: #E65100;
+            --c-accent-light: #FFF3E0;
+            --c-blue: #1565C0;
+            --c-blue-light: #E3F2FD;
+            --c-purple: #6A1B9A;
+            --c-purple-light: #F3E5F5;
+            --c-pink: #C2185B;
+            --c-pink-light: #FCE4EC;
+            
+            --c-bg: #F4F6F8;
+            --c-card: #FFFFFF;
+            --c-border: #CBD5E1;
+            --c-text: #1E293B;
+            --c-text-muted: #64748B;
+            
+            --grid-line-color: #CBD5E1;
+            --grid-border-color: #2E7D32;
+            --carry-color: #D32F2F;
+            --carry-border: #FFCDD2;
+            
+            --cell-size: 52px;
+            --cell-font-size: 2.1rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--c-bg);
+            color: var(--c-text);
+            padding: 16px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 6px rgba(46, 125, 50, 0.25);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--c-text);
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--c-text-muted);
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        /* メインコンテナ（左右2カラム） */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 440px 1fr;
+            gap: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 960px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* パネル共通 */
+        .panel {
+            background: var(--c-card);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+            border: 1.5px solid var(--c-border);
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--c-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--c-primary-light);
+        }
+
+        .panel-title .icon {
+            font-size: 1.3rem;
+        }
+
+        /* 児童スタイル選択セクション（目玉機能） */
+        .style-selector-area {
+            margin-bottom: 20px;
+            background: #F8FAFC;
+            padding: 14px;
+            border-radius: 14px;
+            border: 2px solid #E2E8F0;
+        }
+
+        .style-selector-label {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--c-primary-dark);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .style-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .style-card {
+            background: #FFFFFF;
+            border: 2px solid #CBD5E1;
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            position: relative;
+        }
+
+        .style-card:hover {
+            border-color: #94A3B8;
+            transform: translateY(-2px);
+        }
+
+        .style-card.active {
+            border-color: var(--c-primary);
+            background: #F1F8E9;
+            box-shadow: 0 3px 8px rgba(46, 125, 50, 0.15);
+        }
+
+        .style-card-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .badge-s1 { background: #E8F5E9; color: #2E7D32; }
+        .badge-s2 { background: #E3F2FD; color: #1565C0; }
+        .badge-s3 { background: #FFF3E0; color: #E65100; }
+        .badge-s4 { background: #F3E5F5; color: #6A1B9A; }
+
+        .style-card-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--c-text);
+            margin-bottom: 2px;
+        }
+
+        .style-card-desc {
+            font-size: 0.75rem;
+            color: var(--c-text-muted);
+            line-height: 1.3;
+        }
+
+        /* 演算タブ切り替え */
+        .op-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            background: #F1F5F9;
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .op-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--c-text-muted);
+            transition: all 0.15s;
+        }
+
+        .op-tab.active {
+            background: #FFFFFF;
+            color: var(--c-primary-dark);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        /* プリセットボタングループ */
+        .preset-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .btn-preset {
+            background: #FFFFFF;
+            border: 1.5px solid #CBD5E1;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #334155;
+            transition: all 0.15s;
+        }
+
+        .btn-preset:hover {
+            border-color: #94A3B8;
+            background: #F8FAFC;
+        }
+
+        .btn-preset.active {
+            background: var(--c-primary-light);
+            border-color: var(--c-primary);
+            color: var(--c-primary-dark);
+        }
+
+        /* たし算 手順プリセットスタイル */
+        .btn-flow {
+            background: #FFFFFF;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 10px;
+            padding: 8px 10px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-flow:hover {
+            border-color: #94A3B8;
+            background: #F8FAFC;
+        }
+
+        .btn-flow.active {
+            border-color: var(--c-primary);
+            background: #F1F8E9;
+            box-shadow: 0 2px 6px rgba(46, 125, 50, 0.15);
+        }
+
+        .btn-flow .flow-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .btn-flow .flow-text strong {
+            display: block;
+            font-size: 0.82rem;
+            color: #1E293B;
+        }
+
+        .btn-flow .flow-text small {
+            display: block;
+            font-size: 0.72rem;
+            color: #64748B;
+        }
+
+        /* カスタム数値入力 */
+        .custom-inputs-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            background: #F8FAFC;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #E2E8F0;
+        }
+
+        .custom-input-label {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--c-text-muted);
+        }
+
+        .input-val {
+            width: 88px;
+            padding: 6px 8px;
+            font-size: 1.1rem;
+            font-family: 'Courier Prime', monospace;
+            font-weight: 700;
+            text-align: center;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .input-val:focus {
+            border-color: var(--c-primary);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .btn-apply {
+            background: var(--c-primary);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 800;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-apply:hover {
+            background: var(--c-primary-dark);
+        }
+
+        /* ルール設定アコーディオン */
+        .rule-section {
+            border-top: 1.5px dashed #E2E8F0;
+            padding-top: 14px;
+            margin-top: 14px;
+        }
+
+        .rule-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .rule-label {
+            font-weight: 700;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rule-select {
+            padding: 5px 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 6px;
+            background: white;
+            color: #1E293B;
+            outline: none;
+        }
+
+        /* 右パネル：シミュレータ＆テストキャンバス */
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--c-primary-light);
+        }
+
+        .sim-status-badge {
+            background: #F1F8E9;
+            color: var(--c-primary-dark);
+            border: 1.5px solid #A5D6A7;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sim-canvas {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+            background: #FAFAFA;
+            border-radius: 16px;
+            border: 2px dashed #CBD5E1;
+            min-height: 380px;
+            position: relative;
+        }
+
+        /* 筆算グリッドスタイル */
+        .hissan-grid {
+            display: grid;
+            border: 2px solid var(--grid-border-color);
+            border-radius: 12px;
+            background: #FFFFFF;
+            user-select: none;
+            box-shadow: 0 4px 14px rgba(46, 125, 50, 0.1);
+            position: relative;
+        }
+
+        .cell {
+            border-right: 1px dashed var(--grid-line-color);
+            border-bottom: 1px dashed var(--grid-line-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--cell-font-size);
+            font-weight: bold;
+            font-family: "Courier Prime", monospace;
+            color: #1E293B;
+            position: relative;
+            box-sizing: border-box;
+            width: var(--cell-size);
+            height: var(--cell-size);
+        }
+
+        .cell.no-border-right {
+            border-right: none;
+        }
+
+        .cell.no-border-bottom {
+            border-bottom: none;
+        }
+
+        .cell.divider-bottom {
+            border-bottom: 3.5px solid #1E293B !important;
+        }
+
+        .cell.op-cell {
+            font-size: 1.8rem;
+            color: #2E7D32;
+            font-weight: bold;
+        }
+
+        /* くり上がりメモ：答えマス左上（小3〜4） */
+        .input-cell.carry-note {
+            position: absolute;
+            top: 2.5px;
+            left: 2.5px;
+            width: 20px;
+            height: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--carry-color);
+            border: 1.5px dashed var(--carry-border);
+            border-radius: 50%;
+            background-color: #FFFFFF;
+            text-align: center;
+            line-height: 18px;
+            outline: none;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            transition: all 0.15s ease;
+            padding: 0;
+            margin: 0;
+            z-index: 20;
+        }
+
+        .input-cell.carry-note:focus {
+            border: 2px solid #D32F2F;
+            background-color: #FFEBEE;
+            transform: scale(1.2);
+            box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.25);
+            z-index: 30;
+        }
+
+        .cell.has-carry .input-ans {
+            padding-top: 10px;
+            padding-left: 10px;
+            font-size: 1.95rem;
+        }
+
+        /* くり上がりメモ：一番上の段スタイル（小2導入・丸囲み） */
+        .cell.top-row-cell {
+            height: 38px;
+            background: #F8FAFC;
+        }
+
+        .carry-bubble-top {
+            width: 28px;
+            height: 28px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: var(--carry-color);
+            border: 1.5px dashed var(--carry-border);
+            border-radius: 50%;
+            background-color: #FFFFFF;
+            text-align: center;
+            line-height: 26px;
+            outline: none;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.15s;
+        }
+
+        .carry-bubble-top:focus {
+            border-color: #D32F2F;
+            background-color: #FFEBEE;
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.25);
+        }
+
+        /* 小数点 */
+        .decimal-dot {
+            position: absolute;
+            right: -3.5px;
+            bottom: 6px;
+            width: 7px;
+            height: 7px;
+            background-color: #0F172A;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* 斜線（ひき算の繰り下がり） */
+        .digit-val {
+            position: relative;
+            display: inline-block;
+        }
+
+        .digit-val.tap-cross {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 0 3px;
+            transition: background-color 0.15s;
+        }
+
+        .digit-val.tap-cross:hover {
+            background-color: #F1F8E9;
+        }
+
+        .crossed-out {
+            position: relative;
+        }
+        .crossed-out::after {
+            content: "";
+            position: absolute;
+            left: -10%;
+            top: 10%;
+            width: 120%;
+            height: 80%;
+            background: linear-gradient(to top right, transparent 44%, var(--carry-color) 45%, var(--carry-color) 55%, transparent 56%);
+            pointer-events: none;
+        }
+
+        /* 答え入力枠 */
+        .input-ans {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0;
+            background: #F4FBF7;
+            font-size: var(--cell-font-size);
+            font-weight: 800;
+            color: #1B5E20;
+            text-align: center;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            transition: all 0.15s ease;
+            font-family: "Courier Prime", monospace;
+        }
+
+        .input-ans:focus {
+            background-color: #FFFFFF;
+            box-shadow: inset 0 0 0 2.5px #2E7D32;
+        }
+
+        .input-ans.correct {
+            background-color: #C8E6C9 !important;
+            color: #1B5E20 !important;
+        }
+
+        .input-ans.wrong {
+            background-color: #FFCDD2 !important;
+            color: #991B1B !important;
+        }
+
+        .input-cell.correct {
+            background-color: #C8E6C9 !important;
+            color: #1B5E20 !important;
+        }
+
+        .input-cell.wrong {
+            background-color: #FFCDD2 !important;
+            color: #991B1B !important;
+        }
+
+        /* 手順番号バッジ（フォーカス順序を可視化） */
+        .step-order-badge {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: #2563EB;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 25;
+            pointer-events: none;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+        }
+
+        /* シミュレータ下部のアクション */
+        .sim-actions {
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sim {
+            padding: 10px 22px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-check {
+            background: var(--c-primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn-check:hover {
+            background: var(--c-primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #F1F5F9;
+            color: #475569;
+            border: 1.5px solid #CBD5E1;
+        }
+
+        .btn-reset:hover {
+            background: #E2E8F0;
+        }
+
+        .btn-demo {
+            background: #EEF2FF;
+            color: #4F46E5;
+            border: 1.5px solid #C7D2FE;
+        }
+
+        .btn-demo:hover {
+            background: #E0E7FF;
+        }
+
+        /* 判定メッセージ */
+        .judge-result-banner {
+            margin-top: 14px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.25s ease;
+            max-width: 500px;
+        }
+
+        .judge-result-banner.pass {
+            background: #DCEDC8;
+            color: #1B5E20;
+            border: 1.5px solid #81C784;
+            display: block;
+        }
+
+        .judge-result-banner.fail {
+            background: #FFCDD2;
+            color: #B71C1C;
+            border: 1.5px solid #E57373;
+            display: block;
+        }
+
+        /* ガイド表示 */
+        .sim-guide-box {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #F8FAFC;
+            border-radius: 10px;
+            border: 1px solid #E2E8F0;
+            width: 100%;
+            max-width: 540px;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .sim-guide-box strong {
+            color: var(--c-primary-dark);
+        }
+
+        /* 下部：設定JSONビューア */
+        .export-section {
+            margin-top: 24px;
+            grid-column: 1 / -1;
+            background: var(--c-card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1.5px solid var(--c-border);
+        }
+
+        .export-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .code-box {
+            background: #0F172A;
+            color: #F8FAFC;
+            padding: 14px;
+            border-radius: 10px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            max-height: 220px;
+        }
+
+        .btn-copy {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-copy:hover {
+            background: #1E293B;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <span class="header-badge">AI School 算数教育基盤</span>
+        <h1>ひっ算方式＆解き方スタイル設計エディタ</h1>
+        <p class="subtitle">児童が自分に合った解き方（メモ位置・入力順・暗算）を選べる、個別最適なひっ算システムの実験・設計シミュレータ</p>
+    </header>
+
+    <div class="app-layout">
+        <!-- 左パネル：設定・スタイル切り替え・問題選択 -->
+        <div class="panel">
+            <div class="panel-title">
+                <span class="icon">⚙️</span>
+                <span>スタイル＆問題設定</span>
+            </div>
+
+            <!-- ① 児童向けスタイル選択エリア（目玉） -->
+            <div class="style-selector-area">
+                <div class="style-selector-label">
+                    <span>🌟 児童が選ぶ解き方スタイル</span>
+                    <span style="font-size:0.75rem; color:#64748B;">（ワンクリック切替）</span>
+                </div>
+                <div class="style-cards">
+                    <div class="style-card active" onclick="setStyle('s1')" id="scard-s1">
+                        <span class="style-card-badge badge-s1">小3〜4 ノート風</span>
+                        <div class="style-card-title">① 答えマス左上</div>
+                        <div class="style-card-desc">答えのマス（3行目）の左上に小さくメモ。実戦的ノート仕様。</div>
+                    </div>
+                    <div class="style-card" onclick="setStyle('s2')" id="scard-s2">
+                        <span class="style-card-badge badge-s2">小2 導入風</span>
+                        <div class="style-card-title">② 一番上の段</div>
+                        <div class="style-card-desc">数字の上の独立行に丸囲みで大きくメモ。視覚的に整理。</div>
+                    </div>
+                    <div class="style-card" onclick="setStyle('s3')" id="scard-s3">
+                        <span class="style-card-badge badge-s3">暗算・塾速算</span>
+                        <div class="style-card-title">③ メモなし</div>
+                        <div class="style-card-desc">メモ枠非表示。答えのみをテンポよく直打ち。</div>
+                    </div>
+                    <div class="style-card" onclick="setStyle('s4')" id="scard-s4">
+                        <span class="style-card-badge badge-s4">個別最適</span>
+                        <div class="style-card-title">④ 自由・メモ任意</div>
+                        <div class="style-card-desc">メモは書いても空欄でもOK。タップしたマスから自由に解く。</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ② 演算タブ切り替え -->
+            <div class="op-tabs">
+                <button class="op-tab active" onclick="setOp('add')" id="tab-add">➕ たし算</button>
+                <button class="op-tab" onclick="setOp('sub')" id="tab-sub">➖ ひき算</button>
+                <button class="op-tab" onclick="setOp('mul')" id="tab-mul">✖️ かけ算</button>
+                <button class="op-tab" onclick="setOp('div')" id="tab-div">➗ わり算</button>
+            </div>
+
+            <!-- ③ 問題プリセット -->
+            <div style="font-size:0.85rem; font-weight:800; color:#475569; margin-bottom:6px;">問題プリセット：</div>
+            <div class="preset-group" id="preset-container">
+                <!-- JSで動的生成 -->
+            </div>
+
+            <!-- ④ カスタム数値入力 -->
+            <div class="custom-inputs-row">
+                <span class="custom-input-label" id="lbl-numA">上の数:</span>
+                <input type="text" id="custom-numA" class="input-val" value="4.86">
+                <span class="custom-input-label" id="lbl-opSymbol">＋</span>
+                <span class="custom-input-label" id="lbl-numB">下の数:</span>
+                <input type="text" id="custom-numB" class="input-val" value="3.17">
+                <button class="btn-apply" onclick="applyCustomProblem()">適用</button>
+            </div>
+
+            <!-- ⑤ たし算・ひき算 手順フロープリセット（今回の主役） -->
+            <div class="flow-preset-box" id="flow-preset-box" style="margin-bottom: 16px; background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: 12px; padding: 12px;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: #166534; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                    <span>🎯 たし算の手順パターン（手の運び）</span>
+                    <span style="font-size: 0.72rem; color: #15803D; font-weight: 700;">先生と定義した全体系</span>
+                </div>
+
+                <!-- 4つのメインパターンボタン -->
+                <div class="flow-btn-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                    <button class="btn-flow active" onclick="setAdditionFlowPattern('ans_rtl_memo_after')" id="flow-btn-after">
+                        <span class="flow-icon">📝</span>
+                        <div class="flow-text">
+                            <strong>① 下から・メモ後</strong>
+                            <small>答え書く → 繰上メモ</small>
+                        </div>
+                    </button>
+                    <button class="btn-flow" onclick="setAdditionFlowPattern('ans_rtl_memo_before')" id="flow-btn-before">
+                        <span class="flow-icon">⚡</span>
+                        <div class="flow-text">
+                            <strong>② 下から・メモ先</strong>
+                            <small>繰上メモ → 答え書く</small>
+                        </div>
+                    </button>
+                    <button class="btn-flow" onclick="setAdditionFlowPattern('ans_rtl_nomemo')" id="flow-btn-rtl-nomemo">
+                        <span class="flow-icon">🧮</span>
+                        <div class="flow-text">
+                            <strong>③ 下から・メモなし</strong>
+                            <small>暗算・答え直打ち</small>
+                        </div>
+                    </button>
+                    <button class="btn-flow" onclick="setAdditionFlowPattern('ans_ltr_nomemo')" id="flow-btn-ltr-nomemo">
+                        <span class="flow-icon">🚀</span>
+                        <div class="flow-text">
+                            <strong>④ 上の位から直打ち</strong>
+                            <small>左から先読み速算</small>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- サブオプション：最後の位のメモ ＆ 繰り上がりメモの所属位 -->
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; background: white; padding: 10px; border-radius: 8px; border: 1px solid #BBF7D0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: #14532D;">最後の位の繰り上がりメモ：</span>
+                        <div style="display: flex; gap: 8px;">
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;">
+                                <input type="radio" name="highestCarry" value="skip" checked onchange="setHighestCarryMode(this.value)">
+                                <span>書かない（直書き）</span>
+                            </label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;">
+                                <input type="radio" name="highestCarry" value="write" onchange="setHighestCarryMode(this.value)">
+                                <span>メモを書く</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #BBF7D0; padding-top: 6px;">
+                        <span style="font-weight: 700; color: #14532D;">繰上メモの所属位（マスの位置）：</span>
+                        <div style="display: flex; gap: 8px;">
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;" title="教科書標準：一の位のくり上がりは十の位（左の列）に書く">
+                                <input type="radio" name="memoColPos" value="next_col" checked onchange="setMemoColPosMode(this.value)">
+                                <span>次の位（左の列・標準）</span>
+                            </label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;" title="当位仕様：6+7=13のとき、このマスの左上に1、下に3と書く">
+                                <input type="radio" name="memoColPos" value="curr_col" onchange="setMemoColPosMode(this.value)">
+                                <span>計算した位（当位・同じマス）</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⑥ 教員・システム向け詳細ルール調整 -->
+            <div class="rule-section">
+                <div style="font-size:0.9rem; font-weight:800; color:var(--c-primary-dark); margin-bottom:10px;">
+                    🔧 詳細ルール・振る舞い設定
+                </div>
+                <div class="rule-row">
+                    <span class="rule-label">くり上がり・繰り下がりメモ採点：</span>
+                    <select class="rule-select" id="cfg-memo-rule" onchange="updateSimConfig()">
+                        <option value="required">必須（メモも合っていないと不合格）</option>
+                        <option value="optional" selected>任意（空欄でも答え合致で合格）</option>
+                        <option value="hidden">非表示（メモ枠自体を出さない）</option>
+                    </select>
+                </div>
+                <div class="rule-row">
+                    <span class="rule-label">フォーカス自動移動順序：</span>
+                    <select class="rule-select" id="cfg-flow-rule" onchange="updateSimConfig()">
+                        <option value="ans_first" selected>答え先（答え→メモ→次の答え）</option>
+                        <option value="memo_first">メモ先（メモ→答え→次のメモ）</option>
+                        <option value="free">自動移動なし（自由タップのみ）</option>
+                    </select>
+                </div>
+                <div class="rule-row">
+                    <span class="rule-label">ひき算の斜線（消し込み）：</span>
+                    <select class="rule-select" id="cfg-slash-rule" onchange="updateSimConfig()">
+                        <option value="auto" selected>メモ入力で自動斜線付与</option>
+                        <option value="tap">数字タップで斜線ON/OFF</option>
+                        <option value="none">斜線なし</option>
+                    </select>
+                </div>
+                <div class="rule-row">
+                    <span class="rule-label">手順番号バッジ表示：</span>
+                    <select class="rule-select" id="cfg-badge-rule" onchange="toggleBadges()">
+                        <option value="show" selected>表示する [①, ②, ③...]</option>
+                        <option value="hide">隠す</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右パネル：リアルタイム・シミュレータ＆テストキャンバス -->
+        <div class="panel">
+            <div class="sim-header">
+                <div class="panel-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;">
+                    <span class="icon">📱</span>
+                    <span>筆算シミュレータ（試し打ちキャンバス）</span>
+                </div>
+                <div class="sim-status-badge" id="sim-status-badge">
+                    <span>選択中: 小3〜4 ノート風</span>
+                </div>
+            </div>
+
+            <!-- シミュレータ本体 -->
+            <div class="sim-canvas">
+                <div id="grid-mount-point">
+                    <!-- 筆算グリッドが動的マウントされる -->
+                </div>
+
+                <!-- 判定結果バナー -->
+                <div class="judge-result-banner" id="judge-banner"></div>
+
+                <!-- シミュレータ下部のアクションボタン -->
+                <div class="sim-actions">
+                    <button class="btn-sim btn-check" onclick="checkSimAnswer()">
+                        <span>まるつけ [Enter]</span>
+                    </button>
+                    <button class="btn-sim btn-reset" onclick="resetSimInputs()">
+                        <span>クリア</span>
+                    </button>
+                    <button class="btn-sim btn-demo" onclick="runAutoDemo()">
+                        <span>▶️ 自動解答デモ</span>
+                    </button>
+                </div>
+
+                <!-- ガイド説明 -->
+                <div class="sim-guide-box" id="sim-guide-box">
+                    <strong>操作ガイド：</strong> 実際にキーボードで数字を入力すると、設定された順序で次のマスへ自動移動します。Backspaceで前のマスへ戻れます。
+                </div>
+            </div>
+        </div>
+
+        <!-- 下部：生成された設定JSON（今後のアプリでそのまま流用可能） -->
+        <div class="export-section">
+            <div class="export-header">
+                <div style="font-weight:800; font-size:1.05rem;">
+                    📋 アプリ用 設定データ（JSON）出力
+                </div>
+                <button class="btn-copy" onclick="copyConfigJson()">JSONをコピー</button>
+            </div>
+            <pre class="code-box" id="json-output"></pre>
+        </div>
+    </div>
+
+    <script>
+        // --- 状態管理ステート ---
+        const state = {
+            op: 'add',             // 'add' | 'sub' | 'mul' | 'div'
+            style: 's1',           // 's1' (答えマス左上) | 's2' (最上段) | 's3' (暗算・なし) | 's4' (自由・任意)
+            numA: '4.86',
+            numB: '3.17',
+            
+            // ルール設定
+            memoRule: 'optional',  // 'required' | 'optional' | 'hidden'
+            flowRule: 'ans_first', // 'ans_first' | 'memo_first' | 'free'
+            slashRule: 'auto',     // 'auto' | 'tap' | 'none'
+            showBadges: true,
+            
+            // たし算 手順パターン（話合いに基づく全体系）
+            addFlowPattern: 'ans_rtl_memo_after', // 'ans_rtl_memo_after' | 'ans_rtl_memo_before' | 'ans_rtl_nomemo' | 'ans_ltr_nomemo'
+            highestCarry: 'skip',                  // 'skip' (直書き) | 'write' (メモを書く)
+            memoColPos: 'next_col',               // 'next_col' (次の位・左の列・標準) | 'curr_col' (計算した位・当位・同じマス)
+            
+            // 算出されたデータ
+            gridModel: null,
+            inputOrder: [],
+            answers: {}
+        };
+
+        // --- プリセット問題の定義 ---
+        const presets = {
+            add: [
+                { label: '小4 小数2回繰り上がり', a: '4.86', b: '3.17' },
+                { label: '小4 空位の0があるたし算', a: '5.04', b: '4.07' },
+                { label: '小3 2けた+2けた（1回繰り上がり）', a: '38', b: '25' },
+                { label: '小3 3けた+3けた（2回繰り上がり）', a: '154', b: '267' },
+                { label: '小2 繰り上がり初導入', a: '28', b: '15' }
+            ],
+            sub: [
+                { label: '小4 小数の繰り下がり', a: '5.24', b: '2.87' },
+                { label: '小4 0を跨ぐ繰り下がり', a: '5.03', b: '2.67' },
+                { label: '小3 2けた-2けた（1回繰り下がり）', a: '52', b: '27' },
+                { label: '小3 3けた-3けた（2回繰り下がり）', a: '415', b: '137' },
+                { label: '小2 繰り下がり初導入', a: '43', b: '18' }
+            ],
+            mul: [
+                { label: '小3 2けた×1けた', a: '24', b: '3' },
+                { label: '小3 2けた×2けた', a: '48', b: '36' },
+                { label: '小4 末尾が0の工夫算', a: '240', b: '30' }
+            ],
+            div: [
+                { label: '小4 2けた÷1けた（あまりなし）', a: '75', b: '3' },
+                { label: '小4 3けた÷2けた（見当づけ）', a: '96', b: '23' }
+            ]
+        };
+
+        // --- スタイル定義メタデータ ---
+        const styleMeta = {
+            s1: { name: '小3〜4 ノート風', memoLoc: 'ans_tl', memoRule: 'optional', flow: 'ans_first', badge: 'badge-s1' },
+            s2: { name: '小2 導入風（一番上の段）', memoLoc: 'top_row', memoRule: 'required', flow: 'ans_first', badge: 'badge-s2' },
+            s3: { name: '暗算・塾速算（メモなし）', memoLoc: 'hidden', memoRule: 'hidden', flow: 'ans_first', badge: 'badge-s3' },
+            s4: { name: '個別最適（自由・メモ任意）', memoLoc: 'ans_tl', memoRule: 'optional', flow: 'free', badge: 'badge-s4' }
+        };
+
+        // --- 初期化 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const initOp = params.get('op') || 'add';
+            const initStyle = params.get('style') || 's1';
+            const initFlow = params.get('flow');
+            const initHighest = params.get('highest');
+            const initMemoCol = params.get('memoCol');
+            const numA = params.get('numA');
+            const numB = params.get('numB');
+
+            setOp(initOp);
+            setStyle(initStyle);
+            if (numA && numB) {
+                state.numA = numA;
+                state.numB = numB;
+                document.getElementById('custom-numA').value = numA;
+                document.getElementById('custom-numB').value = numB;
+            }
+            if (initFlow) setAdditionFlowPattern(initFlow);
+            if (initHighest) {
+                setHighestCarryMode(initHighest);
+                const radio = document.querySelector(`input[name="highestCarry"][value="${initHighest}"]`);
+                if (radio) radio.checked = true;
+            }
+            if (initMemoCol) {
+                setMemoColPosMode(initMemoCol);
+                const radio = document.querySelector(`input[name="memoColPos"][value="${initMemoCol}"]`);
+                if (radio) radio.checked = true;
+            }
+        });
+
+        // 演算切り替え
+        function setOp(op) {
+            state.op = op;
+            document.querySelectorAll('.op-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${op}`).classList.add('active');
+
+            const opMap = { add: '＋', sub: '－', mul: '×', div: '÷' };
+            document.getElementById('lbl-opSymbol').textContent = opMap[op];
+            document.getElementById('lbl-numA').textContent = (op === 'div') ? '割られる数:' : '上の数:';
+            document.getElementById('lbl-numB').textContent = (op === 'div') ? '割る数:' : '下の数:';
+
+            renderPresets();
+            // 先頭プリセットを適用
+            if (presets[op] && presets[op][0]) {
+                state.numA = presets[op][0].a;
+                state.numB = presets[op][0].b;
+                document.getElementById('custom-numA').value = state.numA;
+                document.getElementById('custom-numB').value = state.numB;
+            }
+
+            // たし算手順ボックスの表示切替
+            const flowBox = document.getElementById('flow-preset-box');
+            if (flowBox) flowBox.style.display = (op === 'add') ? 'block' : 'none';
+
+            recalcGrid();
+        }
+
+        // たし算 手順パターンの切り替え
+        function setAdditionFlowPattern(pattern) {
+            state.addFlowPattern = pattern;
+
+            // ボタンアクティブ表示の更新
+            document.querySelectorAll('.btn-flow').forEach(b => b.classList.remove('active'));
+            if (pattern === 'ans_rtl_memo_after') document.getElementById('flow-btn-after')?.classList.add('active');
+            else if (pattern === 'ans_rtl_memo_before') document.getElementById('flow-btn-before')?.classList.add('active');
+            else if (pattern === 'ans_rtl_nomemo') document.getElementById('flow-btn-rtl-nomemo')?.classList.add('active');
+            else if (pattern === 'ans_ltr_nomemo') document.getElementById('flow-btn-ltr-nomemo')?.classList.add('active');
+
+            // ルール設定の自動追従
+            if (pattern === 'ans_rtl_nomemo' || pattern === 'ans_ltr_nomemo') {
+                state.memoRule = 'hidden';
+                document.getElementById('cfg-memo-rule').value = 'hidden';
+            } else {
+                if (state.memoRule === 'hidden') {
+                    state.memoRule = 'optional';
+                    document.getElementById('cfg-memo-rule').value = 'optional';
+                }
+            }
+
+            recalcGrid();
+        }
+
+        // 最後の位の繰り上がりメモ設定
+        function setHighestCarryMode(mode) {
+            state.highestCarry = mode;
+            recalcGrid();
+        }
+
+        // 繰り上がりメモの所属位（次の位 vs 当位）
+        function setMemoColPosMode(mode) {
+            state.memoColPos = mode;
+            recalcGrid();
+        }
+
+        // スタイル切り替え
+        function setStyle(sKey) {
+            state.style = sKey;
+            document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`scard-${sKey}`).classList.add('active');
+
+            const meta = styleMeta[sKey];
+            document.getElementById('sim-status-badge').innerHTML = `<span>選択中: ${meta.name}</span>`;
+
+            // ルール設定をスタイルの推奨値に同期
+            document.getElementById('cfg-memo-rule').value = meta.memoRule;
+            document.getElementById('cfg-flow-rule').value = meta.flow;
+            state.memoRule = meta.memoRule;
+            state.flowRule = meta.flow;
+
+            recalcGrid();
+        }
+
+        // プリセット描画
+        function renderPresets() {
+            const container = document.getElementById('preset-container');
+            container.innerHTML = '';
+            const list = presets[state.op] || [];
+
+            list.forEach((p, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-preset ${idx === 0 ? 'active' : ''}`;
+                btn.textContent = p.label;
+                btn.onclick = () => {
+                    document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.numA = p.a;
+                    state.numB = p.b;
+                    document.getElementById('custom-numA').value = p.a;
+                    document.getElementById('custom-numB').value = p.b;
+                    recalcGrid();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // カスタム数値適用
+        function applyCustomProblem() {
+            const valA = document.getElementById('custom-numA').value.trim();
+            const valB = document.getElementById('custom-numB').value.trim();
+            if (!valA || !valB) return;
+            state.numA = valA;
+            state.numB = valB;
+            recalcGrid();
+        }
+
+        // 詳細設定の変更反映
+        function updateSimConfig() {
+            state.memoRule = document.getElementById('cfg-memo-rule').value;
+            state.flowRule = document.getElementById('cfg-flow-rule').value;
+            state.slashRule = document.getElementById('cfg-slash-rule').value;
+            recalcGrid();
+        }
+
+        // バッジ表示切り替え
+        function toggleBadges() {
+            state.showBadges = (document.getElementById('cfg-badge-rule').value === 'show');
+            const badges = document.querySelectorAll('.step-order-badge');
+            badges.forEach(b => b.style.display = state.showBadges ? 'flex' : 'none');
+        }
+
+        // --- 筆算グリッドモデルの計算＆構築 ---
+        function recalcGrid() {
+            document.getElementById('judge-banner').className = 'judge-result-banner';
+            document.getElementById('judge-banner').style.display = 'none';
+
+            if (state.op === 'add') {
+                buildAddGrid();
+            } else if (state.op === 'sub') {
+                buildSubGrid();
+            } else if (state.op === 'mul') {
+                buildMulGrid();
+            } else if (state.op === 'div') {
+                buildDivGrid();
+            }
+
+            renderGridToDom();
+            setupGridEventListeners();
+            updateJsonExport();
+        }
+
+        // --- たし算グリッド計算 ---
+        function buildAddGrid() {
+            const isDecimal = state.numA.includes('.') || state.numB.includes('.');
+            let nA = state.numA, nB = state.numB;
+            
+            // 桁揃え
+            let dLen = 0;
+            if (isDecimal) {
+                const decA = (nA.split('.')[1] || '').length;
+                const decB = (nB.split('.')[1] || '').length;
+                dLen = Math.max(decA, decB);
+                nA = parseFloat(nA).toFixed(dLen);
+                nB = parseFloat(nB).toFixed(dLen);
+            }
+
+            const strA = nA.replace('.', '');
+            const strB = nB.replace('.', '');
+            const maxLen = Math.max(strA.length, strB.length);
+            const padA = strA.padStart(maxLen, '0');
+            const padB = strB.padStart(maxLen, '0');
+
+            // 位ごとの足し算と繰り上がり計算
+            let carry = 0;
+            const colResults = []; // 右（一の位/小数最下位）から順
+            for (let i = maxLen - 1; i >= 0; i--) {
+                const digitA = parseInt(padA[i], 10);
+                const digitB = parseInt(padB[i], 10);
+                const sum = digitA + digitB + carry;
+                const ansDigit = sum % 10;
+                const nextCarry = Math.floor(sum / 10);
+                
+                colResults.push({
+                    colIdxFromRight: maxLen - 1 - i,
+                    dA: digitA,
+                    dB: digitB,
+                    carryIn: carry,
+                    ansDigit: ansDigit,
+                    carryOut: nextCarry
+                });
+                carry = nextCarry;
+            }
+
+            const hasHighestOverflow = carry > 0;
+            const totalCols = maxLen + 1; // 演算記号/最上位桁用 +1列
+            
+            // グリッド構築情報
+            state.gridModel = {
+                type: 'add',
+                isDecimal: isDecimal,
+                dLen: dLen,
+                padA: padA,
+                padB: padB,
+                colResults: colResults,
+                hasHighestOverflow: hasHighestOverflow,
+                totalCols: totalCols,
+                maxLen: maxLen,
+                carryHighest: carry
+            };
+
+            // 入力順（inputOrder）と正解マップ（answers）の構築
+            buildAddInputOrder();
+        }
+
+        // 入力順（inputOrder）の構築（先生との話合いに基づく全パターン完全対応）
+        function buildAddInputOrder() {
+            const inputOrder = [];
+            const answers = {};
+            const gm = state.gridModel;
+
+            const isTopRowMemo = (state.style === 's2');
+            const pattern = state.addFlowPattern; // 'ans_rtl_memo_after' | 'ans_rtl_memo_before' | 'ans_rtl_nomemo' | 'ans_ltr_nomemo'
+            const showMemo = (state.style !== 's3' && state.memoRule !== 'hidden' && pattern !== 'ans_rtl_nomemo' && pattern !== 'ans_ltr_nomemo');
+            const writeHighestMemo = (state.highestCarry === 'write');
+            const isCurrColMemo = (state.memoColPos === 'curr_col');
+
+            // 1. 各桁の正解値を answers マップに登録
+            if (isCurrColMemo) {
+                // 当位（同じマス仕様）：当位で発生した繰り上がり（carryOut）を当位の左上に書く
+                gm.colResults.forEach(cr => {
+                    const cIdx = cr.colIdxFromRight;
+                    answers[`ans-c${cIdx}`] = cr.ansDigit;
+                    const noteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
+                    if (cr.carryOut > 0) {
+                        answers[noteKey] = cr.carryOut;
+                    }
+                });
+                if (gm.hasHighestOverflow) {
+                    answers[`ans-c${gm.maxLen}`] = gm.carryHighest;
+                }
+            } else {
+                // 次の位（標準・教科書仕様）：各桁で発生した繰り上がりは「次の位（左の列）」に書く
+                gm.colResults.forEach(cr => {
+                    const cIdx = cr.colIdxFromRight;
+                    answers[`ans-c${cIdx}`] = cr.ansDigit;
+                    const noteKey = isTopRowMemo ? `topnote-c${cIdx + 1}` : `ansnote-c${cIdx + 1}`;
+                    if (cr.carryOut > 0) {
+                        if (cIdx + 1 < gm.maxLen || writeHighestMemo) {
+                            answers[noteKey] = cr.carryOut;
+                        }
+                    }
+                });
+                if (gm.hasHighestOverflow) {
+                    answers[`ans-c${gm.maxLen}`] = gm.carryHighest;
+                    if (writeHighestMemo) {
+                        const topHighestKey = isTopRowMemo ? `topnote-c${gm.maxLen}` : `ansnote-c${gm.maxLen}`;
+                        answers[topHighestKey] = gm.carryHighest;
+                    }
+                }
+            }
+
+            // 2. パターンに応じた inputOrder の構築
+            if (state.flowRule === 'free' || state.style === 's4') {
+                // 自由モード（メモは任意、どこからでも入力可）
+                for (let c = 0; c < gm.maxLen; c++) {
+                    inputOrder.push(`ans-c${c}`);
+                    const noteKey = isCurrColMemo 
+                        ? (isTopRowMemo ? `topnote-c${c}` : `ansnote-c${c}`)
+                        : (isTopRowMemo ? `topnote-c${c + 1}` : `ansnote-c${c + 1}`);
+                    if (showMemo && answers[noteKey] !== undefined) {
+                        inputOrder.push(noteKey);
+                    }
+                }
+                if (gm.hasHighestOverflow) {
+                    inputOrder.push(`ans-c${gm.maxLen}`);
+                }
+            } else if (pattern === 'ans_ltr_nomemo') {
+                // ④ 【上の位から直打ち】（先読み暗算・速算）
+                if (gm.hasHighestOverflow) {
+                    inputOrder.push(`ans-c${gm.maxLen}`);
+                }
+                for (let c = gm.maxLen - 1; c >= 0; c--) {
+                    inputOrder.push(`ans-c${c}`);
+                }
+            } else if (pattern === 'ans_rtl_nomemo') {
+                // ③ 【下の位から・メモなし】（暗算・標準）
+                for (let c = 0; c < gm.maxLen; c++) {
+                    inputOrder.push(`ans-c${c}`);
+                }
+                if (gm.hasHighestOverflow) {
+                    inputOrder.push(`ans-c${gm.maxLen}`);
+                }
+            } else if (isCurrColMemo) {
+                // ★ 当位（同じマス仕様）の場合の入力順
+                if (pattern === 'ans_rtl_memo_before') {
+                    // 当位・メモ先: 各桁で発生する繰り上がりメモを先に入力 → 答え
+                    gm.colResults.forEach(cr => {
+                        const cIdx = cr.colIdxFromRight;
+                        const noteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
+                        if (showMemo && cr.carryOut > 0) {
+                            inputOrder.push(noteKey);
+                        }
+                        inputOrder.push(`ans-c${cIdx}`);
+                    });
+                    if (gm.hasHighestOverflow) {
+                        inputOrder.push(`ans-c${gm.maxLen}`);
+                    }
+                } else {
+                    // 当位・メモ後: 各桁の答え → その桁で発生した繰り上がりメモ
+                    gm.colResults.forEach(cr => {
+                        const cIdx = cr.colIdxFromRight;
+                        const noteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
+                        inputOrder.push(`ans-c${cIdx}`);
+                        if (showMemo && cr.carryOut > 0) {
+                            inputOrder.push(noteKey);
+                        }
+                    });
+                    if (gm.hasHighestOverflow) {
+                        inputOrder.push(`ans-c${gm.maxLen}`);
+                    }
+                }
+            } else {
+                // ★ 次の位（標準・教科書仕様）の場合の入力順
+                if (pattern === 'ans_rtl_memo_before') {
+                    // ② 【下の位から・繰り上がりメモを先に入力】（慎重派・位ごとの繰り上がりメモ先）
+                    // 修正点：計算は一番下の位（Col 0）から開始。
+                    // Col 0は入ってくるメモがないため答え（ans-c0）から開始。
+                    // Col 1以降は、前の桁から繰り上がってきたメモ（ansnote-c1）を先に書き、その後当位の答え（ans-c1）を書く。
+                    gm.colResults.forEach(cr => {
+                        const cIdx = cr.colIdxFromRight;
+                        const inNoteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
+                        if (showMemo && cr.carryIn > 0 && answers[inNoteKey] !== undefined) {
+                            inputOrder.push(inNoteKey);
+                        }
+                        inputOrder.push(`ans-c${cIdx}`);
+                    });
+                    if (gm.hasHighestOverflow) {
+                        if (writeHighestMemo) {
+                            const topHighestKey = isTopRowMemo ? `topnote-c${gm.maxLen}` : `ansnote-c${gm.maxLen}`;
+                            inputOrder.push(topHighestKey);
+                        }
+                        inputOrder.push(`ans-c${gm.maxLen}`);
+                    }
+                } else {
+                    // ① 【下の位から・繰り上がりメモを後に入力】（教科書標準・当位の答え書く → 次の位へメモ）
+                    gm.colResults.forEach(cr => {
+                        const cIdx = cr.colIdxFromRight;
+                        const nextCol = cIdx + 1;
+                        const isNextHighest = (nextCol === gm.maxLen);
+                        const outNoteKey = isTopRowMemo ? `topnote-c${nextCol}` : `ansnote-c${nextCol}`;
+
+                        // ① 当位の答え
+                        inputOrder.push(`ans-c${cIdx}`);
+
+                        // ② 次の位への繰り上がりメモ
+                        if (showMemo && cr.carryOut > 0) {
+                            if (!isNextHighest || writeHighestMemo) {
+                                inputOrder.push(outNoteKey);
+                            }
+                        }
+                    });
+
+                    // 最上位の答え
+                    if (gm.hasHighestOverflow) {
+                        inputOrder.push(`ans-c${gm.maxLen}`);
+                    }
+                }
+            }
+
+            state.inputOrder = inputOrder;
+            state.answers = answers;
+        }
+
+        // --- ひき算グリッド計算 ---
+        function buildSubGrid() {
+            const isDecimal = state.numA.includes('.') || state.numB.includes('.');
+            let nA = state.numA, nB = state.numB;
+            
+            let dLen = 0;
+            if (isDecimal) {
+                const decA = (nA.split('.')[1] || '').length;
+                const decB = (nB.split('.')[1] || '').length;
+                dLen = Math.max(decA, decB);
+                nA = parseFloat(nA).toFixed(dLen);
+                nB = parseFloat(nB).toFixed(dLen);
+            }
+
+            const strA = nA.replace('.', '');
+            const strB = nB.replace('.', '');
+            const maxLen = Math.max(strA.length, strB.length);
+            const padA = strA.padStart(maxLen, '0');
+            const padB = strB.padStart(maxLen, '0');
+
+            // 繰り下がりシミュレーション
+            const digitsA = padA.split('').map(Number);
+            const digitsB = padB.split('').map(Number);
+            const borrowMemos = {}; // 各桁の小さくなった数
+            const answers = {};
+            const inputOrder = [];
+
+            const isTopRow = (state.style === 's2');
+            const showMemo = (state.style !== 's3' && state.memoRule !== 'hidden');
+
+            for (let i = maxLen - 1; i >= 0; i--) {
+                const cIdx = maxLen - 1 - i;
+                const ansKey = `ans-c${cIdx}`;
+
+                if (digitsA[i] < digitsB[i]) {
+                    // 繰り下がりが必要：上の桁から借りる
+                    let borrowFromIdx = i - 1;
+                    while (borrowFromIdx >= 0 && digitsA[borrowFromIdx] === 0) {
+                        borrowFromIdx--;
+                    }
+                    if (borrowFromIdx >= 0) {
+                        digitsA[borrowFromIdx] -= 1;
+                        const bFromCol = maxLen - 1 - borrowFromIdx;
+                        const memoKeyFrom = isTopRow ? `topnote-c${bFromCol}` : `note-r1-c${bFromCol}`;
+                        borrowMemos[memoKeyFrom] = digitsA[borrowFromIdx];
+
+                        // 0をまたいだ場合、間の0は9になる
+                        for (let z = borrowFromIdx + 1; z < i; z++) {
+                            digitsA[z] = 9;
+                            const zCol = maxLen - 1 - z;
+                            const zKey = isTopRow ? `topnote-c${zCol}` : `note-r1-c${zCol}`;
+                            borrowMemos[zKey] = 9;
+                        }
+
+                        digitsA[i] += 10;
+                    }
+                }
+
+                const diff = digitsA[i] - digitsB[i];
+                answers[ansKey] = diff;
+            }
+
+            // ひき算の入力順（借りるメモ先 or 答え先）
+            if (showMemo) {
+                Object.keys(borrowMemos).forEach(k => {
+                    answers[k] = borrowMemos[k];
+                    inputOrder.push(k);
+                });
+            }
+            for (let i = maxLen - 1; i >= 0; i--) {
+                const cIdx = maxLen - 1 - i;
+                inputOrder.push(`ans-c${cIdx}`);
+            }
+
+            state.gridModel = {
+                type: 'sub',
+                isDecimal: isDecimal,
+                dLen: dLen,
+                padA: padA,
+                padB: padB,
+                borrowMemos: borrowMemos,
+                totalCols: maxLen + 1,
+                maxLen: maxLen
+            };
+
+            state.inputOrder = inputOrder;
+            state.answers = answers;
+        }
+
+        // --- かけ算・わり算の簡易スタブ（構想用） ---
+        function buildMulGrid() {
+            state.gridModel = { type: 'mul' };
+            state.inputOrder = ['ans-1'];
+            state.answers = { 'ans-1': '0' };
+        }
+        function buildDivGrid() {
+            state.gridModel = { type: 'div' };
+            state.inputOrder = ['ans-1'];
+            state.answers = { 'ans-1': '0' };
+        }
+
+        // --- DOMへのグリッド描画 ---
+        function renderGridToDom() {
+            const mount = document.getElementById('grid-mount-point');
+            const gm = state.gridModel;
+
+            if (gm.type === 'mul' || gm.type === 'div') {
+                mount.innerHTML = `
+                    <div style="text-align:center; padding:30px 20px; color:#64748B;">
+                        <div style="font-size:2rem; margin-bottom:10px;">🚧</div>
+                        <strong>かけ算・わり算のひっ算サイクル設計</strong><br>
+                        <span>（たし算・ひき算の基本ルール合意後、次のステップで追加実装いたします）</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const cols = gm.totalCols;
+            const isTopRow = (state.style === 's2');
+            const showMemo = (state.style !== 's3' && state.memoRule !== 'hidden');
+            const opSymbol = gm.type === 'add' ? '＋' : '－';
+
+            // グリッド全体の幅と列数
+            let gridHtml = `
+            <div class="hissan-grid" style="grid-template-columns: repeat(${cols}, var(--cell-size));">
+            `;
+
+            // ① 最上段（小2スタイル時のみ丸囲み行を上部に配置）
+            if (isTopRow) {
+                for (let c = cols - 1; c >= 0; c--) {
+                    const cIdx = c; // 右からの桁インデックス
+                    const key = `topnote-c${cIdx}`;
+                    const hasNote = state.inputOrder.includes(key);
+                    const isLastCol = (c === 0);
+
+                    gridHtml += `
+                    <div class="cell top-row-cell ${isLastCol ? 'no-border-right' : ''}">
+                        ${(showMemo && hasNote) ? `
+                            <input type="tel" inputmode="numeric" class="carry-bubble-top" id="${key}" data-key="${key}" maxlength="1">
+                        ` : ''}
+                    </div>
+                    `;
+                }
+            }
+
+            // ② 行1: 上の数（被加数・被減数）
+            for (let c = cols - 1; c >= 0; c--) {
+                const cFromRight = c;
+                const charIdx = gm.maxLen - 1 - cFromRight;
+                const digit = (charIdx >= 0 && charIdx < gm.padA.length) ? gm.padA[charIdx] : '';
+                const isDotHere = (gm.isDecimal && cFromRight === gm.dLen && digit !== '');
+                const isLastCol = (c === 0);
+
+                // ひき算時の繰り下がりメモ枠（小3〜4スタイル時：行1の左肩）
+                const noteKey = `note-r1-c${cFromRight}`;
+                const hasSubMemo = (gm.type === 'sub' && !isTopRow && showMemo && state.inputOrder.includes(noteKey));
+
+                gridHtml += `
+                <div class="cell ${isLastCol ? 'no-border-right' : ''}" id="cell-r1-c${cFromRight}">
+                    ${hasSubMemo ? `
+                        <input type="tel" inputmode="numeric" class="input-cell carry-note" id="${noteKey}" data-key="${noteKey}" maxlength="1">
+                    ` : ''}
+                    <span class="digit-val ${gm.type === 'sub' ? 'tap-cross' : ''}" id="digit-r1-c${cFromRight}">
+                        ${digit}
+                    </span>
+                    ${isDotHere ? '<span class="decimal-dot"></span>' : ''}
+                </div>
+                `;
+            }
+
+            // ③ 行2: 演算記号 と 下の数
+            for (let c = cols - 1; c >= 0; c--) {
+                const cFromRight = c;
+                const charIdx = gm.maxLen - 1 - cFromRight;
+                const digit = (charIdx >= 0 && charIdx < gm.padB.length) ? gm.padB[charIdx] : '';
+                const isOpCell = (c === cols - 1);
+                const isDotHere = (gm.isDecimal && cFromRight === gm.dLen && digit !== '');
+                const isLastCol = (c === 0);
+
+                gridHtml += `
+                <div class="cell divider-bottom ${isOpCell ? 'op-cell' : ''} ${isLastCol ? 'no-border-right' : ''}">
+                    ${isOpCell ? opSymbol : `<span class="digit-val">${digit}</span>`}
+                    ${isDotHere ? '<span class="decimal-dot"></span>' : ''}
+                </div>
+                `;
+            }
+
+            // ④ 行3: 答え入力マス
+            for (let c = cols - 1; c >= 0; c--) {
+                const cFromRight = c;
+                const ansKey = `ans-c${cFromRight}`;
+                const noteKey = `ansnote-c${cFromRight}`;
+                const needAnsInput = state.inputOrder.includes(ansKey);
+                const hasCarryNote = (gm.type === 'add' && !isTopRow && showMemo && state.inputOrder.includes(noteKey));
+                const isDotHere = (gm.isDecimal && cFromRight === gm.dLen && needAnsInput);
+                const isLastCol = (c === 0);
+
+                gridHtml += `
+                <div class="cell no-border-bottom ${isLastCol ? 'no-border-right' : ''} ${hasCarryNote ? 'has-carry' : ''}">
+                    ${hasCarryNote ? `
+                        <input type="tel" inputmode="numeric" class="input-cell carry-note" id="${noteKey}" data-key="${noteKey}" maxlength="1">
+                    ` : ''}
+                    ${needAnsInput ? `
+                        <input type="tel" inputmode="numeric" class="input-ans auto-ans" id="${ansKey}" data-key="${ansKey}" maxlength="1">
+                    ` : ''}
+                    ${isDotHere ? '<span class="decimal-dot"></span>' : ''}
+                </div>
+                `;
+            }
+
+            gridHtml += `</div>`;
+            mount.innerHTML = gridHtml;
+
+            // 手順バッジの付与
+            attachStepOrderBadges();
+        }
+
+        // --- 手順番号バッジの設置（メモは赤・左上、答えは青・右下） ---
+        function attachStepOrderBadges() {
+            state.inputOrder.forEach((key, orderIdx) => {
+                const el = document.getElementById(key);
+                if (el && el.parentElement) {
+                    const badge = document.createElement('div');
+                    badge.className = 'step-order-badge';
+                    badge.textContent = orderIdx + 1;
+                    badge.style.display = state.showBadges ? 'flex' : 'none';
+
+                    if (key.includes('note') || key.includes('bubble')) {
+                        badge.style.top = '-7px';
+                        badge.style.left = '-7px';
+                        badge.style.bottom = 'auto';
+                        badge.style.right = 'auto';
+                        badge.style.background = '#DC2626'; // 赤色バッジ（メモ手順）
+                        badge.title = `手順${orderIdx + 1}: くり上がり・繰り下がりメモ`;
+                    } else {
+                        badge.style.bottom = '-7px';
+                        badge.style.right = '-7px';
+                        badge.style.top = 'auto';
+                        badge.style.left = 'auto';
+                        badge.style.background = '#2563EB'; // 青色バッジ（答え入力）
+                        badge.title = `手順${orderIdx + 1}: 答えの入力`;
+                    }
+
+                    el.parentElement.appendChild(badge);
+                }
+            });
+        }
+
+        // --- イベントリスナー設定（キーボード＆フォーカス制御） ---
+        function setupGridEventListeners() {
+            const inputs = Array.from(document.querySelectorAll('.hissan-grid input'));
+
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.select();
+                });
+
+                input.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 1);
+                    this.classList.remove('correct', 'wrong');
+
+                    // ひき算の自動斜線判定
+                    if (state.op === 'sub' && state.slashRule === 'auto') {
+                        const key = this.dataset.key || '';
+                        if (key.startsWith('note-r1-c') || key.startsWith('topnote-c')) {
+                            const cIdx = key.replace(/^(note-r1-c|topnote-c)/, '');
+                            const digitEl = document.getElementById(`digit-r1-c${cIdx}`);
+                            if (digitEl) {
+                                if (this.value.length > 0) digitEl.classList.add('crossed-out');
+                                else digitEl.classList.remove('crossed-out');
+                            }
+                        }
+                    }
+
+                    // 1文字入力で次へ移動
+                    if (this.value.length >= 1 && state.flowRule !== 'free') {
+                        moveSimFocus(this, 1);
+                    }
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value === '') {
+                        e.preventDefault();
+                        if (state.flowRule !== 'free') moveSimFocus(this, -1);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        checkSimAnswer();
+                    }
+                });
+            });
+
+            // 手動タップ斜線（tapモード時）
+            if (state.op === 'sub') {
+                const digits = document.querySelectorAll('.digit-val.tap-cross');
+                digits.forEach(d => {
+                    d.onclick = () => {
+                        if (state.slashRule === 'tap') d.classList.toggle('crossed-out');
+                    };
+                });
+            }
+
+            // 初期フォーカス
+            if (state.inputOrder.length > 0) {
+                const first = document.getElementById(state.inputOrder[0]);
+                if (first) first.focus();
+            }
+        }
+
+        // フォーカス移動
+        function moveSimFocus(currentInput, dir) {
+            const currentKey = currentInput.dataset.key;
+            const currentIdx = state.inputOrder.indexOf(currentKey);
+            if (currentIdx === -1) return;
+
+            const nextIdx = currentIdx + dir;
+            if (nextIdx >= 0 && nextIdx < state.inputOrder.length) {
+                const nextEl = document.getElementById(state.inputOrder[nextIdx]);
+                if (nextEl) nextEl.focus();
+            }
+        }
+
+        // --- シミュレータまるつけ判定 ---
+        function checkSimAnswer() {
+            let allMatch = true;
+            let ansOnlyMatch = true;
+            const banner = document.getElementById('judge-banner');
+
+            state.inputOrder.forEach(key => {
+                const el = document.getElementById(key);
+                if (!el) return;
+                const userVal = el.value.trim();
+                const correctVal = String(state.answers[key]);
+                const isMatch = (userVal === correctVal);
+
+                const isAnswerField = key.startsWith('ans-');
+
+                if (isMatch) {
+                    el.classList.add('correct');
+                } else {
+                    if (isAnswerField) {
+                        allMatch = false;
+                        ansOnlyMatch = false;
+                        el.classList.add('wrong');
+                    } else {
+                        // メモ欄の場合
+                        if (state.memoRule === 'required') {
+                            allMatch = false;
+                            el.classList.add('wrong');
+                        } else if (state.memoRule === 'optional') {
+                            // 任意モード：空欄ならエラーにしない
+                            if (userVal !== '' && !isMatch) {
+                                el.classList.add('wrong');
+                            }
+                        }
+                    }
+                }
+            });
+
+            // スタイルごとの判定メッセージ
+            if (state.memoRule === 'required') {
+                if (allMatch) {
+                    banner.className = 'judge-result-banner pass';
+                    banner.innerHTML = `⭕ 完璧に正解！ 答えもメモもしっかり書けています！`;
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+                } else {
+                    banner.className = 'judge-result-banner fail';
+                    banner.innerHTML = `❌ 答えまたはメモを見直してみよう！`;
+                }
+            } else {
+                // 任意モード
+                if (ansOnlyMatch) {
+                    banner.className = 'judge-result-banner pass';
+                    banner.innerHTML = `⭕ 大正解！ 個別最適モード（メモは自由・暗算でもOK）で判定クリアです！`;
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+                } else {
+                    banner.className = 'judge-result-banner fail';
+                    banner.innerHTML = `❌ 答えの計算をもう一度確かめてみよう！`;
+                }
+            }
+        }
+
+        // 入力クリア
+        function resetSimInputs() {
+            document.querySelectorAll('.hissan-grid input').forEach(input => {
+                input.value = '';
+                input.classList.remove('correct', 'wrong');
+            });
+            document.querySelectorAll('.crossed-out').forEach(el => el.classList.remove('crossed-out'));
+            document.getElementById('judge-banner').className = 'judge-result-banner';
+            document.getElementById('judge-banner').style.display = 'none';
+
+            if (state.inputOrder.length > 0) {
+                const first = document.getElementById(state.inputOrder[0]);
+                if (first) first.focus();
+            }
+        }
+
+        // 自動解答デモ再生（手の動きをアニメーション）
+        function runAutoDemo() {
+            resetSimInputs();
+            let step = 0;
+
+            function playNext() {
+                if (step >= state.inputOrder.length) {
+                    checkSimAnswer();
+                    return;
+                }
+                const key = state.inputOrder[step];
+                const el = document.getElementById(key);
+                if (el) {
+                    el.focus();
+                    el.value = state.answers[key];
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                step++;
+                setTimeout(playNext, 450);
+            }
+            playNext();
+        }
+
+        // --- JSON出力更新 ---
+        function updateJsonExport() {
+            const out = {
+                styleId: state.style,
+                styleName: styleMeta[state.style].name,
+                operation: state.op,
+                additionFlowPattern: (state.op === 'add' ? state.addFlowPattern : undefined),
+                highestCarryPolicy: (state.op === 'add' ? state.highestCarry : undefined),
+                memoColumnPolicy: (state.op === 'add' ? state.memoColPos : undefined),
+                problem: { numA: state.numA, numB: state.numB },
+                memoPolicy: state.memoRule,
+                flowPolicy: state.flowRule,
+                inputOrder: state.inputOrder,
+                answers: state.answers
+            };
+            document.getElementById('json-output').textContent = JSON.stringify(out, null, 2);
+        }
+
+        function copyConfigJson() {
+            const text = document.getElementById('json-output').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('設定JSONをクリップボードにコピーしました！');
+            });
+        }
+    </script>
+</body>
+</html>
