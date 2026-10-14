@@ -144,8 +144,8 @@
 
         .style-cards {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
         }
 
         .style-card {
@@ -864,11 +864,11 @@
                 <span>スタイル＆問題設定</span>
             </div>
 
-            <!-- ① 児童向けスタイル選択エリア（目玉） -->
+            <!-- ① 児童向けスタイル選択エリア（メモ位置・有無の3スタイル） -->
             <div class="style-selector-area">
                 <div class="style-selector-label">
-                    <span>🌟 児童が選ぶ解き方スタイル</span>
-                    <span style="font-size:0.75rem; color:#64748B;">（ワンクリック切替）</span>
+                    <span>🌟 メモの位置・表示スタイル</span>
+                    <span style="font-size:0.75rem; color:#64748B;">（学年連動・切替可）</span>
                 </div>
                 <div class="style-cards">
                     <div class="style-card active" onclick="setStyle('s1')" id="scard-s1">
@@ -882,14 +882,9 @@
                         <div class="style-card-desc">数字の上の独立行に丸囲みで大きくメモ。視覚的に整理。</div>
                     </div>
                     <div class="style-card" onclick="setStyle('s3')" id="scard-s3">
-                        <span class="style-card-badge badge-s3">暗算・塾速算</span>
+                        <span class="style-card-badge badge-s3">暗算・直打ち</span>
                         <div class="style-card-title">③ メモなし</div>
                         <div class="style-card-desc">メモ枠非表示。答えのみをテンポよく直打ち。</div>
-                    </div>
-                    <div class="style-card" onclick="setStyle('s4')" id="scard-s4">
-                        <span class="style-card-badge badge-s4">個別最適</span>
-                        <div class="style-card-title">④ 自由・メモ任意</div>
-                        <div class="style-card-desc">メモは書いても空欄でもOK。タップしたマスから自由に解く。</div>
                     </div>
                 </div>
             </div>
@@ -903,7 +898,7 @@
             </div>
 
             <!-- ③ 問題プリセット -->
-            <div style="font-size:0.85rem; font-weight:800; color:#475569; margin-bottom:6px;">問題プリセット：</div>
+            <div style="font-size:0.85rem; font-weight:800; color:#475569; margin-bottom:6px;">問題プリセット（2けた〜5けた・小数）：</div>
             <div class="preset-group" id="preset-container">
                 <!-- JSで動的生成 -->
             </div>
@@ -922,7 +917,7 @@
             <div class="flow-preset-box" id="flow-preset-box" style="margin-bottom: 16px; background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: 12px; padding: 12px;">
                 <div style="font-size: 0.9rem; font-weight: 800; color: #166534; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
                     <span>🎯 たし算の4大基本パターン（書く順番）</span>
-                    <span style="font-size: 0.72rem; color: #15803D; font-weight: 700;">全角・半角フリー</span>
+                    <span style="font-size: 0.72rem; color: #15803D; font-weight: 700;">全角・半角・矢印キー対応</span>
                 </div>
 
                 <!-- 4つのメインパターンボタン -->
@@ -1010,7 +1005,6 @@
                     <select class="rule-select" id="cfg-flow-rule" onchange="updateSimConfig()">
                         <option value="ans_first" selected>答え先（答え→メモ→次の答え）</option>
                         <option value="memo_first">メモ先（メモ→答え→次のメモ）</option>
-                        <option value="free">自動移動なし（自由タップのみ）</option>
                     </select>
                 </div>
                 <div class="rule-row">
@@ -1067,7 +1061,7 @@
 
                 <!-- ガイド説明 -->
                 <div class="sim-guide-box" id="sim-guide-box">
-                    <strong>操作ガイド：</strong> キーボード（<strong>全角・半角どちらでも可</strong>）で数字を入力すると自動で次のマスへ進みます。小数点は<strong>「.」キー</strong>または<strong>小数点丸枠のタップ</strong>で打てます（Backspaceで戻れます）。
+                    <strong>操作ガイド：</strong> キーボード（<strong>全角・半角どちらでも可</strong>）で数字を入力すると自動で次のマスへ進みます。<strong>矢印キー（↑↓←→）</strong>で上下のメモ欄や隣の位へ自由に移動できます。小数点は<strong>「.」キー</strong>または<strong>丸枠タップ</strong>で打てます。
                 </div>
             </div>
         </div>
@@ -1104,13 +1098,13 @@
         // --- 状態管理ステート ---
         const state = {
             op: 'add',             // 'add' | 'sub' | 'mul' | 'div'
-            style: 's1',           // 's1' (答えマス境界線) | 's2' (一番上の段) | 's3' (暗算・なし) | 's4' (自由・任意)
+            style: 's1',           // 's1' (答えマス境界線) | 's2' (一番上の段) | 's3' (メモなし)
             numA: '4.86',
             numB: '3.17',
             
             // ルール設定
             memoRule: 'optional',  // 'required' | 'optional' | 'hidden'
-            flowRule: 'ans_first', // 'ans_first' | 'memo_first' | 'free'
+            flowRule: 'ans_first', // 'ans_first' | 'memo_first'
             slashRule: 'auto',     // 'auto' | 'tap' | 'none'
             showBadges: true,
             
@@ -1125,20 +1119,24 @@
             answers: {}
         };
 
-        // --- プリセット問題の定義 ---
+        // --- プリセット問題の定義（2けた〜5けた・小数に対応） ---
         const presets = {
             add: [
                 { label: '小4 小数2回繰り上がり', a: '4.86', b: '3.17', grade: 4 },
                 { label: '小4 空位の0があるたし算', a: '5.04', b: '4.07', grade: 4 },
-                { label: '小3 2けた+2けた（1回繰り上がり）', a: '38', b: '25', grade: 3 },
+                { label: '小4 4けた+4けた', a: '4685', b: '2749', grade: 4 },
+                { label: '小4 5けた+5けた', a: '48625', b: '37589', grade: 4 },
                 { label: '小3 3けた+3けた（2回繰り上がり）', a: '154', b: '267', grade: 3 },
+                { label: '小3 2けた+2けた（1回繰り上がり）', a: '38', b: '25', grade: 3 },
                 { label: '小2 繰り上がり初導入', a: '28', b: '15', grade: 2 }
             ],
             sub: [
                 { label: '小4 小数の繰り下がり', a: '5.24', b: '2.87', grade: 4 },
                 { label: '小4 0を跨ぐ繰り下がり', a: '5.03', b: '2.67', grade: 4 },
-                { label: '小3 2けた-2けた（1回繰り下がり）', a: '52', b: '27', grade: 3 },
+                { label: '小4 4けた-4けた', a: '5024', b: '1687', grade: 4 },
+                { label: '小4 5けた-5けた', a: '62405', b: '25738', grade: 4 },
                 { label: '小3 3けた-3けた（2回繰り下がり）', a: '415', b: '137', grade: 3 },
+                { label: '小3 2けた-2けた（1回繰り下がり）', a: '52', b: '27', grade: 3 },
                 { label: '小2 繰り下がり初導入', a: '43', b: '18', grade: 2 }
             ],
             mul: [
@@ -1152,12 +1150,11 @@
             ]
         };
 
-        // --- スタイル定義メタデータ ---
+        // --- スタイル定義メタデータ（3スタイル） ---
         const styleMeta = {
             s1: { name: '小3〜4 ノート風（答えマス境界線）', memoLoc: 'ans_tl', memoRule: 'optional', flow: 'ans_first', badge: 'badge-s1' },
             s2: { name: '小2 導入風（一番上の段）', memoLoc: 'top_row', memoRule: 'required', flow: 'ans_first', badge: 'badge-s2' },
-            s3: { name: '暗算・塾速算（メモなし）', memoLoc: 'hidden', memoRule: 'hidden', flow: 'ans_first', badge: 'badge-s3' },
-            s4: { name: '個別最適（自由・メモ任意）', memoLoc: 'ans_tl', memoRule: 'optional', flow: 'free', badge: 'badge-s4' }
+            s3: { name: '暗算・直打ち（メモなし）', memoLoc: 'hidden', memoRule: 'hidden', flow: 'ans_first', badge: 'badge-s3' }
         };
 
         // --- 初期化 ---
@@ -1172,12 +1169,13 @@
             const numB = params.get('numB');
 
             setOp(initOp);
-            setStyle(initStyle);
+            setStyle(styleMeta[initStyle] ? initStyle : 's1');
             if (numA && numB) {
                 state.numA = toHalfWidthNumberString(numA);
                 state.numB = toHalfWidthNumberString(numB);
                 document.getElementById('custom-numA').value = state.numA;
                 document.getElementById('custom-numB').value = state.numB;
+                recalcGrid();
             }
             if (initFlow) setAdditionFlowPattern(initFlow);
             if (initHighest) {
@@ -1230,11 +1228,21 @@
             else if (pattern === 'ans_rtl_nomemo') document.getElementById('flow-btn-rtl-nomemo')?.classList.add('active');
             else if (pattern === 'ans_ltr_nomemo') document.getElementById('flow-btn-ltr-nomemo')?.classList.add('active');
 
-            // ルール設定の自動追従
+            // ルール設定および上部スタイルカードの自動追従
             if (pattern === 'ans_rtl_nomemo' || pattern === 'ans_ltr_nomemo') {
                 state.memoRule = 'hidden';
                 document.getElementById('cfg-memo-rule').value = 'hidden';
+                state.style = 's3';
+                document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+                document.getElementById('scard-s3')?.classList.add('active');
+                document.getElementById('sim-status-badge').innerHTML = `<span>選択中: ${styleMeta.s3.name}</span>`;
             } else {
+                if (state.style === 's3') {
+                    state.style = 's1';
+                    document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+                    document.getElementById('scard-s1')?.classList.add('active');
+                    document.getElementById('sim-status-badge').innerHTML = `<span>選択中: ${styleMeta.s1.name}</span>`;
+                }
                 if (state.memoRule === 'hidden') {
                     state.memoRule = 'optional';
                     document.getElementById('cfg-memo-rule').value = 'optional';
@@ -1258,9 +1266,10 @@
 
         // スタイル切り替え
         function setStyle(sKey) {
+            if (!styleMeta[sKey]) sKey = 's1';
             state.style = sKey;
             document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
-            document.getElementById(`scard-${sKey}`).classList.add('active');
+            document.getElementById(`scard-${sKey}`)?.classList.add('active');
 
             const meta = styleMeta[sKey];
             document.getElementById('sim-status-badge').innerHTML = `<span>選択中: ${meta.name}</span>`;
@@ -1270,6 +1279,20 @@
             document.getElementById('cfg-flow-rule').value = meta.flow;
             state.memoRule = meta.memoRule;
             state.flowRule = meta.flow;
+
+            // たし算の4大基本パターンとも連動
+            if (state.op === 'add') {
+                if (sKey === 's3' && (state.addFlowPattern === 'ans_rtl_memo_after' || state.addFlowPattern === 'ans_rtl_memo_before')) {
+                    state.addFlowPattern = 'ans_rtl_nomemo';
+                } else if ((sKey === 's1' || sKey === 's2') && (state.addFlowPattern === 'ans_rtl_nomemo' || state.addFlowPattern === 'ans_ltr_nomemo')) {
+                    state.addFlowPattern = 'ans_rtl_memo_after';
+                }
+                document.querySelectorAll('.btn-flow').forEach(b => b.classList.remove('active'));
+                if (state.addFlowPattern === 'ans_rtl_memo_after') document.getElementById('flow-btn-after')?.classList.add('active');
+                else if (state.addFlowPattern === 'ans_rtl_memo_before') document.getElementById('flow-btn-before')?.classList.add('active');
+                else if (state.addFlowPattern === 'ans_rtl_nomemo') document.getElementById('flow-btn-rtl-nomemo')?.classList.add('active');
+                else if (state.addFlowPattern === 'ans_ltr_nomemo') document.getElementById('flow-btn-ltr-nomemo')?.classList.add('active');
+            }
 
             recalcGrid();
         }
@@ -1846,6 +1869,11 @@
                     });
 
                     input.addEventListener('keydown', function(e) {
+                        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            moveFocusByArrow(this, e.key);
+                            return;
+                        }
                         const isDotKey = (
                             e.key === '.' || e.key === '．' || e.key === '。' || e.key === '・' || e.key === ',' ||
                             e.code === 'Period' || e.code === 'NumpadDecimal' ||
@@ -1898,6 +1926,13 @@
                 });
 
                 input.addEventListener('keydown', function(e) {
+                    // 矢印キー（↑↓←→）での自由移動
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        moveFocusByArrow(this, e.key);
+                        return;
+                    }
+
                     // どのマスにフォーカスがあっても、「.」キーを押したときに次の手順（または未入力のans-dot）が小数点なら反応させるサポート
                     const isDotKey = (
                         e.key === '.' || e.key === '．' || e.key === '。' || e.key === '・' ||
@@ -1956,7 +1991,7 @@
             }
         }
 
-        // フォーカス移動
+        // フォーカス移動（手順順）
         function moveSimFocus(currentInput, dir) {
             const currentKey = currentInput.dataset.key;
             const currentIdx = state.inputOrder.indexOf(currentKey);
@@ -1966,6 +2001,45 @@
             if (nextIdx >= 0 && nextIdx < state.inputOrder.length) {
                 const nextEl = document.getElementById(state.inputOrder[nextIdx]);
                 if (nextEl) nextEl.focus();
+            }
+        }
+
+        // 矢印キー（↑↓←→）による2次元空間フォーカス移動
+        function moveFocusByArrow(currentInput, arrowKey) {
+            const allInputs = Array.from(document.querySelectorAll('.hissan-grid input')).filter(el => el !== currentInput);
+            if (allInputs.length === 0) return;
+
+            const curRect = currentInput.getBoundingClientRect();
+            const curCx = curRect.left + curRect.width / 2;
+            const curCy = curRect.top + curRect.height / 2;
+
+            const candidates = allInputs.map(el => {
+                const r = el.getBoundingClientRect();
+                const cx = r.left + r.width / 2;
+                const cy = r.top + r.height / 2;
+                return { el, cx, cy, dx: cx - curCx, dy: cy - curCy };
+            });
+
+            let target = null;
+
+            if (arrowKey === 'ArrowLeft' || arrowKey === 'ArrowRight') {
+                const isLeft = (arrowKey === 'ArrowLeft');
+                const dirFiltered = candidates.filter(c => isLeft ? c.dx < -4 : c.dx > 4);
+                // 同じ高さの行（答え同士・メモ同士）を優先
+                const sameRow = dirFiltered.filter(c => Math.abs(c.dy) <= 18);
+                const pool = sameRow.length > 0 ? sameRow : dirFiltered;
+                pool.sort((a, b) => (Math.abs(a.dx) + Math.abs(a.dy) * 1.5) - (Math.abs(b.dx) + Math.abs(b.dy) * 1.5));
+                if (pool.length > 0) target = pool[0].el;
+            } else if (arrowKey === 'ArrowUp' || arrowKey === 'ArrowDown') {
+                const isUp = (arrowKey === 'ArrowUp');
+                const dirFiltered = candidates.filter(c => isUp ? c.dy < -8 : c.dy > 8);
+                // 水平距離が近い上下のマス（答え⇔くり上がりメモ、答え⇔小数点など）を優先
+                dirFiltered.sort((a, b) => (Math.abs(a.dx) * 1.8 + Math.abs(a.dy)) - (Math.abs(b.dx) * 1.8 + Math.abs(b.dy)));
+                if (dirFiltered.length > 0) target = dirFiltered[0].el;
+            }
+
+            if (target) {
+                target.focus();
             }
         }
 
