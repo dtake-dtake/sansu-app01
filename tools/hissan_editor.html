@@ -1210,43 +1210,116 @@
             s3: { name: '暗算・直打ち（メモなし）', memoLoc: 'hidden', memoRule: 'hidden', flow: 'ans_first', badge: 'badge-s3' }
         };
 
+        // --- スクロール位置と状態の自動保持（ブラウザ更新・リロード時にも位置・設定を完全維持） ---
+        const SCROLL_STORAGE_KEY = 'hissan_editor_scrollY';
+        const STATE_STORAGE_KEY = 'hissan_editor_state';
+        let isRestoringScroll = false;
+
+        window.addEventListener('scroll', () => {
+            if (!isRestoringScroll) {
+                try {
+                    sessionStorage.setItem(SCROLL_STORAGE_KEY, String(window.scrollY));
+                } catch (e) {}
+            }
+        }, { passive: true });
+
+        function restoreScrollPosition() {
+            try {
+                const savedY = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+                if (savedY !== null) {
+                    isRestoringScroll = true;
+                    const targetY = parseInt(savedY, 10);
+                    window.scrollTo({ top: targetY, behavior: 'instant' });
+                    requestAnimationFrame(() => {
+                        window.scrollTo({ top: targetY, behavior: 'instant' });
+                        setTimeout(() => { isRestoringScroll = false; }, 100);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        // 状態（URLクエリパラメータおよびsessionStorage）の同期
+        function syncStateToUrlAndStorage() {
+            try {
+                const params = new URLSearchParams();
+                params.set('op', state.op);
+                params.set('style', state.style);
+                params.set('numA', state.numA);
+                params.set('numB', state.numB);
+                if (state.op === 'add') {
+                    params.set('flow', state.addFlowPattern);
+                    params.set('highest', state.highestCarry);
+                } else if (state.op === 'sub') {
+                    params.set('subflow', state.subFlowPattern);
+                }
+                params.set('decimal', state.decimalRule);
+
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.replaceState(null, '', newUrl);
+
+                sessionStorage.setItem(STATE_STORAGE_KEY, JSON.stringify({
+                    op: state.op,
+                    style: state.style,
+                    numA: state.numA,
+                    numB: state.numB,
+                    addFlowPattern: state.addFlowPattern,
+                    subFlowPattern: state.subFlowPattern,
+                    highestCarry: state.highestCarry,
+                    decimalRule: state.decimalRule
+                }));
+            } catch (e) {}
+        }
+
         // --- 初期化 ---
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
-            const initOp = params.get('op') || 'add';
-            const initStyle = params.get('style') || 's1';
-            const initFlow = params.get('flow');
-            const initSubFlow = params.get('subflow');
-            const initHighest = params.get('highest');
-            const initDecimal = params.get('decimal');
-            const numA = params.get('numA');
-            const numB = params.get('numB');
+            let savedState = null;
+            try {
+                const raw = sessionStorage.getItem(STATE_STORAGE_KEY);
+                if (raw) savedState = JSON.parse(raw);
+            } catch (e) {}
 
-            setOp(initOp);
-            setStyle(styleMeta[initStyle] ? initStyle : 's1');
+            const initOp = params.get('op') || savedState?.op || 'add';
+            const initStyle = params.get('style') || savedState?.style || 's1';
+            const initFlow = params.get('flow') || savedState?.addFlowPattern;
+            const initSubFlow = params.get('subflow') || savedState?.subFlowPattern;
+            const initHighest = params.get('highest') || savedState?.highestCarry;
+            const initDecimal = params.get('decimal') || savedState?.decimalRule;
+            const numA = params.get('numA') || savedState?.numA;
+            const numB = params.get('numB') || savedState?.numB;
+
+            setOp(initOp, false);
+            setStyle(styleMeta[initStyle] ? initStyle : 's1', false);
             if (numA && numB) {
                 state.numA = toHalfWidthNumberString(numA);
                 state.numB = toHalfWidthNumberString(numB);
                 document.getElementById('custom-numA').value = state.numA;
                 document.getElementById('custom-numB').value = state.numB;
-                recalcGrid();
             }
-            if (initFlow) setAdditionFlowPattern(initFlow);
-            if (initSubFlow) setSubtractionFlowPattern(initSubFlow);
+            if (initFlow) setAdditionFlowPattern(initFlow, false);
+            if (initSubFlow) setSubtractionFlowPattern(initSubFlow, false);
             if (initHighest) {
-                setHighestCarryMode(initHighest);
+                setHighestCarryMode(initHighest, false);
                 const radio = document.querySelector(`input[name="highestCarry"][value="${initHighest}"]`);
                 if (radio) radio.checked = true;
             }
             if (initDecimal) {
-                setDecimalRuleMode(initDecimal);
+                setDecimalRuleMode(initDecimal, false);
                 const radio = document.querySelector(`input[name="decimalRule"][value="${initDecimal}"]`);
                 if (radio) radio.checked = true;
             }
+
+            recalcGrid();
+            syncStateToUrlAndStorage();
+            restoreScrollPosition();
+        });
+
+        window.addEventListener('load', () => {
+            restoreScrollPosition();
         });
 
         // 演算切り替え
-        function setOp(op) {
+        function setOp(op, doRecalc = true) {
             state.op = op;
             document.querySelectorAll('.op-tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${op}`).classList.add('active');
@@ -1303,11 +1376,11 @@
                 }
             }
 
-            recalcGrid();
+            if (doRecalc) recalcGrid();
         }
 
         // たし算 手順パターンの切り替え
-        function setAdditionFlowPattern(pattern) {
+        function setAdditionFlowPattern(pattern, doRecalc = true) {
             state.addFlowPattern = pattern;
 
             // ボタンアクティブ表示の更新
@@ -1338,11 +1411,11 @@
                 }
             }
 
-            recalcGrid();
+            if (doRecalc) recalcGrid();
         }
 
         // ひき算 手順パターンの切り替え
-        function setSubtractionFlowPattern(pattern) {
+        function setSubtractionFlowPattern(pattern, doRecalc = true) {
             state.subFlowPattern = pattern;
 
             document.querySelectorAll('#sub-flow-group .btn-flow').forEach(b => b.classList.remove('active'));
@@ -1370,23 +1443,23 @@
                 }
             }
 
-            recalcGrid();
+            if (doRecalc) recalcGrid();
         }
 
         // 一番上の位の繰り上がりメモ設定
-        function setHighestCarryMode(mode) {
+        function setHighestCarryMode(mode, doRecalc = true) {
             state.highestCarry = mode;
-            recalcGrid();
+            if (doRecalc) recalcGrid();
         }
 
         // 答えの小数点ルール設定（before: 初めに打つ | pass: 通り道で打つ | after: 最後に打つ | auto: 自動表示）
-        function setDecimalRuleMode(mode) {
+        function setDecimalRuleMode(mode, doRecalc = true) {
             state.decimalRule = mode;
-            recalcGrid();
+            if (doRecalc) recalcGrid();
         }
 
         // スタイル切り替え
-        function setStyle(sKey) {
+        function setStyle(sKey, doRecalc = true) {
             if (!styleMeta[sKey]) sKey = 's1';
             state.style = sKey;
             document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
@@ -1425,7 +1498,7 @@
                 else if (state.subFlowPattern === 'sub_ltr_nomemo') document.getElementById('sub-flow-btn-ltr-nomemo')?.classList.add('active');
             }
 
-            recalcGrid();
+            if (doRecalc) recalcGrid();
         }
 
         // プリセット描画（学年に応じてメモ位置スタイルも自動連動）
@@ -1505,6 +1578,8 @@
             renderGridToDom();
             setupGridEventListeners();
             updateJsonExport();
+            syncStateToUrlAndStorage();
+            restoreScrollPosition();
         }
 
         // --- たし算グリッド計算 ---
@@ -2144,7 +2219,7 @@
                         if (dotEl) {
                             e.preventDefault();
                             fillDecimalDot(dotEl, false);
-                            dotEl.focus();
+                            dotEl.focus({ preventScroll: true });
                             if (state.flowRule !== 'free') {
                                 moveSimFocus(dotEl, 1);
                             }
@@ -2188,7 +2263,7 @@
             // 初期フォーカス
             if (state.inputOrder.length > 0) {
                 const first = document.getElementById(state.inputOrder[0]);
-                if (first) first.focus();
+                if (first) first.focus({ preventScroll: true });
             }
         }
 
@@ -2201,7 +2276,7 @@
             const nextIdx = currentIdx + dir;
             if (nextIdx >= 0 && nextIdx < state.inputOrder.length) {
                 const nextEl = document.getElementById(state.inputOrder[nextIdx]);
-                if (nextEl) nextEl.focus();
+                if (nextEl) nextEl.focus({ preventScroll: true });
             }
         }
 
@@ -2240,7 +2315,7 @@
             }
 
             if (target) {
-                target.focus();
+                target.focus({ preventScroll: true });
             }
         }
 
@@ -2316,7 +2391,7 @@
 
             if (state.inputOrder.length > 0) {
                 const first = document.getElementById(state.inputOrder[0]);
-                if (first) first.focus();
+                if (first) first.focus({ preventScroll: true });
             }
         }
 
@@ -2333,7 +2408,7 @@
                 const key = state.inputOrder[step];
                 const el = document.getElementById(key);
                 if (el) {
-                    el.focus();
+                    el.focus({ preventScroll: true });
                     if (key === 'ans-dot') {
                         fillDecimalDot(el, false);
                     } else {
