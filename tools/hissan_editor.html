@@ -490,10 +490,10 @@
         }
 
         /* たし算答えマスの境界線上メモ（ノート仕様・小3〜4）
-           ★各桁への繰り上がりは前桁との境界線（マスの右境界）上に配置され、
-             答え入力マス（右下バッジ）の真上に整列する！ */
+           ★各桁への繰り上がりは前桁との境界線（マスの右境界）上に配置 */
         .cell.has-carry .input-cell.carry-note,
         .input-cell.add-carry-note {
+            top: -4px;
             left: auto;
             right: -10px;
         }
@@ -542,7 +542,7 @@
             box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.25);
         }
 
-        /* 小数点 */
+        /* 小数点（固定表示用：行1・行2および自動表示時） */
         .decimal-dot {
             position: absolute;
             right: -3.5px;
@@ -552,7 +552,57 @@
             background-color: #0F172A;
             border-radius: 50%;
             pointer-events: none;
-            z-index: 10;
+            z-index: 25;
+        }
+
+        /* 答えの小数点（児童が「.」キーまたはタップで打つ対話型入力枠） */
+        .input-dot {
+            position: absolute;
+            right: -8px;
+            bottom: 4px;
+            width: 16px;
+            height: 16px;
+            border: 2px dashed #D97706;
+            border-radius: 50%;
+            background-color: #FFFBEB;
+            color: transparent;
+            text-align: center;
+            outline: none;
+            cursor: pointer;
+            z-index: 22;
+            padding: 0;
+            margin: 0;
+            transition: all 0.15s ease;
+            caret-color: transparent;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+        }
+
+        .input-dot:hover {
+            background-color: #FEF3C7;
+            transform: scale(1.15);
+        }
+
+        .input-dot:focus {
+            border: 2px solid #D97706;
+            background-color: #FDE68A;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.35);
+            transform: scale(1.25);
+            z-index: 30;
+        }
+
+        .input-dot.dot-filled {
+            border: 2px solid #16A34A;
+            background: radial-gradient(circle, #0F172A 42%, #FFFFFF 48%);
+        }
+
+        .input-dot.correct {
+            border: 2px solid #1B5E20 !important;
+            background: radial-gradient(circle, #0F172A 42%, #C8E6C9 48%) !important;
+        }
+
+        .input-dot.wrong {
+            border: 2px solid #DC2626 !important;
+            background-color: #FFCDD2 !important;
         }
 
         /* 斜線（ひき算の繰り下がり） */
@@ -823,8 +873,8 @@
                 <div class="style-cards">
                     <div class="style-card active" onclick="setStyle('s1')" id="scard-s1">
                         <span class="style-card-badge badge-s1">小3〜4 ノート風</span>
-                        <div class="style-card-title">① 答えマス左上</div>
-                        <div class="style-card-desc">答えのマス（3行目）の左上に小さくメモ。実戦的ノート仕様。</div>
+                        <div class="style-card-title">① 答えマス境界線</div>
+                        <div class="style-card-desc">答えの行の位の境界線上に小さくメモ。実戦的ノート仕様。</div>
                     </div>
                     <div class="style-card" onclick="setStyle('s2')" id="scard-s2">
                         <span class="style-card-badge badge-s2">小2 導入風</span>
@@ -868,11 +918,11 @@
                 <button class="btn-apply" onclick="applyCustomProblem()">適用</button>
             </div>
 
-            <!-- ⑤ たし算・ひき算 手順フロープリセット（今回の主役） -->
+            <!-- ⑤ たし算 手順フロープリセット（4大基本パターン＋最上位＆小数点オプション） -->
             <div class="flow-preset-box" id="flow-preset-box" style="margin-bottom: 16px; background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: 12px; padding: 12px;">
                 <div style="font-size: 0.9rem; font-weight: 800; color: #166534; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                    <span>🎯 たし算の手順パターン（手の運び）</span>
-                    <span style="font-size: 0.72rem; color: #15803D; font-weight: 700;">先生と定義した全体系</span>
+                    <span>🎯 たし算の4大基本パターン（書く順番）</span>
+                    <span style="font-size: 0.72rem; color: #15803D; font-weight: 700;">全角・半角フリー</span>
                 </div>
 
                 <!-- 4つのメインパターンボタン -->
@@ -880,37 +930,37 @@
                     <button class="btn-flow active" onclick="setAdditionFlowPattern('ans_rtl_memo_after')" id="flow-btn-after">
                         <span class="flow-icon">📝</span>
                         <div class="flow-text">
-                            <strong>① 下から・メモ後</strong>
+                            <strong>① 小さい位から（メモ後）</strong>
                             <small>答え書く → 繰上メモ</small>
                         </div>
                     </button>
                     <button class="btn-flow" onclick="setAdditionFlowPattern('ans_rtl_memo_before')" id="flow-btn-before">
                         <span class="flow-icon">⚡</span>
                         <div class="flow-text">
-                            <strong>② 下から・メモ先</strong>
+                            <strong>② 小さい位から（メモ先）</strong>
                             <small>繰上メモ → 答え書く</small>
                         </div>
                     </button>
                     <button class="btn-flow" onclick="setAdditionFlowPattern('ans_rtl_nomemo')" id="flow-btn-rtl-nomemo">
                         <span class="flow-icon">🧮</span>
                         <div class="flow-text">
-                            <strong>③ 下から・メモなし</strong>
-                            <small>暗算・答え直打ち</small>
+                            <strong>③ 小さい位から（メモ無し）</strong>
+                            <small>暗算・下の位から直打ち</small>
                         </div>
                     </button>
                     <button class="btn-flow" onclick="setAdditionFlowPattern('ans_ltr_nomemo')" id="flow-btn-ltr-nomemo">
                         <span class="flow-icon">🚀</span>
                         <div class="flow-text">
-                            <strong>④ 上の位から直打ち</strong>
-                            <small>左から先読み速算</small>
+                            <strong>④ 大きい位から（メモ無し）</strong>
+                            <small>暗算・上の位から直打ち</small>
                         </div>
                     </button>
                 </div>
 
-                <!-- サブオプション：最後の位のメモ ＆ 繰り上がりメモの所属位 -->
+                <!-- サブオプション：一番上の位のメモ ＆ 答えの小数点 -->
                 <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; background: white; padding: 10px; border-radius: 8px; border: 1px solid #BBF7D0;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; color: #14532D;">最後の位の繰り上がりメモ：</span>
+                        <span style="font-weight: 700; color: #14532D;">一番上の位のくり上がり：</span>
                         <div style="display: flex; gap: 8px;">
                             <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;">
                                 <input type="radio" name="highestCarry" value="skip" checked onchange="setHighestCarryMode(this.value)">
@@ -923,15 +973,19 @@
                         </div>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #BBF7D0; padding-top: 6px;">
-                        <span style="font-weight: 700; color: #14532D;">繰上メモの所属位（マスの位置）：</span>
+                        <span style="font-weight: 700; color: #14532D;">答えの小数点（小数時）：</span>
                         <div style="display: flex; gap: 8px;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;" title="教科書標準：一の位のくり上がりは十の位（左の列）に書く">
-                                <input type="radio" name="memoColPos" value="next_col" checked onchange="setMemoColPosMode(this.value)">
-                                <span>次の位（左の列・標準）</span>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;" title="数字をすべて計算し終えた最後に小数点を打つ">
+                                <input type="radio" name="decimalRule" value="after" checked onchange="setDecimalRuleMode(this.value)">
+                                <span>後から打つ</span>
                             </label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;" title="当位仕様：6+7=13のとき、このマスの左上に1、下に3と書く">
-                                <input type="radio" name="memoColPos" value="curr_col" onchange="setMemoColPosMode(this.value)">
-                                <span>計算した位（当位・同じマス）</span>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;" title="計算を始める前にまず上の小数点に揃えて打つ">
+                                <input type="radio" name="decimalRule" value="before" onchange="setDecimalRuleMode(this.value)">
+                                <span>初めに打つ</span>
+                            </label>
+                            <label style="cursor: pointer; display: flex; align-items: center; gap: 3px;" title="最初から小数点を表示しておき、数字のみ入力する">
+                                <input type="radio" name="decimalRule" value="auto" onchange="setDecimalRuleMode(this.value)">
+                                <span>自動表示</span>
                             </label>
                         </div>
                     </div>
@@ -1013,7 +1067,7 @@
 
                 <!-- ガイド説明 -->
                 <div class="sim-guide-box" id="sim-guide-box">
-                    <strong>操作ガイド：</strong> 実際にキーボードで数字を入力すると、設定された順序で次のマスへ自動移動します。Backspaceで前のマスへ戻れます。
+                    <strong>操作ガイド：</strong> キーボード（<strong>全角・半角どちらでも可</strong>）で数字を入力すると自動で次のマスへ進みます。小数点は<strong>「.」キー</strong>または<strong>小数点丸枠のタップ</strong>で打てます（Backspaceで戻れます）。
                 </div>
             </div>
         </div>
@@ -1031,10 +1085,26 @@
     </div>
 
     <script>
+        // --- 全角→半角 変換ユーティリティ ---
+        function toHalfWidthNumberString(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                .replace(/[．。・]/g, '.')
+                .replace(/[^0-9.]/g, '');
+        }
+
+        function normalizeHalfWidthDigit(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+                .replace(/[^0-9]/g, '');
+        }
+
         // --- 状態管理ステート ---
         const state = {
             op: 'add',             // 'add' | 'sub' | 'mul' | 'div'
-            style: 's1',           // 's1' (答えマス左上) | 's2' (最上段) | 's3' (暗算・なし) | 's4' (自由・任意)
+            style: 's1',           // 's1' (答えマス境界線) | 's2' (一番上の段) | 's3' (暗算・なし) | 's4' (自由・任意)
             numA: '4.86',
             numB: '3.17',
             
@@ -1044,10 +1114,10 @@
             slashRule: 'auto',     // 'auto' | 'tap' | 'none'
             showBadges: true,
             
-            // たし算 手順パターン（話合いに基づく全体系）
+            // たし算 4大基本パターン＋最上位＆小数点オプション
             addFlowPattern: 'ans_rtl_memo_after', // 'ans_rtl_memo_after' | 'ans_rtl_memo_before' | 'ans_rtl_nomemo' | 'ans_ltr_nomemo'
-            highestCarry: 'skip',                  // 'skip' (直書き) | 'write' (メモを書く)
-            memoColPos: 'next_col',               // 'next_col' (次の位・左の列・標準) | 'curr_col' (計算した位・当位・同じマス)
+            highestCarry: 'skip',                  // 'skip' (書かない・直書き) | 'write' (メモを書く)
+            decimalRule: 'after',                  // 'after' (後から打つ) | 'before' (初めに打つ) | 'auto' (自動表示)
             
             // 算出されたデータ
             gridModel: null,
@@ -1058,33 +1128,33 @@
         // --- プリセット問題の定義 ---
         const presets = {
             add: [
-                { label: '小4 小数2回繰り上がり', a: '4.86', b: '3.17' },
-                { label: '小4 空位の0があるたし算', a: '5.04', b: '4.07' },
-                { label: '小3 2けた+2けた（1回繰り上がり）', a: '38', b: '25' },
-                { label: '小3 3けた+3けた（2回繰り上がり）', a: '154', b: '267' },
-                { label: '小2 繰り上がり初導入', a: '28', b: '15' }
+                { label: '小4 小数2回繰り上がり', a: '4.86', b: '3.17', grade: 4 },
+                { label: '小4 空位の0があるたし算', a: '5.04', b: '4.07', grade: 4 },
+                { label: '小3 2けた+2けた（1回繰り上がり）', a: '38', b: '25', grade: 3 },
+                { label: '小3 3けた+3けた（2回繰り上がり）', a: '154', b: '267', grade: 3 },
+                { label: '小2 繰り上がり初導入', a: '28', b: '15', grade: 2 }
             ],
             sub: [
-                { label: '小4 小数の繰り下がり', a: '5.24', b: '2.87' },
-                { label: '小4 0を跨ぐ繰り下がり', a: '5.03', b: '2.67' },
-                { label: '小3 2けた-2けた（1回繰り下がり）', a: '52', b: '27' },
-                { label: '小3 3けた-3けた（2回繰り下がり）', a: '415', b: '137' },
-                { label: '小2 繰り下がり初導入', a: '43', b: '18' }
+                { label: '小4 小数の繰り下がり', a: '5.24', b: '2.87', grade: 4 },
+                { label: '小4 0を跨ぐ繰り下がり', a: '5.03', b: '2.67', grade: 4 },
+                { label: '小3 2けた-2けた（1回繰り下がり）', a: '52', b: '27', grade: 3 },
+                { label: '小3 3けた-3けた（2回繰り下がり）', a: '415', b: '137', grade: 3 },
+                { label: '小2 繰り下がり初導入', a: '43', b: '18', grade: 2 }
             ],
             mul: [
-                { label: '小3 2けた×1けた', a: '24', b: '3' },
-                { label: '小3 2けた×2けた', a: '48', b: '36' },
-                { label: '小4 末尾が0の工夫算', a: '240', b: '30' }
+                { label: '小3 2けた×1けた', a: '24', b: '3', grade: 3 },
+                { label: '小3 2けた×2けた', a: '48', b: '36', grade: 3 },
+                { label: '小4 末尾が0の工夫算', a: '240', b: '30', grade: 4 }
             ],
             div: [
-                { label: '小4 2けた÷1けた（あまりなし）', a: '75', b: '3' },
-                { label: '小4 3けた÷2けた（見当づけ）', a: '96', b: '23' }
+                { label: '小4 2けた÷1けた（あまりなし）', a: '75', b: '3', grade: 4 },
+                { label: '小4 3けた÷2けた（見当づけ）', a: '96', b: '23', grade: 4 }
             ]
         };
 
         // --- スタイル定義メタデータ ---
         const styleMeta = {
-            s1: { name: '小3〜4 ノート風', memoLoc: 'ans_tl', memoRule: 'optional', flow: 'ans_first', badge: 'badge-s1' },
+            s1: { name: '小3〜4 ノート風（答えマス境界線）', memoLoc: 'ans_tl', memoRule: 'optional', flow: 'ans_first', badge: 'badge-s1' },
             s2: { name: '小2 導入風（一番上の段）', memoLoc: 'top_row', memoRule: 'required', flow: 'ans_first', badge: 'badge-s2' },
             s3: { name: '暗算・塾速算（メモなし）', memoLoc: 'hidden', memoRule: 'hidden', flow: 'ans_first', badge: 'badge-s3' },
             s4: { name: '個別最適（自由・メモ任意）', memoLoc: 'ans_tl', memoRule: 'optional', flow: 'free', badge: 'badge-s4' }
@@ -1097,17 +1167,17 @@
             const initStyle = params.get('style') || 's1';
             const initFlow = params.get('flow');
             const initHighest = params.get('highest');
-            const initMemoCol = params.get('memoCol');
+            const initDecimal = params.get('decimal');
             const numA = params.get('numA');
             const numB = params.get('numB');
 
             setOp(initOp);
             setStyle(initStyle);
             if (numA && numB) {
-                state.numA = numA;
-                state.numB = numB;
-                document.getElementById('custom-numA').value = numA;
-                document.getElementById('custom-numB').value = numB;
+                state.numA = toHalfWidthNumberString(numA);
+                state.numB = toHalfWidthNumberString(numB);
+                document.getElementById('custom-numA').value = state.numA;
+                document.getElementById('custom-numB').value = state.numB;
             }
             if (initFlow) setAdditionFlowPattern(initFlow);
             if (initHighest) {
@@ -1115,9 +1185,9 @@
                 const radio = document.querySelector(`input[name="highestCarry"][value="${initHighest}"]`);
                 if (radio) radio.checked = true;
             }
-            if (initMemoCol) {
-                setMemoColPosMode(initMemoCol);
-                const radio = document.querySelector(`input[name="memoColPos"][value="${initMemoCol}"]`);
+            if (initDecimal) {
+                setDecimalRuleMode(initDecimal);
+                const radio = document.querySelector(`input[name="decimalRule"][value="${initDecimal}"]`);
                 if (radio) radio.checked = true;
             }
         });
@@ -1174,15 +1244,15 @@
             recalcGrid();
         }
 
-        // 最後の位の繰り上がりメモ設定
+        // 一番上の位の繰り上がりメモ設定
         function setHighestCarryMode(mode) {
             state.highestCarry = mode;
             recalcGrid();
         }
 
-        // 繰り上がりメモの所属位（次の位 vs 当位）
-        function setMemoColPosMode(mode) {
-            state.memoColPos = mode;
+        // 答えの小数点ルール設定（after: 後から打つ | before: 初めに打つ | auto: 自動表示）
+        function setDecimalRuleMode(mode) {
+            state.decimalRule = mode;
             recalcGrid();
         }
 
@@ -1204,7 +1274,7 @@
             recalcGrid();
         }
 
-        // プリセット描画
+        // プリセット描画（学年に応じてメモ位置スタイルも自動連動）
         function renderPresets() {
             const container = document.getElementById('preset-container');
             container.innerHTML = '';
@@ -1221,17 +1291,28 @@
                     state.numB = p.b;
                     document.getElementById('custom-numA').value = p.a;
                     document.getElementById('custom-numB').value = p.b;
+
+                    // 学年に応じてメモの場所を移動（小2→一番上の段、小3〜4→答えマス境界線）
+                    if (p.grade === 2 && state.style === 's1') {
+                        setStyle('s2');
+                        return;
+                    } else if ((p.grade === 3 || p.grade === 4) && state.style === 's2') {
+                        setStyle('s1');
+                        return;
+                    }
                     recalcGrid();
                 };
                 container.appendChild(btn);
             });
         }
 
-        // カスタム数値適用
+        // カスタム数値適用（全角数字・全角ピリオドも自動で半角に正規化）
         function applyCustomProblem() {
-            const valA = document.getElementById('custom-numA').value.trim();
-            const valB = document.getElementById('custom-numB').value.trim();
+            const valA = toHalfWidthNumberString(document.getElementById('custom-numA').value.trim());
+            const valB = toHalfWidthNumberString(document.getElementById('custom-numB').value.trim());
             if (!valA || !valB) return;
+            document.getElementById('custom-numA').value = valA;
+            document.getElementById('custom-numB').value = valB;
             state.numA = valA;
             state.numB = valB;
             recalcGrid();
@@ -1335,7 +1416,7 @@
             buildAddInputOrder();
         }
 
-        // 入力順（inputOrder）の構築（先生との話合いに基づく全パターン完全対応）
+        // 入力順（inputOrder）の構築（たし算4大基本パターン＋最上位繰上＋小数点タイミング対応）
         function buildAddInputOrder() {
             const inputOrder = [];
             const answers = {};
@@ -1345,51 +1426,32 @@
             const pattern = state.addFlowPattern; // 'ans_rtl_memo_after' | 'ans_rtl_memo_before' | 'ans_rtl_nomemo' | 'ans_ltr_nomemo'
             const showMemo = (state.style !== 's3' && state.memoRule !== 'hidden' && pattern !== 'ans_rtl_nomemo' && pattern !== 'ans_ltr_nomemo');
             const writeHighestMemo = (state.highestCarry === 'write');
-            const isCurrColMemo = (state.memoColPos === 'curr_col');
 
             // 1. 各桁の正解値を answers マップに登録
-            if (isCurrColMemo) {
-                // 当位（同じマス仕様）：当位で発生した繰り上がり（carryOut）を当位の左上に書く
-                gm.colResults.forEach(cr => {
-                    const cIdx = cr.colIdxFromRight;
-                    answers[`ans-c${cIdx}`] = cr.ansDigit;
-                    const noteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
-                    if (cr.carryOut > 0) {
+            gm.colResults.forEach(cr => {
+                const cIdx = cr.colIdxFromRight;
+                answers[`ans-c${cIdx}`] = cr.ansDigit;
+                const noteKey = isTopRowMemo ? `topnote-c${cIdx + 1}` : `ansnote-c${cIdx + 1}`;
+                if (cr.carryOut > 0) {
+                    if (cIdx + 1 < gm.maxLen || writeHighestMemo) {
                         answers[noteKey] = cr.carryOut;
                     }
-                });
-                if (gm.hasHighestOverflow) {
-                    answers[`ans-c${gm.maxLen}`] = gm.carryHighest;
                 }
-            } else {
-                // 次の位（標準・教科書仕様）：各桁で発生した繰り上がりは「次の位（左の列）」に書く
-                gm.colResults.forEach(cr => {
-                    const cIdx = cr.colIdxFromRight;
-                    answers[`ans-c${cIdx}`] = cr.ansDigit;
-                    const noteKey = isTopRowMemo ? `topnote-c${cIdx + 1}` : `ansnote-c${cIdx + 1}`;
-                    if (cr.carryOut > 0) {
-                        if (cIdx + 1 < gm.maxLen || writeHighestMemo) {
-                            answers[noteKey] = cr.carryOut;
-                        }
-                    }
-                });
-                if (gm.hasHighestOverflow) {
-                    answers[`ans-c${gm.maxLen}`] = gm.carryHighest;
-                    if (writeHighestMemo) {
-                        const topHighestKey = isTopRowMemo ? `topnote-c${gm.maxLen}` : `ansnote-c${gm.maxLen}`;
-                        answers[topHighestKey] = gm.carryHighest;
-                    }
+            });
+            if (gm.hasHighestOverflow) {
+                answers[`ans-c${gm.maxLen}`] = gm.carryHighest;
+                if (writeHighestMemo) {
+                    const topHighestKey = isTopRowMemo ? `topnote-c${gm.maxLen}` : `ansnote-c${gm.maxLen}`;
+                    answers[topHighestKey] = gm.carryHighest;
                 }
             }
 
-            // 2. パターンに応じた inputOrder の構築
+            // 2. 4大パターンに応じた inputOrder の構築
             if (state.flowRule === 'free' || state.style === 's4') {
                 // 自由モード（メモは任意、どこからでも入力可）
                 for (let c = 0; c < gm.maxLen; c++) {
                     inputOrder.push(`ans-c${c}`);
-                    const noteKey = isCurrColMemo 
-                        ? (isTopRowMemo ? `topnote-c${c}` : `ansnote-c${c}`)
-                        : (isTopRowMemo ? `topnote-c${c + 1}` : `ansnote-c${c + 1}`);
+                    const noteKey = isTopRowMemo ? `topnote-c${c + 1}` : `ansnote-c${c + 1}`;
                     if (showMemo && answers[noteKey] !== undefined) {
                         inputOrder.push(noteKey);
                     }
@@ -1398,7 +1460,7 @@
                     inputOrder.push(`ans-c${gm.maxLen}`);
                 }
             } else if (pattern === 'ans_ltr_nomemo') {
-                // ④ 【上の位から直打ち】（先読み暗算・速算）
+                // ④ 【大きい位から書く（メモ無し）】
                 if (gm.hasHighestOverflow) {
                     inputOrder.push(`ans-c${gm.maxLen}`);
                 }
@@ -1406,90 +1468,68 @@
                     inputOrder.push(`ans-c${c}`);
                 }
             } else if (pattern === 'ans_rtl_nomemo') {
-                // ③ 【下の位から・メモなし】（暗算・標準）
+                // ③ 【小さい位から書く（メモ無し）】
                 for (let c = 0; c < gm.maxLen; c++) {
                     inputOrder.push(`ans-c${c}`);
                 }
                 if (gm.hasHighestOverflow) {
                     inputOrder.push(`ans-c${gm.maxLen}`);
                 }
-            } else if (isCurrColMemo) {
-                // ★ 当位（同じマス仕様）の場合の入力順
-                if (pattern === 'ans_rtl_memo_before') {
-                    // 当位・メモ先: 各桁で発生する繰り上がりメモを先に入力 → 答え
-                    gm.colResults.forEach(cr => {
-                        const cIdx = cr.colIdxFromRight;
-                        const noteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
-                        if (showMemo && cr.carryOut > 0) {
-                            inputOrder.push(noteKey);
+            } else if (pattern === 'ans_rtl_memo_before') {
+                // ② 【小さい位から書く（メモあり、メモが先）】
+                gm.colResults.forEach(cr => {
+                    const cIdx = cr.colIdxFromRight;
+                    const nextCol = cIdx + 1;
+                    const isNextHighest = (nextCol === gm.maxLen);
+                    const outNoteKey = isTopRowMemo ? `topnote-c${nextCol}` : `ansnote-c${nextCol}`;
+
+                    // ① 発生した繰り上がりメモを先に入力
+                    if (showMemo && cr.carryOut > 0) {
+                        if (!isNextHighest || writeHighestMemo) {
+                            inputOrder.push(outNoteKey);
                         }
-                        inputOrder.push(`ans-c${cIdx}`);
-                    });
-                    if (gm.hasHighestOverflow) {
-                        inputOrder.push(`ans-c${gm.maxLen}`);
                     }
-                } else {
-                    // 当位・メモ後: 各桁の答え → その桁で発生した繰り上がりメモ
-                    gm.colResults.forEach(cr => {
-                        const cIdx = cr.colIdxFromRight;
-                        const noteKey = isTopRowMemo ? `topnote-c${cIdx}` : `ansnote-c${cIdx}`;
-                        inputOrder.push(`ans-c${cIdx}`);
-                        if (showMemo && cr.carryOut > 0) {
-                            inputOrder.push(noteKey);
-                        }
-                    });
-                    if (gm.hasHighestOverflow) {
-                        inputOrder.push(`ans-c${gm.maxLen}`);
-                    }
+
+                    // ② 当位の答えを入力
+                    inputOrder.push(`ans-c${cIdx}`);
+                });
+
+                // 最上位の答え
+                if (gm.hasHighestOverflow) {
+                    inputOrder.push(`ans-c${gm.maxLen}`);
                 }
             } else {
-                // ★ 次の位（標準・教科書仕様）の場合の入力順
-                if (pattern === 'ans_rtl_memo_before') {
-                    // ② 【下の位から・繰り上がりメモを先に入力】（各桁で発生した繰り上がりメモを先に書き、その後に答えを書く）
-                    gm.colResults.forEach(cr => {
-                        const cIdx = cr.colIdxFromRight;
-                        const nextCol = cIdx + 1;
-                        const isNextHighest = (nextCol === gm.maxLen);
-                        const outNoteKey = isTopRowMemo ? `topnote-c${nextCol}` : `ansnote-c${nextCol}`;
+                // ① 【小さい位から書く（メモあり、メモが後）】
+                gm.colResults.forEach(cr => {
+                    const cIdx = cr.colIdxFromRight;
+                    const nextCol = cIdx + 1;
+                    const isNextHighest = (nextCol === gm.maxLen);
+                    const outNoteKey = isTopRowMemo ? `topnote-c${nextCol}` : `ansnote-c${nextCol}`;
 
-                        // ① 発生した繰り上がりメモを先に入力
-                        if (showMemo && cr.carryOut > 0) {
-                            if (!isNextHighest || writeHighestMemo) {
-                                inputOrder.push(outNoteKey);
-                            }
+                    // ① 当位の答えを入力
+                    inputOrder.push(`ans-c${cIdx}`);
+
+                    // ② 発生した繰り上がりメモを後に入力
+                    if (showMemo && cr.carryOut > 0) {
+                        if (!isNextHighest || writeHighestMemo) {
+                            inputOrder.push(outNoteKey);
                         }
-
-                        // ② 当位の答えを入力
-                        inputOrder.push(`ans-c${cIdx}`);
-                    });
-
-                    // 最上位の答え
-                    if (gm.hasHighestOverflow) {
-                        inputOrder.push(`ans-c${gm.maxLen}`);
                     }
+                });
+
+                // 最上位の答え
+                if (gm.hasHighestOverflow) {
+                    inputOrder.push(`ans-c${gm.maxLen}`);
+                }
+            }
+
+            // 3. 小数点の入力ステップ追加（小数の問題時：初めに打つ or 後から打つ）
+            if (gm.isDecimal && state.decimalRule !== 'auto') {
+                answers['ans-dot'] = '.';
+                if (state.decimalRule === 'before') {
+                    inputOrder.unshift('ans-dot');
                 } else {
-                    // ① 【下の位から・繰り上がりメモを後に入力】（教科書標準・当位の答え書く → 次の位へメモ）
-                    gm.colResults.forEach(cr => {
-                        const cIdx = cr.colIdxFromRight;
-                        const nextCol = cIdx + 1;
-                        const isNextHighest = (nextCol === gm.maxLen);
-                        const outNoteKey = isTopRowMemo ? `topnote-c${nextCol}` : `ansnote-c${nextCol}`;
-
-                        // ① 当位の答えを入力
-                        inputOrder.push(`ans-c${cIdx}`);
-
-                        // ② 発生した繰り上がりメモを後に入力
-                        if (showMemo && cr.carryOut > 0) {
-                            if (!isNextHighest || writeHighestMemo) {
-                                inputOrder.push(outNoteKey);
-                            }
-                        }
-                    });
-
-                    // 最上位の答え
-                    if (gm.hasHighestOverflow) {
-                        inputOrder.push(`ans-c${gm.maxLen}`);
-                    }
+                    inputOrder.push('ans-dot');
                 }
             }
 
@@ -1692,6 +1732,7 @@
                 const needAnsInput = state.inputOrder.includes(ansKey);
                 const hasCarryNote = (gm.type === 'add' && !isTopRow && showMemo && state.inputOrder.includes(noteKey));
                 const isDotHere = (gm.isDecimal && cFromRight === gm.dLen && needAnsInput);
+                const needInteractiveDot = (isDotHere && state.inputOrder.includes('ans-dot'));
                 const isLastCol = (c === 0);
 
                 gridHtml += `
@@ -1702,7 +1743,9 @@
                     ${needAnsInput ? `
                         <input type="tel" inputmode="numeric" class="input-ans auto-ans" id="${ansKey}" data-key="${ansKey}" maxlength="1">
                     ` : ''}
-                    ${isDotHere ? '<span class="decimal-dot"></span>' : ''}
+                    ${isDotHere ? (needInteractiveDot ? `
+                        <input type="text" inputmode="decimal" class="input-dot" id="ans-dot" data-key="ans-dot" maxlength="1" readonly title="「.」キーまたはタップで小数点を打つ">
+                    ` : '<span class="decimal-dot"></span>') : ''}
                 </div>
                 `;
             }
@@ -1714,7 +1757,7 @@
             attachStepOrderBadges();
         }
 
-        // --- 手順番号バッジの設置（メモは赤、答えは青） ---
+        // --- 手順番号バッジの設置（メモは赤、答えは青、小数点はオレンジ） ---
         function attachStepOrderBadges() {
             state.inputOrder.forEach((key, orderIdx) => {
                 const el = document.getElementById(key);
@@ -1724,9 +1767,17 @@
                     badge.textContent = orderIdx + 1;
                     badge.style.display = state.showBadges ? 'flex' : 'none';
 
-                    if (key.includes('ansnote')) {
-                        // たし算：答えマスの境界線上メモ（メモ枠と被らないよう、メモ枠の真上に配置）
-                        badge.style.top = '-34px';
+                    if (key === 'ans-dot') {
+                        // 答えの小数点バッジ（小数点の真下・境界線上に配置）
+                        badge.style.bottom = '-18px';
+                        badge.style.right = '-9px';
+                        badge.style.top = 'auto';
+                        badge.style.left = 'auto';
+                        badge.style.background = '#D97706'; // アンバー色バッジ（小数点手順）
+                        badge.title = `手順${orderIdx + 1}: 答えの小数点を打つ（「.」キーまたはタップ）`;
+                    } else if (key.includes('ansnote')) {
+                        // たし算：答えマスの境界線上メモ（上段の小数点やメモ枠と被らないよう配置）
+                        badge.style.top = '-40px';
                         badge.style.right = '-9px';
                         badge.style.bottom = 'auto';
                         badge.style.left = 'auto';
@@ -1749,10 +1800,12 @@
                         badge.style.background = '#DC2626'; // 赤色バッジ（メモ手順）
                         badge.title = `手順${orderIdx + 1}: くり上がりメモ`;
                     } else {
-                        badge.style.bottom = '-7px';
-                        badge.style.right = '-7px';
+                        // 答えの数字マス：マスの真下中央に配置（境界線上の小数点と重ならないようにする）
+                        badge.style.bottom = '-9px';
+                        badge.style.left = '50%';
+                        badge.style.right = 'auto';
                         badge.style.top = 'auto';
-                        badge.style.left = 'auto';
+                        badge.style.transform = 'translateX(-50%)';
                         badge.style.background = '#2563EB'; // 青色バッジ（答え入力）
                         badge.title = `手順${orderIdx + 1}: 答えの入力`;
                     }
@@ -1762,17 +1815,67 @@
             });
         }
 
-        // --- イベントリスナー設定（キーボード＆フォーカス制御） ---
+        // --- 小数点を打つ共通ヘルパー ---
+        function fillDecimalDot(dotInput, advanceFocus = true) {
+            if (!dotInput) return;
+            dotInput.value = '.';
+            dotInput.classList.add('dot-filled');
+            dotInput.classList.remove('correct', 'wrong');
+            if (advanceFocus && state.flowRule !== 'free') {
+                moveSimFocus(dotInput, 1);
+            }
+        }
+
+        function clearDecimalDot(dotInput) {
+            if (!dotInput) return;
+            dotInput.value = '';
+            dotInput.classList.remove('dot-filled', 'correct', 'wrong');
+        }
+
+        // --- イベントリスナー設定（キーボード＆フォーカス制御・全角半角シームレス対応） ---
         function setupGridEventListeners() {
             const inputs = Array.from(document.querySelectorAll('.hissan-grid input'));
 
             inputs.forEach(input => {
+                const isDotField = (input.dataset.key === 'ans-dot');
+
+                if (isDotField) {
+                    // 小数点入力欄：クリック／タップでもすぐに打てる
+                    input.addEventListener('click', function() {
+                        fillDecimalDot(this, true);
+                    });
+
+                    input.addEventListener('keydown', function(e) {
+                        const isDotKey = (
+                            e.key === '.' || e.key === '．' || e.key === '。' || e.key === '・' || e.key === ',' ||
+                            e.code === 'Period' || e.code === 'NumpadDecimal' ||
+                            e.key === ' '
+                        );
+                        if (isDotKey) {
+                            e.preventDefault();
+                            fillDecimalDot(this, true);
+                        } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                            e.preventDefault();
+                            if (this.value !== '') {
+                                clearDecimalDot(this);
+                            } else if (state.flowRule !== 'free') {
+                                moveSimFocus(this, -1);
+                            }
+                        } else if (e.key === 'Enter') {
+                            e.preventDefault();
+                            checkSimAnswer();
+                        }
+                    });
+                    return;
+                }
+
                 input.addEventListener('focus', function() {
                     this.select();
                 });
 
                 input.addEventListener('input', function() {
-                    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 1);
+                    // 全角数字（０〜９）も自動で半角数字（0〜9）に変換
+                    this.value = normalizeHalfWidthDigit(this.value);
                     this.classList.remove('correct', 'wrong');
 
                     // ひき算の自動斜線判定
@@ -1795,6 +1898,37 @@
                 });
 
                 input.addEventListener('keydown', function(e) {
+                    // どのマスにフォーカスがあっても、「.」キーを押したときに次の手順（または未入力のans-dot）が小数点なら反応させるサポート
+                    const isDotKey = (
+                        e.key === '.' || e.key === '．' || e.key === '。' || e.key === '・' ||
+                        e.code === 'Period' || e.code === 'NumpadDecimal'
+                    );
+                    if (isDotKey) {
+                        const dotEl = document.getElementById('ans-dot');
+                        if (dotEl) {
+                            e.preventDefault();
+                            fillDecimalDot(dotEl, false);
+                            dotEl.focus();
+                            if (state.flowRule !== 'free') {
+                                moveSimFocus(dotEl, 1);
+                            }
+                            return;
+                        }
+                    }
+
+                    // 日本語IME（全角モード）がONのまま数字キーを押した場合でも、物理キーコードから即座に半角数字を入力して次へ進める
+                    const codeMatch = (e.code || '').match(/^(?:Digit|Numpad)([0-9])$/);
+                    const fullWidthDigit = normalizeHalfWidthDigit(e.key || '');
+                    if ((codeMatch || fullWidthDigit) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                        const digitChar = codeMatch ? codeMatch[1] : fullWidthDigit;
+                        if (e.isComposing || (e.key && e.key !== digitChar)) {
+                            e.preventDefault();
+                            this.value = digitChar;
+                            this.dispatchEvent(new Event('input', { bubbles: true }));
+                            return;
+                        }
+                    }
+
                     if (e.key === 'Backspace' && this.value === '') {
                         e.preventDefault();
                         if (state.flowRule !== 'free') moveSimFocus(this, -1);
@@ -1880,7 +2014,7 @@
                     confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
                 } else {
                     banner.className = 'judge-result-banner fail';
-                    banner.innerHTML = `❌ 答えまたはメモを見直してみよう！`;
+                    banner.innerHTML = `❌ 答え・小数点・メモを見直してみよう！`;
                 }
             } else {
                 // 任意モード
@@ -1890,7 +2024,7 @@
                     confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
                 } else {
                     banner.className = 'judge-result-banner fail';
-                    banner.innerHTML = `❌ 答えの計算をもう一度確かめてみよう！`;
+                    banner.innerHTML = `❌ 答え（または小数点）をもう一度確かめてみよう！`;
                 }
             }
         }
@@ -1899,7 +2033,7 @@
         function resetSimInputs() {
             document.querySelectorAll('.hissan-grid input').forEach(input => {
                 input.value = '';
-                input.classList.remove('correct', 'wrong');
+                input.classList.remove('correct', 'wrong', 'dot-filled');
             });
             document.querySelectorAll('.crossed-out').forEach(el => el.classList.remove('crossed-out'));
             document.getElementById('judge-banner').className = 'judge-result-banner';
@@ -1925,8 +2059,12 @@
                 const el = document.getElementById(key);
                 if (el) {
                     el.focus();
-                    el.value = state.answers[key];
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (key === 'ans-dot') {
+                        fillDecimalDot(el, false);
+                    } else {
+                        el.value = state.answers[key];
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
                 }
                 step++;
                 setTimeout(playNext, 450);
@@ -1942,7 +2080,7 @@
                 operation: state.op,
                 additionFlowPattern: (state.op === 'add' ? state.addFlowPattern : undefined),
                 highestCarryPolicy: (state.op === 'add' ? state.highestCarry : undefined),
-                memoColumnPolicy: (state.op === 'add' ? state.memoColPos : undefined),
+                decimalPointPolicy: (state.op === 'add' ? state.decimalRule : undefined),
                 problem: { numA: state.numA, numB: state.numB },
                 memoPolicy: state.memoRule,
                 flowPolicy: state.flowRule,
